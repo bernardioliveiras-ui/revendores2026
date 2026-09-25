@@ -1,0 +1,5 @@
+import { eq, sql } from "drizzle-orm";
+import { getDb } from "@/db";
+import { affiliateClicks, affiliateReferrals } from "@/db/schema";
+import { getOptionalEnv } from "@/lib/env";
+export async function GET(request:Request,{params}:{params:Promise<{code:string}>}){const {code}=await params;const db=getDb();const [row]=await db.select().from(affiliateReferrals).where(eq(affiliateReferrals.publicCode,code.toUpperCase())).limit(1);const fallback=new URL("/",request.url);if(!row)return Response.redirect(fallback,302);const now=new Date().toISOString();await Promise.all([db.insert(affiliateClicks).values({referralId:row.id,referrer:(request.headers.get("referer")||"").slice(0,500),userAgent:(request.headers.get("user-agent")||"").slice(0,500),clickedAt:now}),db.update(affiliateReferrals).set({clickCount:sql`${affiliateReferrals.clickCount} + 1`,updatedAt:now}).where(eq(affiliateReferrals.id,row.id))]);const destination=getOptionalEnv("AFFILIATE_DESTINATION_URL");return Response.redirect(destination?new URL(destination):fallback,302);}
