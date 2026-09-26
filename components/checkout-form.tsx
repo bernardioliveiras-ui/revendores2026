@@ -16,6 +16,7 @@ const display = {
 export function CheckoutForm() {
   const [kit, setKit] = useState<KitId>("kit20");
   const [postalCode, setPostalCode] = useState("");
+  const [taxId, setTaxId] = useState("");
   const [shippingType, setShippingType] = useState<"economical" | "express">("economical");
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "credit">("pix");
   const [installments, setInstallments] = useState(1);
@@ -25,6 +26,8 @@ export function CheckoutForm() {
   const [error, setError] = useState("");
   const selected = useMemo(() => display[kit], [kit]);
   const cleanCep = postalCode.replace(/\D/g, "").slice(0, 8);
+  const cleanTaxId = taxId.replace(/\D/g, "").slice(0, 14);
+  const isCnpj = cleanTaxId.length === 14;
 
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("kit");
@@ -69,6 +72,16 @@ export function CheckoutForm() {
     if (!quote || cleanCep.length !== 8) { setError("Calcule o frete informando um CEP válido antes de continuar."); return; }
     setBusy(true); setError("");
     const form = new FormData(event.currentTarget);
+    if (cleanTaxId.length === 14) {
+      const tradeName = String(form.get("companyTradeName") || "").trim();
+      const stateRegistration = String(form.get("stateRegistration") || "").trim();
+      const municipalRegistration = String(form.get("municipalRegistration") || "").trim();
+      if (!tradeName || (!stateRegistration && !municipalRegistration)) {
+        setError("Para CNPJ, informe o nome fantasia e pelo menos uma Inscrição Estadual ou Municipal.");
+        setBusy(false);
+        return;
+      }
+    }
     const payload = Object.fromEntries(form.entries());
     try {
       const response = await fetch("/api/public/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
@@ -101,7 +114,13 @@ export function CheckoutForm() {
         <label>Nome completo<input required name="name" autoComplete="name" /></label>
         <label>E-mail<input required type="email" name="email" autoComplete="email" /></label>
         <label>WhatsApp<input required name="phone" inputMode="tel" autoComplete="tel" /></label>
-        <label>CPF ou CNPJ<input required name="cpfCnpj" inputMode="numeric" /></label>
+        <label>CPF ou CNPJ<input required name="cpfCnpj" inputMode="numeric" value={taxId} onChange={(e) => setTaxId(e.target.value)} /></label>
+        {isCnpj ? <>
+          <label>Nome fantasia da empresa<input required name="companyTradeName" autoComplete="organization" /></label>
+          <label>Inscrição Estadual<input name="stateRegistration" inputMode="text" /></label>
+          <label>Inscrição Municipal<input name="municipalRegistration" inputMode="text" /></label>
+          <p className="company-registration-hint">Para CNPJ, o nome fantasia é obrigatório e você deve informar pelo menos uma inscrição: Estadual ou Municipal.</p>
+        </> : null}
         <label>CEP<input required name="postalCode" inputMode="numeric" autoComplete="postal-code" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} /></label>
         <label>Rua / Avenida<input required name="street" autoComplete="address-line1" /></label>
         <label>Número<input required name="number" /></label>

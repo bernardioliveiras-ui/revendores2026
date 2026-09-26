@@ -57,3 +57,17 @@ Esta versão incorpora ao checkout de revendedores a mesma lógica comercial do 
 A tabela de frete foi reaproveitada do checkout institucional. Ela é uma tabela própria por faixa de CEP usada para os envios via Correios; não é uma consulta em tempo real à API oficial dos Correios.
 
 Em banco já existente, execute `database/migrate-frete-cartao.sql` uma única vez antes de publicar esta versão.
+
+
+## Dados fiscais para CNPJ
+
+No checkout, ao informar um CNPJ, passam a ser obrigatórios:
+
+- nome fantasia da empresa;
+- pelo menos uma inscrição: Estadual ou Municipal.
+
+Esses dados ficam gravados na compra, aparecem no BKO para apoio à emissão da nota fiscal e são copiados para o perfil do revendedor quando o acesso é liberado.
+
+Em banco já existente que já recebeu `migrate-frete-cartao.sql`, execute também `database/migrate-cnpj-fiscal.sql` uma única vez antes de publicar esta versão.
+
+O favicon foi trocado por uma folha verde em fundo transparente, sem o fundo claro/branco anterior.

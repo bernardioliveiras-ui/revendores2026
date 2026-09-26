@@ -5,8 +5,8 @@ export const metadata: Metadata = {
   title: "MIX10 PRO | Programa de Revendedores LORDNUTRI",
   description: "Escolha seu estoque, receba suas caixas e construa suas próprias vendas com MIX10 PRO.",
   icons: {
-    icon: "/icon.png",
-    shortcut: "/icon.png",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
     apple: "/icon.png",
   },
 };

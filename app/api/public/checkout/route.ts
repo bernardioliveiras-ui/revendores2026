@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     const kit = getKit(payload.kit);
     const data = {
       name: clean(payload.name, 120), email: email(payload.email), phone: digits(payload.phone, 15), cpfCnpj: digits(payload.cpfCnpj, 14),
+      companyTradeName: clean(payload.companyTradeName, 160), stateRegistration: clean(payload.stateRegistration, 40), municipalRegistration: clean(payload.municipalRegistration, 40),
       postalCode: digits(payload.postalCode, 8), street: clean(payload.street, 220), number: clean(payload.number, 32), complement: clean(payload.complement, 160),
       district: clean(payload.district, 120), city: clean(payload.city, 120), state: clean(payload.state, 2).toUpperCase(),
     };
@@ -27,6 +28,10 @@ export async function POST(request: Request) {
     const requestedInstallments = Number(payload.installments || 1);
     if (!kit || !data.name || !data.email || data.phone.length < 10 || ![11,14].includes(data.cpfCnpj.length) || data.postalCode.length !== 8 || !data.street || !data.number || !data.district || !data.city || data.state.length !== 2 || payload.acceptedTerms !== "yes" || !paymentMethod || !shippingType) {
       return Response.json({ error: "Confira seus dados, frete, pagamento e aceite os termos para continuar." }, { status: 400 });
+    }
+    const isCompany = data.cpfCnpj.length === 14;
+    if (isCompany && (!data.companyTradeName || (!data.stateRegistration && !data.municipalRegistration))) {
+      return Response.json({ error: "Para CNPJ, informe o nome fantasia e pelo menos uma Inscrição Estadual ou Municipal." }, { status: 400 });
     }
     const installments = paymentMethod === "pix" ? 1 : Math.trunc(requestedInstallments);
     if (installments < 1 || installments > INSTALLMENT_RULES.maxInstallments) return Response.json({ error: "Quantidade de parcelas inválida." }, { status: 400 });
