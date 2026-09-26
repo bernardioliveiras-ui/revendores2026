@@ -20,17 +20,29 @@ export async function POST(request: Request) {
   const db = getDb(); let eventId = "";
   try {
     const payload = await request.json() as AsaasWebhook;
-    eventId = payload.id?.trim() || ""; const eventType = payload.event?.trim() || ""; const paymentId = payload.payment?.id?.trim() || "";
+    eventId = payload.id?.trim() || "";
+    const eventType = payload.event?.trim() || "";
+    const paymentId = payload.payment?.id?.trim() || "";
+    const externalReference = payload.payment?.externalReference?.trim() || "";
     if (!eventId || !eventType) return Response.json({ error: "Evento inválido." }, { status: 400 });
     const [known] = await db.select({ eventId: asaasEvents.eventId }).from(asaasEvents).where(eq(asaasEvents.eventId,eventId)).limit(1);
     if (known) return Response.json({ received:true, duplicate:true });
     try { await db.insert(asaasEvents).values({ eventId, eventType, paymentId:paymentId||null, receivedAt:new Date().toISOString() }); }
     catch (error) { if (isMysqlDuplicateKeyError(error)) return Response.json({ received:true, duplicate:true }); throw error; }
-    if (!paymentId) return Response.json({ received:true, ignored:true });
     const status = purchaseStatus(eventType);
     if (!status) return Response.json({ received:true, ignored:true });
-    const [purchase] = await db.select().from(purchases).where(eq(purchases.asaasPaymentId,paymentId)).limit(1);
+
+    // Parcelamentos podem gerar IDs de cobrança distintos. O externalReference é o purchaseId
+    // e é a chave mais estável; para cobranças avulsas mantemos fallback pelo paymentId.
+    let purchase = null;
+    if (externalReference) {
+      [purchase] = await db.select().from(purchases).where(eq(purchases.id, externalReference)).limit(1);
+    }
+    if (!purchase && paymentId) {
+      [purchase] = await db.select().from(purchases).where(eq(purchases.asaasPaymentId,paymentId)).limit(1);
+    }
     if (!purchase) return Response.json({ received:true, unmatched:true });
+
     const now = new Date().toISOString();
     if (status === "paid") {
       await db.update(purchases).set({ paymentStatus:"paid", shippingStatus: purchase.shippingStatus === "awaiting_payment" ? "separating" : purchase.shippingStatus, updatedAt:now }).where(eq(purchases.id,purchase.id));

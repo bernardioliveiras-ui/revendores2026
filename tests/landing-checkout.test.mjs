@@ -17,8 +17,8 @@ test('kit helper owns authoritative prices', () => {
 test('landing page follows the approved briefing structure and VSL', async () => {
   const page = await read('app/page.tsx');
   for (const copy of [
-    'Com a LordNutri você pode!',
-    'Sua revenda LordNutri em 3 passos',
+    'Com a LORDNUTRI você pode!',
+    'Sua revenda LORDNUTRI em 3 passos',
     'Uma oportunidade em um mercado',
     'Por que escolher MIX10 PRO',
     '5 motivos para revender MIX10 PRO',

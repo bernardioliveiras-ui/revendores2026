@@ -52,3 +52,7 @@ O revendedor não entra no BKO. O menu dele contém apenas:
 - Afiliados.
 
 Cada revendedor só acessa os próprios registros.
+
+## Valores do pedido
+
+O BKO desta versão exibe, por compra, o valor do kit, frete, forma de pagamento, parcelas e total cobrado. Para expedição, a transportadora padrão é Correios; ao marcar como despachado, o BKO pede somente o código de rastreio (opcional).

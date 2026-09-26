@@ -4,7 +4,7 @@ type AsaasEnvironment = "sandbox" | "production";
 type AsaasErrorBody = { errors?: Array<{ code?: string; description?: string }> };
 
 export type AsaasCustomer = { id: string };
-export type AsaasPayment = { id: string; status?: string; invoiceUrl?: string; externalReference?: string };
+export type AsaasPayment = { id: string; status?: string; invoiceUrl?: string; externalReference?: string; installment?: string; installmentNumber?: number };
 
 export class AsaasRequestError extends Error {
   constructor(message: string, readonly status: number) {
@@ -31,7 +31,7 @@ async function asaasRequest<T>(path: string, init: RequestInit = {}) {
     ...init,
     headers: {
       "content-type": "application/json",
-      "user-agent": `Mix10Pro/2.0 (${config.environment})`,
+      "user-agent": `Mix10Pro/2.1 (${config.environment})`,
       access_token: config.apiKey,
       ...init.headers,
     },
@@ -72,18 +72,32 @@ export async function createPayment(input: {
   customerId: string;
   purchaseId: string;
   orderNumber: string;
-  valueCents: number;
+  billingType: "PIX" | "CREDIT_CARD";
+  chargedValueCents: number;
+  installments: number;
+  installmentValueCents: number;
   dueDate: string;
 }) {
+  const common = {
+    customer: input.customerId,
+    billingType: input.billingType,
+    dueDate: input.dueDate,
+    description: `${input.orderNumber} - Programa de Revendedores MIX10 PRO`,
+    externalReference: input.purchaseId,
+  };
+  const paymentBody = input.billingType === "CREDIT_CARD" && input.installments > 1
+    ? {
+        ...common,
+        installmentCount: input.installments,
+        installmentValue: input.installmentValueCents / 100,
+      }
+    : {
+        ...common,
+        value: input.chargedValueCents / 100,
+      };
+
   return asaasRequest<AsaasPayment>("/payments", {
     method: "POST",
-    body: JSON.stringify({
-      customer: input.customerId,
-      billingType: "UNDEFINED",
-      value: input.valueCents / 100,
-      dueDate: input.dueDate,
-      description: `${input.orderNumber} - Programa de Revendedores MIX10 PRO`,
-      externalReference: input.purchaseId,
-    }),
+    body: JSON.stringify(paymentBody),
   });
 }

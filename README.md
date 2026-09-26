@@ -1,6 +1,6 @@
 # MIX10 PRO v2 Clean
 
-Nova versão do Programa de Revendedores LordNutri, criada para rodar 100% em **Hostinger + Node.js + MySQL**.
+Nova versão do Programa de Revendedores LORDNUTRI, criada para rodar 100% em **Hostinger + Node.js + MySQL**.
 
 ## Fluxo
 
@@ -40,3 +40,20 @@ Esta versão foi feita para **banco novo/zerado**. Importe `database/schema.sql`
 ## Deploy
 
 Leia `HOSTINGER-DEPLOY.md` e `BKO-OPERACAO.md` antes de publicar.
+
+## Frete + parcelamento (checkout revendedores)
+
+Esta versão incorpora ao checkout de revendedores a mesma lógica comercial do institucional:
+
+- frete por faixa de CEP usando `lib/shipping-rates.ts` e `lib/shipping.ts`;
+- duas opções de envio via Correios: Econômica e Expressa;
+- parcelamento em cartão de 1x a 6x;
+- 1x sem acréscimo e 2x–6x pela Tabela Price a 2,99% a.m.;
+- preço, frete e parcelamento são recalculados no backend antes da criação da cobrança;
+- PIX recebe produto + frete sem acréscimo de parcelamento;
+- cartão recebe o valor/parcelamento definido pelo servidor;
+- BKO mostra produto, frete, acréscimo e total cobrado.
+
+A tabela de frete foi reaproveitada do checkout institucional. Ela é uma tabela própria por faixa de CEP usada para os envios via Correios; não é uma consulta em tempo real à API oficial dos Correios.
+
+Em banco já existente, execute `database/migrate-frete-cartao.sql` uma única vez antes de publicar esta versão.
