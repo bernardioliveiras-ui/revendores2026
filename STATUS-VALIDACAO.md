@@ -4,17 +4,13 @@ Data da validação: 21/09/2026.
 
 ## Verificações concluídas neste ambiente
 
-- 29/29 testes automatizados passaram.
-- 6 arquivos TypeScript/TSX alterados nesta rodada passaram na verificação sintática por transpile do TypeScript, com 0 erros de sintaxe.
+- 23/23 testes automatizados passaram.
+- 36 arquivos TypeScript/TSX passaram na verificação sintática por transpile do TypeScript, com 0 erros de sintaxe.
 - Auditoria de imports locais: 0 imports locais ausentes.
 - Banco novo: `database/schema.sql` contém exatamente 9 tabelas operacionais da V1.
 - Busca de runtime legado: nenhum Resend, Wrangler, Cloudflare ou D1 em `app`, `lib`, `db`, `database`, `components`, `package.json` ou `.env.example`.
 - Nenhum arquivo `.env`, `.env.local` ou `.env.production` é incluído no projeto.
 - KIT20 e KIT50 estão com preços definidos no servidor; o checkout não aceita preço enviado pelo navegador.
-
-- Checkout CNPJ fiscal: nome fantasia obrigatório e pelo menos uma Inscrição Estadual ou Municipal obrigatória.
-- BKO: dados fiscais de CNPJ ficam visíveis no pedido e são preservados no perfil liberado.
-- Favicon: folha verde com fundo transparente.
 
 ## Build completo
 

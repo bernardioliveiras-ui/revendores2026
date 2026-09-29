@@ -4,7 +4,7 @@
 Rebuild the MIX10 PRO reseller funnel and portal from a clean database for Hostinger, keeping the product simple: public VSL landing page, KIT20/KIT50 purchase through Asaas, BKO-controlled access release, reseller dashboard with overview/stock/sales/affiliates, and admin metrics/logistics.
 
 ## Public funnel
-1. `/` is the public landing page and follows the 2026 LORDNUTRI briefing sequence: opening, 3 steps, market/opportunity, product, 5 reasons, simulator, kits, FAQ and checkout.
+1. `/` is the public landing page and follows the 2026 LordNutri briefing sequence: opening, 3 steps, market/opportunity, product, 5 reasons, simulator, kits, FAQ and checkout.
 2. A local MP4 VSL is loaded from `/videos/vsl-mix10.mp4`; the repository includes instructions but not a fabricated video asset.
 3. KIT20: 20 boxes, R$ 74.90 each, R$ 1,498.00 total.
 4. KIT50: 50 boxes, R$ 69.90 each, R$ 3,495.00 total.

@@ -98,15 +98,3 @@ Com Asaas sandbox, valide ponta a ponta:
 11. repetir o checkout com KIT50.
 
 Somente depois altere `ASAAS_ENVIRONMENT=production` e use a chave de produção.
-
-## Atualização: frete + cartão
-
-Se o banco `purchases` já existe, antes de reimplantar:
-
-1. Abra o phpMyAdmin do banco usado por `revendedores.mix10pro.com.br`.
-2. Importe/executa `database/migrate-frete-cartao.sql` UMA VEZ.
-3. Faça o commit desta versão no GitHub.
-4. Reimplante a aplicação na Hostinger.
-5. Teste um CEP, PIX e cartão em 2x/6x antes de liberar tráfego.
-
-Não é necessário adicionar novas variáveis de ambiente para o cálculo de frete/parcelamento. As variáveis Asaas existentes continuam sendo usadas (`ASAAS_API_KEY`, `ASAAS_ENVIRONMENT`, `ASAAS_WEBHOOK_TOKEN`).

@@ -17,8 +17,8 @@ test('kit helper owns authoritative prices', () => {
 test('landing page follows the approved briefing structure and VSL', async () => {
   const page = await read('app/page.tsx');
   for (const copy of [
-    'Com a LORDNUTRI você pode!',
-    'Sua revenda LORDNUTRI em 3 passos',
+    'Com a LordNutri você pode!',
+    'Sua revenda LordNutri em 3 passos',
     'Uma oportunidade em um mercado',
     'Por que escolher MIX10 PRO',
     '5 motivos para revender MIX10 PRO',
@@ -32,13 +32,11 @@ test('landing page follows the approved briefing structure and VSL', async () =>
 
 test('public checkout collects reseller and shipping data and never accepts price fields', async () => {
   const form = await read('components/checkout-form.tsx');
-  for (const field of ['name','email','phone','cpfCnpj','companyTradeName','stateRegistration','municipalRegistration','postalCode','street','number','district','city','state']) {
+  for (const field of ['name','email','phone','cpfCnpj','postalCode','street','number','district','city','state']) {
     assert.match(form, new RegExp(`name=["']${field}["']`));
   }
   const route = await read('app/api/public/checkout/route.ts');
   assert.match(route, /getKit\(payload\.kit\)/);
   assert.doesNotMatch(route, /payload\.(total|totalCents|unitPrice|unitPriceCents|price)/);
   assert.match(route, /createPayment/);
-  assert.match(route, /isCompany[\s\S]*companyTradeName[\s\S]*stateRegistration[\s\S]*municipalRegistration/);
-  assert.match(form, /isCnpj[\s\S]*Nome fantasia da empresa[\s\S]*Inscrição Estadual[\s\S]*Inscrição Municipal/);
 });

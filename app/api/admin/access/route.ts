@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const userId = crypto.randomUUID();
     await db.transaction(async (tx) => {
       await tx.insert(users).values({ id:userId, email:purchase.email, name:purchase.name, phone:purchase.phone, role:"reseller", status:"active", passwordHash:hash, mustChangePassword:1, failedLoginAttempts:0, createdAt:now, updatedAt:now });
-      await tx.insert(resellerProfiles).values({ id:crypto.randomUUID(), userId, purchaseId:purchase.id, cpfCnpj:purchase.cpfCnpj, companyTradeName:purchase.companyTradeName, stateRegistration:purchase.stateRegistration, municipalRegistration:purchase.municipalRegistration, postalCode:purchase.postalCode, street:purchase.street, number:purchase.number, complement:purchase.complement, district:purchase.district, city:purchase.city, state:purchase.state, initialKit:purchase.kit, initialBoxes:purchase.boxes, createdAt:now });
+      await tx.insert(resellerProfiles).values({ id:crypto.randomUUID(), userId, purchaseId:purchase.id, cpfCnpj:purchase.cpfCnpj, postalCode:purchase.postalCode, street:purchase.street, number:purchase.number, complement:purchase.complement, district:purchase.district, city:purchase.city, state:purchase.state, initialKit:purchase.kit, initialBoxes:purchase.boxes, createdAt:now });
       await tx.insert(stockMovements).values({ id:crypto.randomUUID(), userId, type:"entry", boxes:purchase.boxes, referenceType:"initial_purchase", referenceId:purchase.id, notes:`Estoque inicial ${purchase.kit.toUpperCase()}`, occurredAt:now, createdAt:now });
       await tx.update(purchases).set({ userId, accessReleasedAt:now, updatedAt:now }).where(eq(purchases.id,purchase.id));
     });
