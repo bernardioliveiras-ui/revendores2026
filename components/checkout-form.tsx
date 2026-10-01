@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { KitId } from "@/lib/kits";
 
 const money = (cents: number) => (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -10,14 +10,11 @@ const display = {
 } as const;
 
 export function CheckoutForm() {
-  const [kit, setKit] = useState<KitId>(() => {
-    if (typeof window === "undefined") return "kit20";
-    const requested = new URLSearchParams(window.location.search).get("kit");
-    return requested === "kit50" ? "kit50" : "kit20";
-  });
+  const [kit, setKit] = useState<KitId>("kit20");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const selected = useMemo(() => display[kit], [kit]);
+  useEffect(() => { const requested = new URLSearchParams(window.location.search).get("kit"); if (requested === "kit20" || requested === "kit50") setKit(requested); }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -4,15 +4,14 @@ import { readFile } from 'node:fs/promises';
 
 const source = await readFile(new URL('../app/painel/portal-client.tsx', import.meta.url), 'utf8');
 
-test('portal do revendedor carrega estoque e indicações por sessão', () => {
-  assert.match(source, /fetch\("\/api\/stock"/);
-  assert.match(source, /fetch\("\/api\/referrals"/);
-  assert.match(source, /location\.href="\/entrar"/);
+test('navegação para áreas de revenda sem organização abre o cadastro em vez de botão morto', () => {
+  assert.match(source, /shouldPromptResellerSetup/);
+  assert.match(source, /setOnboardingOpen\(true\)/);
+  assert.match(source, /function openView\(/);
 });
 
-test('ações principais usam endpoints atuais do portal simples', () => {
-  assert.match(source, /fetch\("\/api\/sales"/);
-  assert.match(source, /fetch\("\/api\/referrals",\{method:"POST"/);
-  assert.match(source, /Registrar venda/);
-  assert.match(source, /Gerar link de indicação/);
+test('ações de pedido, movimentação e indicação passam pelo guard de revenda', () => {
+  assert.match(source, /openResellerDialog\(setOrderOpen\)/);
+  assert.match(source, /openResellerDialog\(setMovementOpen\)/);
+  assert.match(source, /openResellerDialog\(setReferralOpen\)/);
 });

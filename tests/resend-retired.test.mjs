@@ -20,6 +20,6 @@ test('rotas antigas de código e convite não disparam envio de e-mail', async (
   const requestCode = await read('app/api/auth/request-code/route.ts');
   const team = await read('app/api/team/route.ts');
   assert.match(requestCode, /status:\s*410/);
-  assert.match(team, /multiusuário.*desativad[ao]|convites.*desativados/i);
+  assert.match(team, /multiusuário.*desativado|convites.*desativados/i);
   assert.match(team, /status:\s*410/);
 });

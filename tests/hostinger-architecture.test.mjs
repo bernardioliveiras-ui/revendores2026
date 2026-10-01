@@ -21,7 +21,7 @@ async function productionSources() {
 test('produção usa Next Node e MySQL sem runtime Cloudflare/D1', async () => {
   const pkg = JSON.parse(await text('package.json'));
   assert.equal(pkg.scripts.dev, 'next dev');
-  assert.match(pkg.scripts.build, /next build/);
+  assert.equal(pkg.scripts.build, 'next build');
   assert.equal(pkg.scripts.start, 'next start');
   assert.ok(pkg.dependencies.mysql2);
   assert.ok(pkg.dependencies['drizzle-orm']);
@@ -44,7 +44,7 @@ test('pacote contém bootstrap MySQL e exemplo de ambiente Hostinger', async () 
 
 test('schema SQL contém todas as tabelas funcionais do portal', async () => {
   const sql = await text('database/schema.sql');
-  for (const table of ['users','auth_sessions','purchases','reseller_profiles','stock_movements','sales','affiliate_referrals','affiliate_clicks','asaas_events']) {
+  for (const table of ['users','organizations','memberships','invitations','auth_login_codes','auth_sessions','orders','order_events','asaas_events','reseller_movements','affiliate_referrals','affiliate_clicks','shipments','manual_progress']) {
     assert.match(sql, new RegExp('CREATE TABLE IF NOT EXISTS `?' + table + '`?', 'i'), table);
   }
 });

@@ -14,12 +14,13 @@ test('KIT20 permanece e KIT50 substitui KIT30 nas novas ofertas', async () => {
   assert.match(landing, /KIT20/);
   assert.match(landing, /KIT50/);
   assert.match(landing, /R\$ 3\.495,00/);
-  assert.match(ordersApi, /desativados/);
+  assert.match(ordersApi, /INITIAL_KITS/);
   assert.match(kits, /kit50/);
   assert.match(kits, /349500/);
   assert.doesNotMatch(landing, /Escolher KIT30/);
   assert.match(portal, /Estoque atual/);
-  assert.match(portal, /Links de indicação/);
+  assert.match(portal, /Cliques/);
+  assert.match(portal, /Cashback pendente/);
 });
 
 test('continua preparado para Hostinger Node 22 + MySQL', async () => {

@@ -3,28 +3,43 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 const read = (path) => fs.readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('BKO libera acesso, abre WhatsApp e permite resetar senha', async () => {
+test('BKO exibe novos acessos, WhatsApp e permite resetar senha', async () => {
   const [portal, accessRoute, overview] = await Promise.all([
     read('app/painel/portal-client.tsx'),
     read('app/api/admin/access/route.ts'),
     read('app/api/admin/overview/route.ts'),
   ]);
+  assert.match(portal, /Novos acessos/);
   assert.match(portal, /Abrir WhatsApp/);
-  assert.match(portal, /Gerar nova senha/);
+  assert.match(portal, /Redefinir senha/);
+  assert.match(accessRoute, /decryptTemporarySecret/);
   assert.match(accessRoute, /generateTemporaryPassword/);
-  assert.match(accessRoute, /reset-password/);
-  assert.match(overview, /pendingAccess/);
+  assert.match(overview, /accessProvisioning/);
 });
 
-test('expedição atual usa purchases e preserva rastreio opcional', async () => {
+test('admin pode despachar sem rastreio sem apagar os dados da expedição ao entregar', async () => {
   const [route, portal] = await Promise.all([
-    read('app/api/admin/shipping/route.ts'),
+    read('app/api/admin/orders/route.ts'),
     read('app/painel/portal-client.tsx'),
   ]);
   assert.match(route, /carrier/);
+  assert.match(route, /shippedAt/);
   assert.match(route, /trackingCode/);
-  assert.match(route, /shippingStatus/);
-  assert.match(portal, /Em separação/);
-  assert.match(portal, /Despachado/);
-  assert.match(portal, /Entregue/);
+  assert.match(route, /carrierProvided/);
+  assert.match(route, /trackingProvided/);
+  assert.match(portal, /shippingPayload/);
+  assert.match(portal, /status === "shipped"/);
+});
+
+test('BKO pode gerar senha provisória para revendedores existentes após retirar Resend', async () => {
+  const [portal, accessRoute, overview] = await Promise.all([
+    read('app/painel/portal-client.tsx'),
+    read('app/api/admin/access/route.ts'),
+    read('app/api/admin/overview/route.ts'),
+  ]);
+  assert.match(accessRoute, /reset-user/);
+  assert.match(accessRoute, /userId/);
+  assert.match(overview, /hasPassword/);
+  assert.match(portal, /Revendedores atuais/);
+  assert.match(portal, /Gerar senha provisória/);
 });

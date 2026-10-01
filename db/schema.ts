@@ -54,6 +54,7 @@ export const purchases = mysqlTable("purchases", {
   asaasPaymentId: varchar("asaas_payment_id", { length: 120 }),
   asaasInvoiceUrl: varchar("asaas_invoice_url", { length: 1000 }),
   userId: varchar("user_id", { length: 80 }),
+  referralId: varchar("referral_id", { length: 80 }),
   accessReleasedAt: varchar("access_released_at", { length: 40 }),
   utmSource: varchar("utm_source", { length: 120 }).notNull().default(""),
   utmMedium: varchar("utm_medium", { length: 120 }).notNull().default(""),
@@ -67,6 +68,7 @@ export const purchases = mysqlTable("purchases", {
   uniqueIndex("idx_purchases_asaas_payment").on(table.asaasPaymentId),
   index("idx_purchases_payment_created").on(table.paymentStatus, table.createdAt),
   index("idx_purchases_email").on(table.email),
+  index("idx_purchases_referral").on(table.referralId),
 ]);
 
 export const resellerProfiles = mysqlTable("reseller_profiles", {
@@ -122,6 +124,27 @@ export const affiliateReferrals = mysqlTable("affiliate_referrals", {
   createdAt: varchar("created_at", { length: 40 }).notNull(),
   updatedAt: varchar("updated_at", { length: 40 }).notNull(),
 }, (table) => [uniqueIndex("idx_referrals_code").on(table.publicCode), index("idx_referrals_user_created").on(table.userId, table.createdAt)]);
+
+/** Cashback de indicação: separado de faturamento, vendas e pagamentos do pedido. */
+export const affiliateCashbacks = mysqlTable("affiliate_cashbacks", {
+  id: varchar("id", { length: 80 }).primaryKey(),
+  referralId: varchar("referral_id", { length: 80 }).notNull(),
+  resellerUserId: varchar("reseller_user_id", { length: 80 }).notNull(),
+  purchaseId: varchar("purchase_id", { length: 80 }).notNull(),
+  amountCents: int("amount_cents").notNull().default(1500),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  qualifyingBoxes: int("qualifying_boxes").notNull().default(1),
+  approvedAt: varchar("approved_at", { length: 40 }),
+  approvedBy: varchar("approved_by", { length: 80 }),
+  paidAt: varchar("paid_at", { length: 40 }),
+  notes: varchar("notes", { length: 500 }).notNull().default(""),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+  updatedAt: varchar("updated_at", { length: 40 }).notNull(),
+}, (table) => [
+  uniqueIndex("idx_cashback_purchase").on(table.purchaseId),
+  index("idx_cashback_reseller_status").on(table.resellerUserId, table.status),
+  index("idx_cashback_referral").on(table.referralId),
+]);
 
 export const affiliateClicks = mysqlTable("affiliate_clicks", {
   id: int("id").autoincrement().primaryKey(),

@@ -6,16 +6,8 @@ const root=new URL('..',import.meta.url).pathname;const read=(p)=>readFile(join(
 
 test('reseller portal keeps the four simple work areas',async()=>{
   const src=await read('app/painel/portal-client.tsx');
-  for(const label of ['Visão geral','Estoque','Vendas','Indicações'])assert.match(src,new RegExp(label));
+  for(const label of ['Visão geral','Estoque','Vendas','Afiliados'])assert.match(src,new RegExp(label));
   assert.match(src,/Registrar venda/);assert.match(src,/Gerar link/);
-});
-
-test('reseller referral area points buyers to the institutional purchase journey',async()=>{
-  const src=await read('app/painel/portal-client.tsx');
-  assert.match(src,/Página institucional MIX10 PRO/);
-  assert.match(src,/Comprar no institucional/);
-  assert.match(src,/NEXT_PUBLIC_INSTITUTIONAL_URL/);
-  assert.match(src,/clickCount/);
 });
 
 test('BKO portal exposes access release, logistics and metrics without reseller-only clutter',async()=>{

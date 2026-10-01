@@ -15,9 +15,12 @@ test('portal possui termos, privacidade, cookies e reembolso/devolução', async
   assert.match(footer, /\/reembolso-e-devolucao/);
 });
 
-test('entrada usa login por senha e não código por e-mail', async () => {
+test('entrada exige aceite antes de login por senha', async () => {
   const login = await read('app/entrar/login-form.tsx');
-  assert.match(login, /\/api\/auth\/login/);
+  assert.match(login, /termsAccepted/);
+  assert.match(login, /setTermsAccepted/);
+  assert.match(login, /Li e concordo/);
+  assert.match(login, /disabled=\{loading \|\| !termsAccepted\}/);
   assert.match(login, /password/i);
   assert.doesNotMatch(login, /código de 6 dígitos|solicitar código/i);
 });
@@ -26,7 +29,7 @@ test('produção não expõe equipe nem descreve Resend como operador ativo', as
   const portal = await read('app/painel/portal-client.tsx');
   const privacy = await read('app/politica-de-privacidade/page.tsx');
   const terms = await read('app/termos-de-uso/page.tsx');
-  assert.doesNotMatch(portal, /\["team",\s*"Minha equipe"/);
+  assert.doesNotMatch(portal, /\[\"team\",\s*\"Minha equipe\"/);
   assert.doesNotMatch(portal, /Minha equipe|Convidar usuário|Convidar para a equipe/);
   assert.doesNotMatch(privacy, /Resend/i);
   assert.doesNotMatch(terms, /código de 6 dígitos/i);

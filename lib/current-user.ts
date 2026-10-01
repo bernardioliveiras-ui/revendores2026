@@ -1,3 +1,7 @@
+import { and, eq } from "drizzle-orm";
+
+import { getDb } from "@/db";
+import { memberships, organizations } from "@/db/schema";
 import { getSessionUser, type SessionUser } from "@/lib/auth";
 
 export class AuthenticationRequiredError extends Error {
@@ -9,7 +13,7 @@ export class AuthenticationRequiredError extends Error {
 
 export class OrganizationRequiredError extends Error {
   constructor() {
-    super("A arquitetura multi-organização foi desativada nesta versão.");
+    super("Conclua o cadastro da sua revenda para continuar.");
     this.name = "OrganizationRequiredError";
   }
 }
@@ -22,12 +26,26 @@ export async function getCurrentUser(request: Request): Promise<SessionUser> {
 
 export async function getCurrentContext(request: Request) {
   const user = await getCurrentUser(request);
-  return { user, membership: null };
+  const [membership] = await getDb()
+    .select({
+      id: memberships.id,
+      role: memberships.role,
+      status: memberships.status,
+      organization: organizations,
+    })
+    .from(memberships)
+    .innerJoin(organizations, eq(organizations.id, memberships.organizationId))
+    .where(
+      and(eq(memberships.userId, user.id), eq(memberships.status, "active")),
+    )
+    .limit(1);
+  return { user, membership: membership ?? null };
 }
 
-export async function requireOrganization(request: Request): Promise<never> {
-  await getCurrentUser(request);
-  throw new OrganizationRequiredError();
+export async function requireOrganization(request: Request) {
+  const context = await getCurrentContext(request);
+  if (!context.membership) throw new OrganizationRequiredError();
+  return { ...context, membership: context.membership };
 }
 
 export function apiErrorResponse(error: unknown, fallbackMessage: string) {
@@ -54,7 +72,7 @@ export function apiErrorResponse(error: unknown, fallbackMessage: string) {
     );
   }
   if (error instanceof OrganizationRequiredError) {
-    return Response.json({ error: error.message }, { status: 410 });
+    return Response.json({ error: error.message }, { status: 409 });
   }
   return Response.json({ error: fallbackMessage }, { status: 500 });
 }

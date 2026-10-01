@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { asaasEvents, purchases } from "@/db/schema";
+import { affiliateCashbacks, affiliateReferrals, asaasEvents, purchases } from "@/db/schema";
 import { safeHashEqual } from "@/lib/auth";
 import { getOptionalEnv } from "@/lib/env";
 import { isMysqlDuplicateKeyError } from "@/lib/mysql-errors";
@@ -34,6 +34,10 @@ export async function POST(request: Request) {
     const now = new Date().toISOString();
     if (status === "paid") {
       await db.update(purchases).set({ paymentStatus:"paid", shippingStatus: purchase.shippingStatus === "awaiting_payment" ? "separating" : purchase.shippingStatus, updatedAt:now }).where(eq(purchases.id,purchase.id));
+      if (purchase.referralId) {
+        const [referral] = await db.select({ userId: affiliateReferrals.userId }).from(affiliateReferrals).where(eq(affiliateReferrals.id, purchase.referralId)).limit(1);
+        if (referral?.userId) await db.insert(affiliateCashbacks).values({ id: crypto.randomUUID(), referralId: purchase.referralId, resellerUserId: referral.userId, purchaseId: purchase.id, amountCents: 1500, status: "pending", qualifyingBoxes: 1, createdAt: now, updatedAt: now }).catch((error) => { if (!isMysqlDuplicateKeyError(error)) throw error; });
+      }
     } else {
       await db.update(purchases).set({ paymentStatus:"cancelled", shippingStatus: purchase.accessReleasedAt ? purchase.shippingStatus : "cancelled", updatedAt:now }).where(eq(purchases.id,purchase.id));
     }

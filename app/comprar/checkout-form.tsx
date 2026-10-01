@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,14 +10,11 @@ type Kit = "kit20" | "kit50";
 const kits = [{ id: "kit20" as Kit, name: "KIT20", boxes: 20, price: "R$ 1.499,80", unit: "R$ 74,99/un." }, { id: "kit50" as Kit, name: "KIT50", boxes: 50, price: "R$ 3.495,00", unit: "R$ 69,90/un." }];
 
 export function CheckoutForm() {
-  const [kit, setKit] = useState<Kit>(() => {
-    if (typeof window === "undefined") return "kit20";
-    const value = new URLSearchParams(window.location.search).get("kit");
-    return value === "kit50" ? "kit50" : "kit20";
-  });
+  const [kit, setKit] = useState<Kit>("kit20");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [payment, setPayment] = useState<{ invoiceUrl?: string | null; qrPayload?: string | null; qrImage?: string | null } | null>(null);
+  useEffect(() => { const params = new URLSearchParams(window.location.search); const value = params.get("kit"); if (value === "kit50") setKit("kit50"); const referralCode = params.get("referralCode") || params.get("ref"); if (referralCode) { let current: Record<string,string> = {}; try { current = JSON.parse(localStorage.getItem("mix10_attribution") || "{}"); } catch {} localStorage.setItem("mix10_attribution", JSON.stringify({ ...current, referralCode: referralCode.toUpperCase() })); } }, []);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setLoading(true); setMessage("");
     const form = new FormData(event.currentTarget);

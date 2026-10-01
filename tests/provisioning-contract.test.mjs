@@ -3,13 +3,14 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 const read = (path) => fs.readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('webhook atual marca compra paga e provisionamento legado fica desativado', async () => {
+test('webhook provisiona compra inicial e coloca pedido em separação uma única vez', async () => {
   const [webhook, provisioning] = await Promise.all([
     read('app/api/billing/webhook/route.ts'),
     read('lib/access-provisioning.ts'),
   ]);
-  assert.match(webhook, /paymentStatus:"paid"/);
-  assert.match(webhook, /shippingStatus: purchase\.shippingStatus === "awaiting_payment" \? "separating"/);
-  assert.match(provisioning, /Provisionamento automático legado desativado/);
-  assert.match(provisioning, /\/api\/admin\/access/);
+  assert.match(webhook, /provisionInitialOrder/);
+  assert.match(provisioning, /accessProvisioning/);
+  assert.match(provisioning, /mustChangePassword:\s*1/);
+  assert.match(provisioning, /status:\s*"processing"/);
+  assert.match(provisioning, /orderType:\s*"initial"/);
 });
