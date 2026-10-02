@@ -2,6 +2,7 @@ import { isMysqlDuplicateKeyError } from "@/lib/mysql-errors";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { purchases, resellerProfiles, stockMovements, users } from "@/db/schema";
+import { operationalPurchaseFields } from "@/lib/purchase-fields";
 import { encryptTemporarySecret } from "@/lib/temporary-secret";
 import { generateTemporaryPassword, hashPassword } from "@/lib/passwords";
 
@@ -10,7 +11,7 @@ async function provisionAttempt(purchaseId: string) {
   const password = generateTemporaryPassword();
   const passwordHash = await hashPassword(password);
   return getDb().transaction(async tx => {
-    const [p] = await tx.select().from(purchases).where(eq(purchases.id, purchaseId)).limit(1).for("update");
+    const [p] = await tx.select(operationalPurchaseFields).from(purchases).where(eq(purchases.id, purchaseId)).limit(1).for("update");
     if (!p) throw new Error("PURCHASE_NOT_FOUND");
     if (p.paymentStatus !== "paid") throw new Error("PAYMENT_REQUIRED");
     if (p.userId || p.accessReleasedAt) return { released: false, email: p.email, password: null, userId: p.userId };

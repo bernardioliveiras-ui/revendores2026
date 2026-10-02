@@ -28,3 +28,7 @@ function getPool() {
 export function getDb() {
   return drizzle({ client: getPool(), schema, mode: "default" });
 }
+
+export function getMysqlPool() {
+  return getPool();
+}

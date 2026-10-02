@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { purchases } from "@/db/schema";
+import { operationalPurchaseFields } from "@/lib/purchase-fields";
 import { getOptionalEnv } from "@/lib/env";
 import { decryptTemporarySecret } from "@/lib/temporary-secret";
 import { welcomeEndpoint, welcomeKey } from "@/lib/welcome-contract";
@@ -12,7 +13,7 @@ export async function sendWelcome(purchaseId: string) {
   const token = getOptionalEnv("WELCOME_AUTOMATION_TOKEN");
   if (!endpoint || !token) return { sent: false, reason: "not_configured" };
   return getDb().transaction(async tx => {
-    const [p] = await tx.select().from(purchases).where(eq(purchases.id, purchaseId)).limit(1).for("update");
+    const [p] = await tx.select(operationalPurchaseFields).from(purchases).where(eq(purchases.id, purchaseId)).limit(1).for("update");
     if (!p || p.paymentStatus !== "paid" || !p.userId) return { sent: false, reason: "not_qualified" };
     if (p.welcomeStatus === "sent") return { sent: true, duplicate: true };
     const temporaryPassword = p.welcomeSecret && p.welcomeIv ? decryptTemporarySecret(p.welcomeSecret, p.welcomeIv) : null;

@@ -1,42 +1,38 @@
-# LORDNUTRI Revendedores — 0.2.1
+# LORDNUTRI Revendedores - 0.2.1 final
 
-## Correção Hostinger / Next.js 16
-- O build de produção agora executa `next build --webpack`.
-- O comando da Hostinger continua `npm run build` e o diretório de saída continua `.next`.
-- A mudança evita o panic interno do Turbopack observado ao processar `app/globals.css`/PostCSS.
+## Landing page
+- O texto existente da 0.2.1 foi preservado; a atualização principal é visual/estrutural.
+- Layout reorganizado em linguagem editorial premium, com hierarquia inspirada no material visual de revendedores, sem copiar a paleta do PDF de referência.
+- Logo LORDNUTRI GROUP e imagens PNG do MIX10 PRO aplicadas em posições responsivas.
+- Nova seção de avaliações Google integrada ao Place ID oficial informado. Sem chave de Places, a LP exibe os atalhos para o perfil; com `GOOGLE_PLACES_API_KEY`, nota e avaliações públicas são carregadas automaticamente.
+- SEO reativado: metadata, Open Graph, robots, sitemap, manifest e JSON-LD de organização.
 
-## Checkout restaurado
-- Mantidos KIT20 = R$ 1.498,00 e KIT50 = R$ 3.495,00.
-- CEP calcula frete antes do pagamento.
-- Modalidades: Entrega Econômica e Entrega Expressa.
-- Tabela histórica de frete recuperada e movida para `lib/checkout/`.
-- PIX à vista.
-- Cartão de 1x a 6x.
-- 1x sem taxa de parcelamento.
-- 2x a 6x: 2,99% ao mês usando Tabela Price, preservando a regra recuperada do checkout anterior.
-- Resumo mostra Produtos + Frete + Taxa de parcelamento + Total final.
-- O servidor recalcula kit, frete, parcelas e total; valores monetários enviados pelo navegador não são aceitos como fonte de verdade.
+## Checkout
+- KIT20 = R$ 1.498,00 e KIT50 = R$ 3.495,00.
+- Frete por CEP com Econômica/Expressa.
+- PIX e cartão de 1x a 6x.
+- 1x sem taxa; 2x a 6x com regra recuperada de 2,99% a.m. pela Tabela Price.
+- Backend recalcula kit, frete, parcelas e total antes de criar a cobrança Asaas.
 
-## Asaas
-- PIX cria cobrança PIX.
-- Cartão cria cobrança CREDIT_CARD.
-- Parcelamentos acima de 1x usam `installmentCount` e `totalValue`.
-- O webhook existente continua responsável pela confirmação do pagamento e liberação do fluxo posterior.
+## Portal do Revendedor
+- Campo de quantidade de caixas vendidas agora aceita digitação direta e também botões + / -.
+- Validação impede vender mais caixas que o estoque disponível.
+- Ao registrar a venda, o estoque é baixado automaticamente.
+- Reparação automática recria entrada de estoque de compras pagas quando uma implantação antiga deixou a movimentação pendente.
+- Manual novo publicado em `/manual/MANUAL-DO-REVENDEDOR-LORDNUTRI-MIX10PRO.pdf`.
 
-## Banco de dados
-Foram adicionados, de forma aditiva, os campos de detalhamento do checkout em `purchases`:
-- `product_total_cents`
-- `shipping_type`
-- `shipping_cents`
-- `payment_method`
-- `installments`
-- `installment_value_cents`
-- `interest_cents`
+## BKO
+- Área de Vendas permite escolher o revendedor e lançar a quantidade de caixas vendidas em nome dele.
+- Mesma validação de estoque do portal do revendedor.
+- Se o e-mail estiver em `ADMIN_EMAILS`, uma conta existente passa a ter acesso de BKO no próximo login.
+- Tela de BKO exibe estado de retry em vez de ficar em branco quando o banco não responde.
+- APIs operacionais executam reparo aditivo de schema em runtime para tabelas/colunas de vendas, estoque, perfis e campos de compra, útil quando a Hostinger inicia o Next sem executar o hook customizado de migration.
 
-O `scripts/migration-core.mjs` adiciona automaticamente os campos ausentes ao iniciar a aplicação, sem apagar registros existentes.
+## Manual do Revendedor
+- 11 páginas em formato apresentação/PDF.
+- Capa + 4 páginas de LORDNUTRI/modelo/operação e 6 páginas de MIX10 PRO/venda/boas práticas/pós-venda.
+- Arquivos editável PPTX e PDF final incluídos no projeto.
 
-## Validação
-- Testes específicos do checkout/build: aprovados.
-- Teste de runtime do cálculo de frete/parcelamento: aprovado.
-- A suíte completa do ZIP original já tinha 17 falhas antes desta atualização; a 0.2.1 permanece com as mesmas 17 falhas antigas, sem regressões adicionais introduzidas por este patch.
-- O build completo não pôde ser executado neste ambiente porque a instalação de dependências ficou presa no runtime do contêiner. A correção do comando de build segue a opção suportada pelo Next.js 16.
+## Hostinger / Next.js 16
+- `npm run build` continua usando `next build --webpack` para evitar o panic do Turbopack observado no ambiente da Hostinger.
+- O diretório de saída continua `.next`.

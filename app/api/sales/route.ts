@@ -3,16 +3,20 @@ import { getDb } from "@/db";
 import { sales, stockMovements, users } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { calculateStock } from "@/lib/stock";
+import { repairPaidPurchaseStockForUser } from "@/lib/stock-repair";
 
+import { ensureOperationalSchema } from "@/lib/runtime-schema";
 function clean(v:unknown,max=120){return typeof v==="string"?v.trim().slice(0,max):""}
 export async function GET(request:Request){try{const user=await requireSession(request);if(user.role!=="reseller")return Response.json({error:"Área do revendedor."},{status:403});const rows=await getDb().select().from(sales).where(eq(sales.userId,user.id)).orderBy(desc(sales.soldAt));return Response.json({sales:rows});}catch(error){if(error instanceof Error&&error.message==="UNAUTHORIZED")return Response.json({error:"Faça login novamente."},{status:401});return Response.json({error:"Não foi possível carregar as vendas."},{status:500});}}
 
 export async function POST(request:Request){
   try{
+    await ensureOperationalSchema();
     const user=await requireSession(request);if(user.role!=="reseller")return Response.json({error:"Área do revendedor."},{status:403});
     const body=await request.json() as {boxes?:unknown;unitValue?:unknown;channel?:unknown;customerName?:unknown;notes?:unknown;soldAt?:unknown};
     const boxes=Number(body.boxes);const unitValue=Number(body.unitValue);const unitValueCents=Math.round(unitValue*100);
     if(!Number.isSafeInteger(boxes)||boxes<=0||boxes>2147483647||!Number.isSafeInteger(unitValueCents)||unitValueCents<0||!Number.isSafeInteger(boxes*unitValueCents)||boxes*unitValueCents>2147483647)return Response.json({error:"Informe quantidade e valor válidos."},{status:400});
+    await repairPaidPurchaseStockForUser(user.id);
     const db=getDb();const now=new Date().toISOString();const soldAt=clean(body.soldAt,40)||now;const saleId=crypto.randomUUID();
     await db.transaction(async(tx)=>{
       await tx.execute(sql`SELECT id FROM ${users} WHERE ${users.id} = ${user.id} FOR UPDATE`);

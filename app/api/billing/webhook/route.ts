@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { asaasEvents, purchases } from "@/db/schema";
+import { operationalPurchaseFields } from "@/lib/purchase-fields";
 import { safeHashEqual } from "@/lib/auth";
 import { getOptionalEnv } from "@/lib/env";
 import { isMysqlDuplicateKeyError } from "@/lib/mysql-errors";
@@ -27,11 +28,11 @@ export async function POST(request: Request) {
     // Persist the event and payment change atomically. Different Asaas event IDs
     // for the same purchase serialize on the purchase row, including reversals.
     const result=await getDb().transaction(async tx=>{
-      const [purchase]=await tx.select().from(purchases).where(eq(purchases.asaasPaymentId,paymentId)).limit(1).for("update");
+      const [purchase]=await tx.select(operationalPurchaseFields).from(purchases).where(eq(purchases.asaasPaymentId,paymentId)).limit(1).for("update");
       if(!purchase) {
         const externalReference=typeof body?.payment?.externalReference==="string" ? body.payment.externalReference.trim() : "";
         if(externalReference){
-          const [local]=await tx.select().from(purchases).where(eq(purchases.id,externalReference)).limit(1);
+          const [local]=await tx.select(operationalPurchaseFields).from(purchases).where(eq(purchases.id,externalReference)).limit(1);
           if(!local)return {id:"",paid:false,duplicate:false,ignored:true};
         }
         throw new Error("PURCHASE_NOT_READY");

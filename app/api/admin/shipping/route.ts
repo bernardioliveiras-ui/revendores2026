@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { updatePurchaseShipping } from "@/lib/shipping";
+import { ensureOperationalSchema } from "@/lib/runtime-schema";
 export async function PATCH(request: Request){
   try {
     await requireAdmin(request);

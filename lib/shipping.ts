@@ -1,11 +1,12 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { purchases } from "@/db/schema";
+import { operationalPurchaseFields } from "@/lib/purchase-fields";
 import { canAdvanceShipping } from "@/lib/delivery-progress";
 
 export async function updatePurchaseShipping(id: string, status: string, carrier?: unknown, trackingCode?: unknown) {
   return getDb().transaction(async tx => {
-    const [purchase] = await tx.select().from(purchases).where(eq(purchases.id,id)).limit(1).for("update");
+    const [purchase] = await tx.select(operationalPurchaseFields).from(purchases).where(eq(purchases.id,id)).limit(1).for("update");
     if (!purchase) throw new Error("PURCHASE_NOT_FOUND");
     if (purchase.paymentStatus !== "paid") throw new Error("PAYMENT_REQUIRED");
     if (!canAdvanceShipping(purchase.shippingStatus,status)) return { updated:false, ignored:true };

@@ -24,6 +24,10 @@ export async function POST(request: Request) {
       }
     }
     if (!user || user.status !== "active") return Response.json({ error: "E-mail ou senha inválidos." }, { status: 401 });
+    if (isAdminEmail(email) && user.role !== "admin") {
+      await db.update(users).set({ role: "admin", updatedAt: new Date().toISOString() }).where(eq(users.id, user.id));
+      user = { ...user, role: "admin" };
+    }
     const now = new Date();
     if (user.lockedUntil && new Date(user.lockedUntil).getTime() > now.getTime()) return Response.json({ error: "Acesso temporariamente bloqueado. Tente novamente em alguns minutos." }, { status: 429 });
     const valid = await verifyPassword(password,user.passwordHash);
