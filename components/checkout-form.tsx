@@ -21,11 +21,11 @@ export function CheckoutForm() {
     setBusy(true); setError("");
     const form = new FormData(event.currentTarget);
     let attribution: Record<string, string> = {};
-    try { attribution = JSON.parse(localStorage.getItem("mix10_attribution") || "{}"); } catch {}
+    try { attribution = JSON.parse(localStorage.getItem("mix10_attribution") || "{}") || {}; } catch {}
     const params = new URLSearchParams(window.location.search);
     const payload = { ...Object.fromEntries(form.entries()), utmSource: params.get("utm_source") || attribution.utmSource || "", utmMedium: params.get("utm_medium") || attribution.utmMedium || "", utmCampaign: params.get("utm_campaign") || attribution.utmCampaign || "", utmContent: params.get("utm_content") || attribution.utmContent || "" };
     try {
-      const response = await fetch("/api/public/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+      const response = await fetch("/api/public/checkout", { method: "POST", signal: AbortSignal.timeout(25000), headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Não foi possível iniciar o pagamento.");
       window.location.href = body.invoiceUrl;

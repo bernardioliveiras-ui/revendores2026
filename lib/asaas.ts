@@ -29,6 +29,7 @@ async function asaasRequest<T>(path: string, init: RequestInit = {}) {
   if (!config.apiKey) throw new AsaasRequestError("A conta Asaas ainda não foi conectada.", 503);
   const response = await fetch(`${config.baseUrl}${path}`, {
     ...init,
+    signal: init.signal || AbortSignal.timeout(20000),
     headers: {
       "content-type": "application/json",
       "user-agent": `Mix10Pro/2.0 (${config.environment})`,

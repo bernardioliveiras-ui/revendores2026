@@ -11,8 +11,8 @@ export async function POST(request:Request){
   try{
     const user=await requireSession(request);if(user.role!=="reseller")return Response.json({error:"Área do revendedor."},{status:403});
     const body=await request.json() as {boxes?:unknown;unitValue?:unknown;channel?:unknown;customerName?:unknown;notes?:unknown;soldAt?:unknown};
-    const boxes=Math.trunc(Number(body.boxes));const unitValue=Number(body.unitValue);const unitValueCents=Math.round(unitValue*100);
-    if(!Number.isFinite(boxes)||boxes<=0||!Number.isFinite(unitValueCents)||unitValueCents<0)return Response.json({error:"Informe quantidade e valor válidos."},{status:400});
+    const boxes=Number(body.boxes);const unitValue=Number(body.unitValue);const unitValueCents=Math.round(unitValue*100);
+    if(!Number.isSafeInteger(boxes)||boxes<=0||boxes>2147483647||!Number.isSafeInteger(unitValueCents)||unitValueCents<0||!Number.isSafeInteger(boxes*unitValueCents)||boxes*unitValueCents>2147483647)return Response.json({error:"Informe quantidade e valor válidos."},{status:400});
     const db=getDb();const now=new Date().toISOString();const soldAt=clean(body.soldAt,40)||now;const saleId=crypto.randomUUID();
     await db.transaction(async(tx)=>{
       await tx.execute(sql`SELECT id FROM ${users} WHERE ${users.id} = ${user.id} FOR UPDATE`);

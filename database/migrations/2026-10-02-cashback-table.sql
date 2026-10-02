@@ -1,11 +1,4 @@
--- MIX10 PRO: vínculo da compra com indicação e carteira de cashback.
--- Executar após backup do banco. Valor fixo: R$ 15,00 = 1500 centavos.
-
-ALTER TABLE purchases
-  ADD COLUMN referral_id varchar(80) NULL,
-  ADD KEY idx_purchases_referral (referral_id);
-
-CREATE TABLE affiliate_cashbacks (
+CREATE TABLE IF NOT EXISTS `affiliate_cashbacks` (
   id varchar(80) NOT NULL,
   referral_id varchar(80) NOT NULL,
   reseller_user_id varchar(80) NOT NULL,
@@ -13,6 +6,12 @@ CREATE TABLE affiliate_cashbacks (
   amount_cents int NOT NULL DEFAULT 1500,
   status varchar(20) NOT NULL DEFAULT 'pending',
   qualifying_boxes int NOT NULL DEFAULT 1,
+  buyer_email varchar(254) NOT NULL DEFAULT '',
+  paid_by varchar(80) NULL,
+  payout_reference varchar(180) NOT NULL DEFAULT '',
+  cancelled_at varchar(40) NULL,
+  cancelled_by varchar(80) NULL,
+  payment_reversed_at varchar(40) NULL,
   approved_at varchar(40) NULL,
   approved_by varchar(80) NULL,
   paid_at varchar(40) NULL,

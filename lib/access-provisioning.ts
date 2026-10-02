@@ -1,3 +1,4 @@
+import { isMysqlDuplicateKeyError } from "@/lib/mysql-errors";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { purchases, resellerProfiles, stockMovements, users } from "@/db/schema";
@@ -5,7 +6,7 @@ import { encryptTemporarySecret } from "@/lib/temporary-secret";
 import { generateTemporaryPassword, hashPassword } from "@/lib/passwords";
 
 // A row lock on the purchase makes Asaas retries and manual release converge.
-export async function provisionPaidPurchase(purchaseId: string) {
+async function provisionAttempt(purchaseId: string) {
   const password = generateTemporaryPassword();
   const passwordHash = await hashPassword(password);
   return getDb().transaction(async tx => {
@@ -29,4 +30,12 @@ export async function provisionPaidPurchase(purchaseId: string) {
     await tx.update(purchases).set({ userId, accessReleasedAt: now, welcomeSecret: secret.ciphertext, welcomeIv: secret.iv, welcomeStatus: "pending", updatedAt: now }).where(eq(purchases.id, p.id));
     return { released: true, email: p.email, password, userId };
   });
+}
+
+export async function provisionPaidPurchase(purchaseId: string) {
+  try { return await provisionAttempt(purchaseId); } catch(error) {
+    // Concurrent first purchases for the same email converge on its unique user.
+    if (!isMysqlDuplicateKeyError(error)) throw error;
+    return provisionAttempt(purchaseId);
+  }
 }

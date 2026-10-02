@@ -13,7 +13,8 @@ function orderNumber() { return `MIX${Date.now().toString(36).toUpperCase()}${cr
 export async function POST(request: Request) {
   let purchaseId = "";
   try {
-    const payload = await request.json() as Record<string, unknown>;
+    const payload = await request.json().catch(()=>null) as Record<string, unknown> | null;
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) return Response.json({error:"Dados inválidos."},{status:400});
     const kit = getKit(payload.kit);
     const data = {
       name: clean(payload.name, 120), email: email(payload.email), phone: digits(payload.phone, 15), cpfCnpj: digits(payload.cpfCnpj, 14),

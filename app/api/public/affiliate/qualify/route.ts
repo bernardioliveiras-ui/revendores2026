@@ -1,40 +1,36 @@
-import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
-import { affiliateCashbacks, affiliateReferrals } from "@/db/schema";
-import { getOptionalEnv } from "@/lib/env";
-import { isMysqlDuplicateKeyError } from "@/lib/mysql-errors";
+import { eq } from 'drizzle-orm';
+import { getDb } from '@/db';
+import { affiliateCashbacks, affiliateReferrals, users } from '@/db/schema';
+import { getOptionalEnv } from '@/lib/env';
+import { safeHashEqual } from '@/lib/auth';
+import { isMysqlDuplicateKeyError } from '@/lib/mysql-errors';
+import { CASHBACK_CENTS, parseQualification } from '@/lib/cashback-rules';
 
-function text(value: unknown, max = 180) { return typeof value === "string" ? value.trim().slice(0, max) : ""; }
-
-/**
- * Bridge for the external mix10pro.com.br/lp-v2 checkout.
- * The LP must call this only after Asaas confirms the payment as received/confirmed.
- */
+// Exclusivamente servidor-servidor; a LP chama após confirmação autenticada do Asaas.
 export async function POST(request: Request) {
-  const expected = getOptionalEnv("AFFILIATE_WEBHOOK_TOKEN") || "";
-  const received = request.headers.get("x-affiliate-token") || "";
-  if (!expected || received !== expected) return Response.json({ error: "Endpoint não autorizado." }, { status: 401 });
+  const expected = getOptionalEnv('AFFILIATE_WEBHOOK_TOKEN') || '';
+  if (!expected || !safeHashEqual(expected,request.headers.get('x-affiliate-token') || '')) return Response.json({error:'Endpoint não autorizado.'},{status:401});
+  let body: Record<string, unknown>;
+  try { body = await request.json(); } catch { return Response.json({error:'JSON inválido.'},{status:400}); }
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return Response.json({error:'Compra não qualificada.'},{status:400});
+  const input = parseQualification(body);
+  if (!input) return Response.json({error:'Compra não qualificada. Informe pedido, e-mail e quantidade válida com paymentStatus paid.'},{status:400});
+  const db = getDb();
+  const [referral] = await db.select({id:affiliateReferrals.id,userId:affiliateReferrals.userId,role:users.role,userStatus:users.status}).from(affiliateReferrals).innerJoin(users,eq(users.id,affiliateReferrals.userId)).where(eq(affiliateReferrals.publicCode,input.referralCode)).limit(1);
+  if (!referral || (referral.role !== 'reseller' || referral.userStatus !== 'active')) return Response.json({error:'Indicação não encontrada.'},{status:404});
+  const purchaseId = `external:${input.externalOrderId}`;
+  const duplicate = async () => {
+    const [known] = await db.select().from(affiliateCashbacks).where(eq(affiliateCashbacks.purchaseId,purchaseId)).limit(1);
+    if (!known || known.referralId !== referral.id || known.buyerEmail !== input.buyerEmail || known.qualifyingBoxes !== input.boxes) return Response.json({error:'Pedido já vinculado a outra indicação ou dados divergentes.'},{status:409});
+    return Response.json({qualified:known.status !== 'cancelled',duplicate:true,cashbackCents:known.amountCents,status:known.status});
+  };
   try {
-    const body = await request.json() as { referralCode?: unknown; externalOrderId?: unknown; buyerEmail?: unknown; boxes?: unknown; paymentStatus?: unknown };
-    const referralCode = text(body.referralCode, 64).toUpperCase();
-    const externalOrderId = text(body.externalOrderId, 80);
-    const buyerEmail = text(body.buyerEmail, 254).toLowerCase();
-    const boxes = typeof body.boxes === "number" && Number.isFinite(body.boxes) ? Math.max(1, Math.floor(body.boxes)) : 1;
-    if (!referralCode || !externalOrderId || body.paymentStatus !== "paid") return Response.json({ error: "Compra não qualificada." }, { status: 400 });
-    const db = getDb();
-    const [referral] = await db.select({ id: affiliateReferrals.id, userId: affiliateReferrals.userId }).from(affiliateReferrals).where(eq(affiliateReferrals.publicCode, referralCode)).limit(1);
-    if (!referral) return Response.json({ error: "Indicação não encontrada." }, { status: 404 });
     const now = new Date().toISOString();
-    const purchaseId = `external:${externalOrderId}`;
-    try {
-      await db.insert(affiliateCashbacks).values({ id: crypto.randomUUID(), referralId: referral.id, resellerUserId: referral.userId, purchaseId, amountCents: 1500, status: "pending", qualifyingBoxes: boxes, notes: buyerEmail ? `Compra confirmada pela LP; comprador: ${buyerEmail}` : "Compra confirmada pela LP.", createdAt: now, updatedAt: now });
-    } catch (error) {
-      if (isMysqlDuplicateKeyError(error)) return Response.json({ qualified: true, duplicate: true, cashbackCents: 1500 });
-      throw error;
-    }
-    return Response.json({ qualified: true, cashbackCents: 1500 });
+    await db.insert(affiliateCashbacks).values({id:crypto.randomUUID(),referralId:referral.id,resellerUserId:referral.userId,purchaseId,amountCents:CASHBACK_CENTS,status:'pending',qualifyingBoxes:input.boxes,buyerEmail:input.buyerEmail,createdAt:now,updatedAt:now});
+    return Response.json({qualified:true,cashbackCents:CASHBACK_CENTS,status:'pending'},{status:201});
   } catch (error) {
-    console.error("affiliate_qualification_failed", error);
-    return Response.json({ error: "Não foi possível registrar a indicação." }, { status: 500 });
+    if (isMysqlDuplicateKeyError(error)) return duplicate();
+    console.error('affiliate_qualification_failed',error);
+    return Response.json({error:'Não foi possível registrar a indicação.'},{status:500});
   }
 }

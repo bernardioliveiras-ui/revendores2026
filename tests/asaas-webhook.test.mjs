@@ -17,7 +17,7 @@ test('paid Asaas events mark paid and provision through the shared transactional
   const src = await read('app/api/billing/webhook/route.ts');
   assert.match(src,/PAYMENT_RECEIVED/);
   assert.match(src,/PAYMENT_CONFIRMED/);
-  assert.match(src,/paymentStatus:\s*"paid"/);
+  assert.match(src,/paymentStatus:status/);
   assert.match(src,/shippingStatus:[\s\S]*"separating"/);
   assert.match(src,/provisionPaidPurchase/);
   assert.doesNotMatch(src,/generateTemporaryPassword|hashPassword|insert\(users\)/);

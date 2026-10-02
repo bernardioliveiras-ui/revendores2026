@@ -13,7 +13,7 @@ export function TrafficAttribution() {
       landingPage: `${window.location.pathname}${window.location.search}`.slice(0, 500),
     };
     if (Object.values(attribution).slice(0, 4).some(Boolean)) {
-      localStorage.setItem("mix10_attribution", JSON.stringify(attribution));
+      try { localStorage.setItem("mix10_attribution", JSON.stringify(attribution)); } catch { /* Restricted storage: checkout still reads URL parameters. */ }
     }
   }, []);
 
