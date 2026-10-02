@@ -1,9 +1,12 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { affiliateCashbacks, affiliateReferrals, asaasEvents, purchases } from "@/db/schema";
+import { asaasEvents, purchases } from "@/db/schema";
 import { safeHashEqual } from "@/lib/auth";
 import { getOptionalEnv } from "@/lib/env";
 import { isMysqlDuplicateKeyError } from "@/lib/mysql-errors";
+
+import { provisionPaidPurchase } from "@/lib/access-provisioning";
+import { sendWelcome } from "@/lib/welcome-notification";
 
 type AsaasWebhook = { id?: string; event?: string; payment?: { id?: string; status?: string; externalReference?: string } };
 
@@ -23,7 +26,11 @@ export async function POST(request: Request) {
     eventId = payload.id?.trim() || ""; const eventType = payload.event?.trim() || ""; const paymentId = payload.payment?.id?.trim() || "";
     if (!eventId || !eventType) return Response.json({ error: "Evento inválido." }, { status: 400 });
     const [known] = await db.select({ eventId: asaasEvents.eventId }).from(asaasEvents).where(eq(asaasEvents.eventId,eventId)).limit(1);
-    if (known) return Response.json({ received:true, duplicate:true });
+    if (known) {
+      const [purchase] = await db.select().from(purchases).where(eq(purchases.asaasPaymentId,paymentId)).limit(1);
+      if (purchase?.paymentStatus === "paid") { await provisionPaidPurchase(purchase.id); await sendWelcome(purchase.id); }
+      return Response.json({ received:true, duplicate:true });
+    }
     try { await db.insert(asaasEvents).values({ eventId, eventType, paymentId:paymentId||null, receivedAt:new Date().toISOString() }); }
     catch (error) { if (isMysqlDuplicateKeyError(error)) return Response.json({ received:true, duplicate:true }); throw error; }
     if (!paymentId) return Response.json({ received:true, ignored:true });
@@ -32,12 +39,11 @@ export async function POST(request: Request) {
     const [purchase] = await db.select().from(purchases).where(eq(purchases.asaasPaymentId,paymentId)).limit(1);
     if (!purchase) return Response.json({ received:true, unmatched:true });
     const now = new Date().toISOString();
+    if (status === "paid" && purchase.paymentStatus === "cancelled") return Response.json({received:true,ignored:true});
     if (status === "paid") {
-      await db.update(purchases).set({ paymentStatus:"paid", shippingStatus: purchase.shippingStatus === "awaiting_payment" ? "separating" : purchase.shippingStatus, updatedAt:now }).where(eq(purchases.id,purchase.id));
-      if (purchase.referralId) {
-        const [referral] = await db.select({ userId: affiliateReferrals.userId }).from(affiliateReferrals).where(eq(affiliateReferrals.id, purchase.referralId)).limit(1);
-        if (referral?.userId) await db.insert(affiliateCashbacks).values({ id: crypto.randomUUID(), referralId: purchase.referralId, resellerUserId: referral.userId, purchaseId: purchase.id, amountCents: 1500, status: "pending", qualifyingBoxes: 1, createdAt: now, updatedAt: now }).catch((error) => { if (!isMysqlDuplicateKeyError(error)) throw error; });
-      }
+      await db.update(purchases).set({ paymentStatus:"paid", shippingStatus: purchase.shippingStatus === "awaiting_payment" ? "separating" : purchase.shippingStatus, updatedAt:now }).where(and(eq(purchases.id,purchase.id),eq(purchases.paymentStatus,purchase.paymentStatus)));
+      await provisionPaidPurchase(purchase.id);
+      await sendWelcome(purchase.id);
     } else {
       await db.update(purchases).set({ paymentStatus:"cancelled", shippingStatus: purchase.accessReleasedAt ? purchase.shippingStatus : "cancelled", updatedAt:now }).where(eq(purchases.id,purchase.id));
     }

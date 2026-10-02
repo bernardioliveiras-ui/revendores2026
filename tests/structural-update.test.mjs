@@ -18,9 +18,8 @@ test('KIT20 permanece e KIT50 substitui KIT30 nas novas ofertas', async () => {
   assert.match(kits, /kit50/);
   assert.match(kits, /349500/);
   assert.doesNotMatch(landing, /Escolher KIT30/);
-  assert.match(portal, /Estoque atual/);
-  assert.match(portal, /Cliques/);
-  assert.match(portal, /Cashback pendente/);
+  assert.match(portal, /Caixas em estoque/);
+  assert.match(portal, /Cliques em indicações/);
 });
 
 test('continua preparado para Hostinger Node 22 + MySQL', async () => {

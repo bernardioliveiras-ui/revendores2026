@@ -1,96 +1,26 @@
-import { eq } from "drizzle-orm";
-
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { orderEvents, orders, organizations, users } from "@/db/schema";
-import { apiErrorResponse, getCurrentUser } from "@/lib/current-user";
-import { requestShippingAutomation } from "@/lib/shipping";
-
-const ALLOWED = new Set([
-  "payment_pending",
-  "paid",
-  "processing",
-  "shipped",
-  "delivered",
-  "cancelled",
-  "payment_error",
-]);
-
+import { purchases } from "@/db/schema";
+import { requireAdmin } from "@/lib/auth";
+import { sendWelcome } from "@/lib/welcome-notification";
+import { provisionPaidPurchase } from "@/lib/access-provisioning";
 export async function PATCH(request: Request) {
   try {
-    const user = await getCurrentUser(request);
-    if (user.systemRole !== "admin") {
-      return Response.json({ error: "Acesso restrito." }, { status: 403 });
-    }
-    const payload = (await request.json()) as {
-      orderId?: unknown;
-      status?: unknown;
-      trackingCode?: unknown;
-      carrier?: unknown;
-    };
-    const orderId = typeof payload.orderId === "string" ? payload.orderId : "";
-    const status = typeof payload.status === "string" ? payload.status : "";
-    const trackingProvided = typeof payload.trackingCode === "string";
-    const carrierProvided = typeof payload.carrier === "string";
-    const trackingCode = trackingProvided ? (payload.trackingCode as string).trim().slice(0, 100) : "";
-    const carrier = carrierProvided ? (payload.carrier as string).trim().slice(0, 120) : "";
-    if (!orderId || !ALLOWED.has(status)) {
-      return Response.json({ error: "Alteração inválida." }, { status: 400 });
-    }
-    const typedStatus = status as typeof orders.$inferInsert.status;
-    const now = new Date().toISOString();
-    const update = {
-      status: typedStatus,
-      updatedAt: now,
-      ...(carrierProvided ? { carrier: carrier || null } : {}),
-      ...(trackingProvided ? { trackingCode: trackingCode || null } : {}),
-      ...(typedStatus === "shipped" ? { shippedAt: now } : {}),
-    };
-    await getDb()
-      .update(orders)
-      .set(update)
-      .where(eq(orders.id, orderId));
-    await getDb().insert(orderEvents).values({
-      orderId,
-      status,
-      message: `Status alterado manualmente para ${status}.`,
-      actorId: user.id,
-      createdAt: now,
-    });
-    if (typedStatus === "paid") {
-      const [shippingOrder] = await getDb()
-        .select({
-          id: orders.id,
-          orderNumber: orders.orderNumber,
-          boxes: orders.boxes,
-          totalCents: orders.totalCents,
-          shippingPostalCode: orders.shippingPostalCode,
-          shippingStreet: orders.shippingStreet,
-          shippingNumber: orders.shippingNumber,
-          shippingComplement: orders.shippingComplement,
-          shippingDistrict: orders.shippingDistrict,
-          shippingCity: orders.shippingCity,
-          shippingState: orders.shippingState,
-          organizationName: organizations.tradeName,
-          recipientName: users.name,
-          recipientEmail: users.email,
-          recipientPhone: organizations.phone,
-        })
-        .from(orders)
-        .innerJoin(organizations, eq(organizations.id, orders.organizationId))
-        .innerJoin(users, eq(users.id, orders.createdBy))
-        .where(eq(orders.id, orderId))
-        .limit(1);
-      if (shippingOrder) {
-        await requestShippingAutomation(
-          shippingOrder,
-          new URL(request.url).origin,
-        ).catch((shippingError) => {
-          console.error("manual_shipping_automation_failed", shippingError);
-        });
-      }
-    }
-    return Response.json({ updated: true });
-  } catch (error) {
-    return apiErrorResponse(error, "Não foi possível alterar o pedido.");
+    await requireAdmin(request);
+    const b = await request.json();
+    const id = typeof b.purchaseId === "string" ? b.purchaseId : typeof b.orderId === "string" ? b.orderId : "";
+    if (!id || b.status !== "paid") return Response.json({error:"Informe um pedido e o status paid para confirmar manualmente."},{status:400});
+    const db=getDb();const [p]=await db.select().from(purchases).where(eq(purchases.id,id)).limit(1);
+    if(!p)return Response.json({error:"Compra não encontrada."},{status:404});
+    if(p.paymentStatus==="cancelled")return Response.json({error:"Compra cancelada não pode ser aprovada."},{status:409});
+    await db.update(purchases).set({paymentStatus:"paid",shippingStatus:p.shippingStatus==="awaiting_payment"?"separating":p.shippingStatus,updatedAt:new Date().toISOString()}).where(and(eq(purchases.id,id),eq(purchases.paymentStatus,p.paymentStatus)));
+    const access=await provisionPaidPurchase(id);
+    let welcomeSent=false;try{welcomeSent=(await sendWelcome(id)).sent;}catch{console.error("manual_welcome_pending");}
+    return Response.json({updated:true,welcomeSent,...access});
+  } catch(error) {
+    if(error instanceof Error&&error.message==="UNAUTHORIZED")return Response.json({error:"Faça login novamente."},{status:401});
+    if(error instanceof Error&&error.message==="FORBIDDEN")return Response.json({error:"Acesso restrito ao BKO."},{status:403});
+    console.error("manual_payment_failed",error);
+    return Response.json({error:"Não foi possível concluir a aprovação. Verifique Acessos no BKO."},{status:500});
   }
 }

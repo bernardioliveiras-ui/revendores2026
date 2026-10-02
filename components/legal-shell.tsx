@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { LegalFooter } from "@/components/legal-footer";
@@ -7,8 +8,8 @@ export function LegalShell({ title, intro, children }: { title: string; intro: s
     <main className="min-h-screen bg-[#edf4f1] text-[#0b2821]">
       <header className="border-b border-[#d6e3df] bg-[#061510] text-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
-          <a href="/"><BrandLogo compact /></a>
-          <a href="/entrar" className="text-sm font-semibold text-white/70 hover:text-white">Acessar portal</a>
+          <Link href="/"><BrandLogo compact /></Link>
+          <Link href="/entrar" className="text-sm font-semibold text-white/70 hover:text-white">Acessar portal</Link>
         </div>
       </header>
       <section className="mx-auto max-w-5xl px-5 py-12 sm:py-16">

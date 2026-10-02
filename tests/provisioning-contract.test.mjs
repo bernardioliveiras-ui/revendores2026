@@ -8,9 +8,9 @@ test('webhook provisiona compra inicial e coloca pedido em separação uma únic
     read('app/api/billing/webhook/route.ts'),
     read('lib/access-provisioning.ts'),
   ]);
-  assert.match(webhook, /provisionInitialOrder/);
-  assert.match(provisioning, /accessProvisioning/);
+  assert.match(webhook, /provisionPaidPurchase/);
+  assert.match(provisioning, /\.for\("update"\)/);
   assert.match(provisioning, /mustChangePassword:\s*1/);
-  assert.match(provisioning, /status:\s*"processing"/);
-  assert.match(provisioning, /orderType:\s*"initial"/);
+  assert.match(provisioning, /paymentStatus !== "paid"/);
+  assert.match(provisioning, /stockMovements/);
 });

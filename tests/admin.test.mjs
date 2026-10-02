@@ -5,7 +5,7 @@ import { join } from 'node:path';
 const root=new URL('..',import.meta.url).pathname;const read=(p)=>readFile(join(root,p),'utf8');
 
 test('BKO access release is admin-only, manual and transactional', async()=>{
-  const src=await read('app/api/admin/access/route.ts');
+  const src=(await read('app/api/admin/access/route.ts'))+(await read('lib/access-provisioning.ts'));
   assert.match(src,/requireAdmin/);
   assert.match(src,/paymentStatus\s*!==\s*"paid"/);
   assert.match(src,/generateTemporaryPassword/);

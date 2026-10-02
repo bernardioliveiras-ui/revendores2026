@@ -14,13 +14,16 @@ export function CheckoutForm() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const selected = useMemo(() => display[kit], [kit]);
-  useEffect(() => { const requested = new URLSearchParams(window.location.search).get("kit"); if (requested === "kit20" || requested === "kit50") setKit(requested); }, []);
+  useEffect(() => { const timer = setTimeout(() => { const requested = new URLSearchParams(window.location.search).get("kit"); if (requested === "kit20" || requested === "kit50") setKit(requested); }, 0); return () => clearTimeout(timer); }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true); setError("");
     const form = new FormData(event.currentTarget);
-    const payload = Object.fromEntries(form.entries());
+    let attribution: Record<string, string> = {};
+    try { attribution = JSON.parse(localStorage.getItem("mix10_attribution") || "{}"); } catch {}
+    const params = new URLSearchParams(window.location.search);
+    const payload = { ...Object.fromEntries(form.entries()), utmSource: params.get("utm_source") || attribution.utmSource || "", utmMedium: params.get("utm_medium") || attribution.utmMedium || "", utmCampaign: params.get("utm_campaign") || attribution.utmCampaign || "", utmContent: params.get("utm_content") || attribution.utmContent || "" };
     try {
       const response = await fetch("/api/public/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
       const body = await response.json();

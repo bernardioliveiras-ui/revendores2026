@@ -1,14 +1,4 @@
-import { Sparkles } from "lucide-react";
-
+/* eslint-disable @next/next/no-img-element */
 export function BrandLogo({ compact = false }: { compact?: boolean }) {
-  return (
-    <span className="brand-logo" aria-label="MIX10 PRO">
-      <span className="brand-logo-mark" aria-hidden="true">
-        <Sparkles size={compact ? 15 : 18} strokeWidth={2.4} />
-      </span>
-      <span className={compact ? "text-[1.05rem]" : "text-[1.25rem]"}>
-        <b>MIX10</b> <em>PRO</em>
-      </span>
-    </span>
-  );
+  return <span className={compact ? "lordnutri-logo compact-logo" : "lordnutri-logo"}><img src="/brand/lordnutri-logo.png" alt="LORD NUTRI GROUP" /></span>;
 }

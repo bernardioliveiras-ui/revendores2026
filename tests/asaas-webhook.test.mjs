@@ -13,11 +13,12 @@ test('Asaas webhook requires configured token and records events idempotently', 
   assert.match(src,/duplicate/);
 });
 
-test('paid Asaas events only mark purchase paid and ready for BKO, not auto-provision access', async () => {
+test('paid Asaas events mark paid and provision through the shared transactional service', async () => {
   const src = await read('app/api/billing/webhook/route.ts');
   assert.match(src,/PAYMENT_RECEIVED/);
   assert.match(src,/PAYMENT_CONFIRMED/);
   assert.match(src,/paymentStatus:\s*"paid"/);
   assert.match(src,/shippingStatus:[\s\S]*"separating"/);
+  assert.match(src,/provisionPaidPurchase/);
   assert.doesNotMatch(src,/generateTemporaryPassword|hashPassword|insert\(users\)/);
 });

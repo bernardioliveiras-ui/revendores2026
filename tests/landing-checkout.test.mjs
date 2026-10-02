@@ -18,16 +18,17 @@ test('landing page follows the approved briefing structure and VSL', async () =>
   const page = await read('app/page.tsx');
   for (const copy of [
     'Com a LordNutri você pode!',
-    'Sua revenda LordNutri em 3 passos',
-    'Uma oportunidade em um mercado',
-    'Por que escolher MIX10 PRO',
-    '5 motivos para revender MIX10 PRO',
+    'Seu plano de negócio LORDNUTRI em 3 passos',
+    'LORDNUTRI: uma oportunidade',
+    'MIX10 PRO: o produto LORDNUTRI',
+    '5 motivos para começar com a LORDNUTRI',
     'Quanto você quer construir de ganho bruto por mês?',
     'KIT20',
     'KIT50',
     'Isso é multinível?'
   ]) assert.match(page, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
-  assert.match(page, /vsl-mix10\.mp4/);
+  assert.match(page, /WelcomeVideo/);
+  assert.ok(page.indexOf('welcome-first') < page.indexOf('id="inicio"'));
 });
 
 test('public checkout collects reseller and shipping data and never accepts price fields', async () => {

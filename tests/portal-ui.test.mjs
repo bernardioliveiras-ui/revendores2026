@@ -4,15 +4,15 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 const root=new URL('..',import.meta.url).pathname;const read=(p)=>readFile(join(root,p),'utf8');
 
-test('reseller portal keeps the four simple work areas',async()=>{
+test('reseller portal shows sales, resources and delivery work areas',async()=>{
   const src=await read('app/painel/portal-client.tsx');
-  for(const label of ['Visão geral','Estoque','Vendas','Afiliados'])assert.match(src,new RegExp(label));
-  assert.match(src,/Registrar venda/);assert.match(src,/Gerar link/);
+  for(const label of ['Visão geral','Estoque','Vendas','Manual do Revendedor','Vídeo de boas-vindas','Acompanhe seu pedido'])assert.match(src,new RegExp(label));
+  assert.match(src,/Registrar venda/);assert.doesNotMatch(src,/view==="affiliates"/);
 });
 
 test('BKO portal exposes access release, logistics and metrics without reseller-only clutter',async()=>{
   const src=await read('app/painel/portal-client.tsx');
-  for(const label of ['Liberar acesso','Em separação','Despachado','Entregue','Revendedores ativos','Receita de kits'])assert.match(src,new RegExp(label));
+  for(const label of ['Liberar acesso','Em separação','Em percurso','Entregue','Revendedores ativos','Receita de kits'])assert.match(src,new RegExp(label));
   assert.match(src,/Abrir WhatsApp/);
 });
 

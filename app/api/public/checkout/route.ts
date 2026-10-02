@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { affiliateReferrals, purchases } from "@/db/schema";
+import { purchases } from "@/db/schema";
 import { createCheckoutCustomer, createPayment, AsaasRequestError } from "@/lib/asaas";
 import { getKit } from "@/lib/kits";
 
@@ -28,17 +28,10 @@ export async function POST(request: Request) {
     purchaseId = crypto.randomUUID();
     const number = orderNumber();
     const db = getDb();
-    const referralCode = clean(payload.referralCode || payload.ref, 64).toUpperCase();
-    let referralId: string | null = null;
-    if (referralCode) {
-      const [referral] = await db.select({ id: affiliateReferrals.id }).from(affiliateReferrals).where(eq(affiliateReferrals.publicCode, referralCode)).limit(1);
-      referralId = referral?.id || null;
-    }
     await db.insert(purchases).values({
       id: purchaseId, orderNumber: number, ...data,
       kit: kit.id, boxes: kit.boxes, unitPriceCents: kit.unitPriceCents, totalCents: kit.totalCents,
       paymentStatus: "payment_pending", shippingStatus: "awaiting_payment",
-      referralId,
       utmSource: clean(payload.utmSource, 120), utmMedium: clean(payload.utmMedium, 120), utmCampaign: clean(payload.utmCampaign, 180), utmContent: clean(payload.utmContent, 180), landingPage: request.headers.get("referer")?.slice(0, 500) || "",
       createdAt: now, updatedAt: now,
     });
