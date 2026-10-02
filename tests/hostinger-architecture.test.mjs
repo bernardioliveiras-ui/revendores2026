@@ -21,7 +21,7 @@ async function productionSources() {
 test('produção usa Next Node e MySQL sem runtime Cloudflare/D1', async () => {
   const pkg = JSON.parse(await text('package.json'));
   assert.equal(pkg.scripts.dev, 'next dev');
-  assert.equal(pkg.scripts.build, 'next build');
+  assert.equal(pkg.scripts.build, 'next build --webpack');
   assert.equal(pkg.scripts.start, 'node scripts/migrate.mjs && next start');
   assert.ok(pkg.dependencies.mysql2);
   assert.ok(pkg.dependencies['drizzle-orm']);

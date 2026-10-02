@@ -74,17 +74,27 @@ export async function createPayment(input: {
   purchaseId: string;
   orderNumber: string;
   valueCents: number;
+  billingType: "PIX" | "CREDIT_CARD";
+  installments: number;
   dueDate: string;
 }) {
+  const body: Record<string, unknown> = {
+    customer: input.customerId,
+    billingType: input.billingType,
+    dueDate: input.dueDate,
+    description: `${input.orderNumber} - Programa de Revendedores MIX10 PRO`,
+    externalReference: input.purchaseId,
+  };
+
+  if (input.billingType === "CREDIT_CARD" && input.installments > 1) {
+    body.installmentCount = input.installments;
+    body.totalValue = input.valueCents / 100;
+  } else {
+    body.value = input.valueCents / 100;
+  }
+
   return asaasRequest<AsaasPayment>("/payments", {
     method: "POST",
-    body: JSON.stringify({
-      customer: input.customerId,
-      billingType: "UNDEFINED",
-      value: input.valueCents / 100,
-      dueDate: input.dueDate,
-      description: `${input.orderNumber} - Programa de Revendedores MIX10 PRO`,
-      externalReference: input.purchaseId,
-    }),
+    body: JSON.stringify(body),
   });
 }

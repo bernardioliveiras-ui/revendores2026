@@ -42,3 +42,13 @@ Abra LP e login no celular, entre no BKO, confirme uma compra de teste em ambien
 Os resultados e limitações estão em `VALIDACAO-LORDNUTRI.md`.
 
 Pagamentos com referência externa que não corresponde a uma compra deste portal são ignorados pelo webhook local; a qualificação de indicação externa usa sua API própria. Compra local aguardando vínculo ao pagamento retorna 503 para reenvio.
+
+
+## Checkout restaurado (0.2.1)
+- Frete calculado por CEP antes do pagamento.
+- Entrega Econômica e Expressa conforme tabela comercial recuperada.
+- PIX à vista.
+- Cartão de 1x a 6x.
+- 1x sem taxa; de 2x a 6x, taxa de 2,99% a.m. pela Tabela Price, preservando a regra do checkout anterior.
+- Produto, frete, taxa e total final são recalculados no backend; o navegador não define preço.
+- Build da Hostinger usa `next build --webpack` para evitar o panic do Turbopack observado no Next 16.2.6.
