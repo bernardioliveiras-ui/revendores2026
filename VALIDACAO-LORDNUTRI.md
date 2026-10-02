@@ -61,3 +61,9 @@ O checkout antigo /comprar usava contrato de resposta e preço divergentes; pass
 3. Configurar vídeo/PDF conforme ATUALIZACAO-LORDNUTRI.md.
 4. Conectar WELCOME_AUTOMATION_URL/TOKEN ao serviço que efetivamente envia e-mail e WhatsApp e respeita Idempotency-Key. Não há envio real validado sem esse serviço.
 5. Validar compra controlada, callback Asaas, entrada única de estoque, acesso, primeiro login, boas-vindas e atualização de entrega. Publicar o código não confirma esses resultados por si só.
+
+## Revisão do ZIP (5) / correção de upload
+
+ZIP (5) comparado arquivo a arquivo: idêntico ao ZIP original (4). A atualização LORDNUTRI não constava nessa cópia.
+Os cinco endpoints antigos e duas bibliotecas que antes precisavam ser apagados agora têm arquivos de substituição explícitos, para o upload do GitHub sobrescrevê-los. A versão no package.json é 0.1.1-lordnutri-buildfix.
+Build, lint e TypeScript foram executados novamente e passaram. Suíte completa: 62 testes, 46 passaram e as mesmas 16 falhas históricas listadas acima permaneceram.

@@ -70,7 +70,7 @@ Webhook logístico opcional: POST /api/shipping/webhook com x-shipping-token igu
 
 O ZIP misturava purchases/reseller_profiles com módulos antigos de organizations/orders/memberships ausentes. Os módulos sem consumidores na interface atual foram retirados da compilação e preservados integralmente em docs/legacy-source como arquivos .txt, sem criar novas tabelas de organizações ou desativar o typecheck.
 
-Rotas aposentadas: /api/orders, /api/movements, /api/onboarding, /api/team e /api/manual/progress. Não eram utilizadas no painel do ZIP atual. /api/auth/verify-code passa a usar a mesma resposta 410 já utilizada em request-code (acesso atual é e-mail e senha). /api/admin/orders e /api/shipping/webhook foram adaptadas ao schema real purchases. O checkout duplicado de /comprar foi substituído pelo checkout que a LP já usava, corrigindo preço exibido, aceite e contrato de resposta.
+Rotas aposentadas, agora mantidas com resposta autenticada 410 para sobrescrever arquivos antigos durante upload no GitHub: /api/orders, /api/movements, /api/onboarding, /api/team e /api/manual/progress. Não eram utilizadas no painel do ZIP atual. /api/auth/verify-code passa a usar a mesma resposta 410 já utilizada em request-code (acesso atual é e-mail e senha). /api/admin/orders e /api/shipping/webhook foram adaptadas ao schema real purchases. O checkout duplicado de /comprar foi substituído pelo checkout que a LP já usava, corrigindo preço exibido, aceite e contrato de resposta.
 
 ## SEO
 

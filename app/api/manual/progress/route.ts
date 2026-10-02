@@ -1,38 +1,13 @@
-import { eq } from "drizzle-orm";
-
-import { getDb } from "@/db";
-import { manualProgress } from "@/db/schema";
-import { apiErrorResponse, getCurrentUser } from "@/lib/current-user";
-
-export async function GET(request: Request) {
+// Compatibility tombstone: replaces the unsupported organizations-based route
+// during GitHub uploads that do not remove files. Original retained in docs/legacy-source.
+import { requireSession } from "@/lib/auth";
+async function retired(request: Request) {
   try {
-    const user = await getCurrentUser(request);
-    const [progress] = await getDb()
-      .select()
-      .from(manualProgress)
-      .where(eq(manualProgress.userId, user.id))
-      .limit(1);
-    return Response.json({ progress: progress ?? { lastPage: 1, completedAt: null } });
+    await requireSession(request);
+    return Response.json({ error: "Esta rota antiga foi descontinuada. Use o portal LORDNUTRI atualizado.", code: "LEGACY_ROUTE_RETIRED" }, { status: 410 });
   } catch (error) {
-    return apiErrorResponse(error, "Não foi possível carregar o progresso.");
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Faça login novamente." }, { status: 401 });
+    return Response.json({ error: "Não foi possível verificar o acesso." }, { status: 500 });
   }
 }
-
-export async function POST(request: Request) {
-  try {
-    const user = await getCurrentUser(request);
-    const payload = (await request.json()) as { page?: unknown; complete?: unknown };
-    const page = Math.max(1, Math.min(10, Number(payload.page) || 1));
-    const now = new Date().toISOString();
-    const completedAt = payload.complete === true ? now : null;
-    await getDb()
-      .insert(manualProgress)
-      .values({ userId: user.id, lastPage: page, completedAt, updatedAt: now })
-      .onDuplicateKeyUpdate({
-        set: { lastPage: page, completedAt, updatedAt: now },
-      });
-    return Response.json({ saved: true });
-  } catch (error) {
-    return apiErrorResponse(error, "Não foi possível salvar o progresso.");
-  }
-}
+export { retired as GET, retired as POST, retired as PATCH, retired as DELETE };

@@ -1,3 +1,7 @@
+# Primeiro: corrigir o repositório do GitHub
+
+Siga COMO-SUBIR-NO-GITHUB.md para aplicar esta atualização ao ZIP (5). Os demais arquivos devem permanecer no repositório.
+
 # LORDNUTRI — atualização do programa de revendedores
 
 LORDNUTRI é a plataforma e a marca. MIX10 PRO é o produto comercializado por compra e revenda de estoque. A LP preserva o briefing, a calculadora e os kits oficiais.
