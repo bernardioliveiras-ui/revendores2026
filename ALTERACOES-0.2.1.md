@@ -36,3 +36,13 @@
 ## Hostinger / Next.js 16
 - `npm run build` continua usando `next build --webpack` para evitar o panic do Turbopack observado no ambiente da Hostinger.
 - O diretório de saída continua `.next`.
+
+## Refinamento visual final da LP
+
+- LP compactada visualmente, mantendo a versão 0.2.1 e os fluxos funcionais existentes.
+- Estrutura visual aproximada da referência de revendedores fornecida, sem copiar sua paleta.
+- Identidade LORDNUTRI aplicada com azul-marinho, dourado e creme.
+- Hero reposicionado antes da apresentação em vídeo e logo integrada aos blocos institucionais.
+- Avaliações do Google movidas para a área institucional LORDNUTRI, antes da seção do produto.
+- Seção MIX10 PRO ganhou resumo visual de cápsulas, constituintes e composição declarada, sem remover o texto comercial existente e sem promessas terapêuticas.
+- Espaçamentos, cards, galerias, simulador, kits, checkout e FAQ compactados.
