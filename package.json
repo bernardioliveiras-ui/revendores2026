@@ -1,6 +1,6 @@
 {
   "name": "mix10-pro-revendedores",
-  "version": "0.1.1-lordnutri-buildfix",
+  "version": "0.2.0-lordnutri",
   "private": true,
   "engines": {
     "node": "22.x"
@@ -8,11 +8,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/migrate.mjs && next start",
     "lint": "eslint . --ignore-pattern .next",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "start:app": "next start",
+    "db:migrate": "node scripts/migrate.mjs",
+    "test:critical": "node --experimental-strip-types --test tests/automation-runtime.test.mjs tests/cashback-rules.test.mjs tests/delivery-progress.test.mjs tests/welcome-contract.test.mjs tests/passwords.test.mjs tests/mysql-errors.test.mjs tests/migration-runtime.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

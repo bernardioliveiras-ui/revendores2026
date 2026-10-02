@@ -1,93 +1,44 @@
-# Primeiro: corrigir o repositório do GitHub
+# LORDNUTRI — projeto completo 0.2.0
 
-Siga COMO-SUBIR-NO-GITHUB.md para aplicar esta atualização ao ZIP (5). Os demais arquivos devem permanecer no repositório.
+Este pacote reúne a LP LORDNUTRI, BKO e portal do revendedor na mesma base Next.js + Drizzle/MySQL. Os preços KIT20/KIT50 e o Asaas existente foram preservados.
 
-# LORDNUTRI — atualização do programa de revendedores
+## Publicar sem misturar versões
 
-LORDNUTRI é a plataforma e a marca. MIX10 PRO é o produto comercializado por compra e revenda de estoque. A LP preserva o briefing, a calculadora e os kits oficiais.
+1. Extraia este ZIP em uma pasta nova, fora do repositório.
+2. Abra a cópia local do repositório correto no GitHub Desktop. Confira a branch vinculada à Hostinger.
+3. No terminal da pasta extraída, execute:
 
-## Para publicar na Hostinger
+   `node APLICAR-ATUALIZACAO.mjs "C:\caminho\do\repositorio"`
 
-1. Faça backup do banco e mantenha todas as variáveis e credenciais existentes.
-2. No banco existente, execute UMA VEZ `database/migrations/2026-10-01-lordnutri-welcome.sql`. Não execute o schema completo sobre a instalação em produção. Banco novo: `database/schema.sql`.
-3. Suba os arquivos desta pasta ao GitHub, incluindo package-lock.json. Não há node_modules ou .next no pacote.
-4. Node 22; instalação `npm ci`; build `npm run build`; inicialização `npm start`.
-5. Configure o conteúdo e a ponte de boas-vindas abaixo. Publique e valide um pedido controlado, pagamento, estoque, acesso e entrega de mensagens no ambiente real.
+   Requer Node 22. O script substitui as pastas do projeto por inteiro, guarda os arquivos anteriores em um backup ao lado do repositório e preserva `.git` e `.env`. Não faz commit nem publica.
+4. No GitHub Desktop, confira as alterações, faça **Commit to [sua branch]** e **Push origin**.
+5. Na Hostinger: raiz do projeto onde está `package.json`, Node 22, instalação `npm ci`, build `npm run build`, inicialização `npm start`.
+6. Mantenha as variáveis existentes de banco, `AUTH_SECRET`, administração e Asaas. **Não substitua pelas sugestões vazias do `.env.example`.**
+7. Inicie a nova compilação na Hostinger e confira o log. A versão do `package.json` deve ser `0.2.0-lordnutri`.
 
-Nenhuma chave Asaas, senha do banco ou regra de preço foi alterada. A migração é aditiva e inclui somente os campos da notificação de boas-vindas. Ela NÃO foi aplicada ao seu banco remoto nesta tarefa, pois não há conexão com esse banco aqui.
+O ZIP é o projeto completo, não um patch. Enviar apenas alguns arquivos pelo navegador pode manter rotas antigas com imports inexistentes. Não coloque a pasta LORDNUTRI dentro de outra raiz Next.js.
 
-## Vídeo e manual
+## Banco
 
-- VSL_EMBED_URL: embed HTTPS YouTube, YouTube No Cookie ou Vimeo. Exemplo: URL /embed/ do vídeo, não link da página watch.
-- VSL_VIDEO_URL: URL de MP4 publicado ou `/videos/vsl-mix10.mp4` (coloque o MP4 em public/videos). Embed tem prioridade se os dois forem configurados.
-- RESELLER_MANUAL_URL: caminho ou URL do PDF LORDNUTRI + MIX10 PRO. Sem configuração, usa o PDF já incluído em public/manual.
+`npm start` roda a migração aditiva antes de iniciar o Next. Ela cria tabelas faltantes, adiciona os campos de boas-vindas e completa a tabela de cashback. Pode ser repetida e não exclui dados. O usuário MySQL precisa de CREATE/ALTER. Faça backup do banco antes da primeira implantação.
 
-O vídeo não veio nesta tarefa. Sem configuração, a LP mostra uma apresentação de marca sem player quebrado. O manual existente foi preservado; não foi produzido um novo PDF.
+Se sua hospedagem separa migração e inicialização, rode `npm run db:migrate` e depois `npm run start:app`. A migração foi gerada e testada com simulador de conexão; **não foi aplicada ao seu banco remoto neste atendimento**.
 
-## Pagamento e acesso
+Não execute migrations antigas de organizações nem o arquivo inicial Drizzle contra um banco já existente. O caminho desta versão é `scripts/migrate.mjs`.
 
-- Webhook existente: POST /api/billing/webhook, autenticado por ASAAS_WEBHOOK_TOKEN/asaas-access-token.
-- Pagamento confirmado: marca paid, coloca em separação e cria o usuário, o perfil e a entrada de estoque em transação.
-- Aprovação manual no BKO: Acessos → Confirmar pagamento manual; confirme somente após conferir o recebimento. Isso registra a aprovação interna, não altera a cobrança financeira no Asaas.
-- A compra fica vinculada a purchases.user_id. Trava por compra protege repetições e acesso/estoque duplicados. Uma nova compra de um revendedor existente reutiliza sua conta sem trocar a senha e registra novo estoque.
-- Senha provisória exige alteração no primeiro login. Senha de boas-vindas armazenada cifrada com AUTH_SECRET e eliminada após confirmação do encaminhamento. Não troque AUTH_SECRET durante a migração.
-- BKO mantém liberação manual, nova senha, cópia e abertura de WhatsApp.
+## O que precisa estar conectado
 
-## Boas-vindas automáticas — conexão necessária
+- **Asaas:** preserve `ASAAS_API_KEY`, `ASAAS_ENVIRONMENT=production` e `ASAAS_WEBHOOK_TOKEN`. Webhook POST em `/api/billing/webhook`, cabeçalho `asaas-access-token`. Pagamento confirmado libera conta e estoque; reenvio conclui etapas pendentes sem duplicá-los.
+- **E-mail e WhatsApp:** configure `WELCOME_AUTOMATION_URL` e `WELCOME_AUTOMATION_TOKEN` para sua automação real. O ZIP não trouxe o provedor ou seu fluxo de envio. Veja `AUTOMACOES.md`. Sem essa conexão, a conta e o estoque são criados, mas as mensagens ficam pendentes no BKO.
+- **Vídeo:** configure `VSL_VIDEO_URL` com o MP4 publicado (por exemplo `/videos/vsl-mix10.mp4`) ou `VSL_EMBED_URL` com o player YouTube/Vimeo. Nenhum vídeo LORDNUTRI foi fornecido; aparece a apresentação da marca até configurar.
+- **Manual:** usa o PDF incluído. `RESELLER_MANUAL_URL` permite substituir pelo PDF LORDNUTRI atualizado.
+- **Entrega:** BKO > Expedição atualiza Separação → Em percurso → Entregue. Um sistema externo também pode chamar `/api/shipping/webhook` com `SHIPPING_WEBHOOK_TOKEN`.
+- **Frete:** a base recebida cobra apenas os produtos e informa frete à parte. Não há integração de cotação por CEP neste pacote; não foi inventado preço de frete nem alterada a cobrança Asaas.
 
-O ZIP original não incluía um provedor completo de envio de e-mail + WhatsApp. Esta versão fornece uma ponte configurável para conectar sua automação existente:
+## Conferência após publicar
 
-WELCOME_AUTOMATION_URL=https://seu-servico-de-automacao/seu-webhook
-WELCOME_AUTOMATION_TOKEN=token-do-seu-servico
+Abra LP e login no celular, entre no BKO, confirme uma compra de teste em ambiente apropriado e confira conta, estoque, mensagem e entrega. Build local não comprova recebimento de dinheiro ou envio de mensagens no provedor real.
 
-Esses valores não foram inventados nem preenchidos. Sem eles, o acesso e estoque são criados, mas as boas-vindas ficam pendentes e o BKO permite envio manual. Não se trata de um serviço SMTP ou API WhatsApp autônomo incluído no projeto.
+Os resultados e limitações estão em `VALIDACAO-LORDNUTRI.md`.
 
-A ponte chama seu serviço com Authorization: Bearer e Idempotency-Key. JSON:
-
-```json
-{
-  "event": "lordnutri.reseller.welcome",
-  "purchaseId": "identificador-do-pedido",
-  "orderNumber": "numero-do-pedido",
-  "name": "Nome do revendedor",
-  "email": "email-do-revendedor",
-  "phone": "whatsapp-do-revendedor",
-  "portalUrl": "https://revendedores.mix10pro.com.br/entrar",
-  "temporaryPassword": "senha-provisoria-gerada",
-  "channels": ["email", "whatsapp"]
-}
-```
-
-O receptor deve respeitar a Idempotency-Key por pedido/geração de senha, enviar ambos os canais e retornar 2xx depois de aceitar/processar ambos. Uma falha mantém o envio pendente: o Asaas pode repetir o evento, ou BKO → Acessos → Enviar boas-vindas pode tentar novamente. Não registre o corpo com senha em logs da automação. Reiniciar uma senha cria nova geração de envio.
-
-Nenhum e-mail ou WhatsApp real foi enviado nos testes locais; não há credenciais do seu serviço aqui.
-
-## Pedido e revendedor
-
-Manual do Revendedor, Vídeo de boas-vindas e Acompanhe seu pedido substituem Afiliados na interface. As APIs/dados de indicação existentes permanecem, mas o cashback anterior não foi implementado, seguindo sua mudança de escopo para revenda/portal.
-
-Etapas: Separação → Em percurso → Entregue. O BKO atualiza a etapa; o revendedor consulta apenas seus próprios pedidos. Atualização a cada 30 s com aba visível e botão manual. Não há rastreio GPS.
-
-Webhook logístico opcional: POST /api/shipping/webhook com x-shipping-token igual a SHIPPING_WEBHOOK_TOKEN. JSON: purchaseId, status (separating, shipped ou delivered), carrier/trackingCode opcionais. Etapas antigas não fazem regredir entregas. Também aceita orderId como alias de purchaseId e in_transit como alias de shipped. Contratos antigos por shipmentId pertenciam ao schema abandonado e foram removidos.
-
-## Correção da base
-
-O ZIP misturava purchases/reseller_profiles com módulos antigos de organizations/orders/memberships ausentes. Os módulos sem consumidores na interface atual foram retirados da compilação e preservados integralmente em docs/legacy-source como arquivos .txt, sem criar novas tabelas de organizações ou desativar o typecheck.
-
-Rotas aposentadas: /api/orders, /api/movements, /api/onboarding, /api/team e /api/manual/progress. Não eram utilizadas no painel do ZIP atual. /api/auth/verify-code passa a usar a mesma resposta 410 já utilizada em request-code (acesso atual é e-mail e senha). /api/admin/orders e /api/shipping/webhook foram adaptadas ao schema real purchases. O checkout duplicado de /comprar foi substituído pelo checkout que a LP já usava, corrigindo preço exibido, aceite e contrato de resposta.
-
-## SEO
-
-Metadados, keywords, Open Graph, robots.txt, sitemap.xml e canonical para o subdomínio revendedores. O Google não utiliza meta keywords para ranking; não há promessa de posicionamento, renda ou resultado terapêutico.
-
-- https://revendedores.mix10pro.com.br/sitemap.xml
-- https://revendedores.mix10pro.com.br/robots.txt
-- Propriedade de domínio mix10pro.com.br: copie o TXT REAL fornecido pelo Search Console e crie esse TXT no DNS. Não foi fornecido um token; nenhum foi inventado.
-- https://support.google.com/webmasters/answer/9008080?hl=pt-BR
-- https://developers.google.com/search/docs/crawling-indexing/special-tags
-
-A LP externa mix10pro.com.br/lp-v2 não foi editada, pois seu código não consta neste ZIP. Não foi criado Perfil da Empresa Google nem alterada campanha paga. UTMs da LP de revendedores são encaminhadas ao checkout.
-
-## Validação
-
-Veja VALIDACAO-LORDNUTRI.md. Build, TypeScript e lint foram executados. As falhas de testes legados são listadas, sem ocultá-las ou ignorá-las. O uso com banco e pagamento reais requer validação na sua Hostinger após migração e configuração.
+Pagamentos com referência externa que não corresponde a uma compra deste portal são ignorados pelo webhook local; a qualificação de indicação externa usa sua API própria. Compra local aguardando vínculo ao pagamento retorna 503 para reenvio.
