@@ -325,3 +325,7 @@
   .lnr-stage-brand-inline strong{font-size:8px}
   .lnr-hero-stage img{height:224px;max-width:74%}
 }
+
+/* Hotfix logo overlay */
+.lnr-page .lnr-brand .lordnutri-logo:after,.lnr-page .lnr-brand .brand-mark:after{display:none!important;content:none!important}
+.lnr-page .lnr-brand .brand-mark{position:relative}
