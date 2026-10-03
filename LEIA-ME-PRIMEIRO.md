@@ -1,3 +1,7 @@
+# Versão atual: 0.2.4
+
+Leia ATUALIZACOES-0.2.4.md para os ajustes de LP, calculadora, revendedor e BKO.
+
 # Atualização atual: 0.2.3 — branco e dourado
 
 Consulte ATUALIZACOES-BRANCO-DOURADO.md para o resumo desta revisão da LP e suas validações.

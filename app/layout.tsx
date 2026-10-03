@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./refinements.css";
 import { TrafficAttribution } from "@/components/traffic-attribution";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://revendedores.mix10pro.com.br";
