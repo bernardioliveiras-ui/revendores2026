@@ -32,3 +32,15 @@ O ZIP contém o projeto completo, com os arquivos na raiz. Use o fluxo de atuali
 - Banco de dados, cobrança real e serviços externos não foram exercitados nesta validação local.
 
 Prévias e relatório de medidas em `docs/validacao/layout-2026-10-03/`.
+
+## Microajustes finais do hero — continuidade no chat
+
+- Cabeçalho reduzido no desktop e no mobile para a logo não dominar a primeira dobra.
+- Headline levemente compactada e limitada para manter proporção melhor em telas grandes e pequenas.
+- A mensagem principal foi unificada visualmente em um único bloco: “Com a LORD NUTRI você pode!”, “Vem realizar seus sonhos com a gente!” e o cenário de até R$ 10 mil de ganho bruto.
+- O texto de mercado foi deslocado para depois do CTA, deixando a promessa principal mais direta e sem interrupção.
+- O bloco principal ganhou borda e fundo dourado discretos e reforço no hover, preservando o efeito de destaque dourado aprovado.
+- O CTA continua dentro da primeira dobra nas prévias de 1440, 390 e 320 px.
+- Inspeção visual isolada do topo: sem rolagem horizontal nas três larguras acima. Prévias em `docs/validacao/layout-2026-10-03/microajuste-hero-*.png`.
+- Testes de contrato de landing/checkout e CSS executados após o ajuste: 7/7 aprovados.
+- O restante da landing page, simulador, kits, checkout, APIs, banco e portal não foi alterado nesta microrevisão.

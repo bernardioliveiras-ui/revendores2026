@@ -61,14 +61,15 @@ export default function Home() {
       <section id="inicio" className="lnr-hero">
         <div className="lnr-shell lnr-hero-inner">
           <span className="lnr-eyebrow">PROGRAMA DE REVENDEDORES LORD NUTRI</span>
-          <h1>Com a <span>LORD NUTRI</span><br />você pode!</h1>
-          <p className="lnr-dream">Vem realizar seus sonhos com a gente!</p>
-          <p className="lnr-market">O mercado de suplementos movimenta bilhões no Brasil. E cresce porque milhões de pessoas buscam mais mobilidade, conforto e qualidade de vida.</p>
-          <div className="lnr-hero-opportunity">
-            <p className="lnr-punch">Vire a chave da sua renda.</p>
-            <p className="lnr-income">Construa até <strong>R$ 10 mil</strong> <span>de ganho bruto por mês com as suas vendas.</span></p>
+          <div className="lnr-hero-message">
+            <h1>Com a <span>LORD NUTRI</span><br />você pode!</h1>
+            <p className="lnr-dream">Vem realizar seus sonhos com a gente!</p>
+            <div className="lnr-hero-opportunity">
+              <p className="lnr-income">Construa até <strong>R$ 10 mil</strong> <span>de ganho bruto por mês com as suas vendas.</span></p>
+            </div>
           </div>
           <MainCta hero />
+          <p className="lnr-market">O mercado de suplementos movimenta bilhões no Brasil. E cresce porque milhões de pessoas buscam mais mobilidade, conforto e qualidade de vida.</p>
           <p className="lnr-micro">Entrada a partir de 20 caixas · Pagamento em até 6x · Frete à parte.</p>
           <a href="#simulador" className="lnr-reference">Cenário de referência · Ver no simulador <span aria-hidden="true">↓</span></a>
         </div>
