@@ -71,3 +71,9 @@
 - CTA principal recebeu pulsação visual sutil.
 - Títulos, subtítulos, cards, kits e avaliações tiveram tamanhos mínimos maiores para melhorar leitura e impacto em desktop e celular.
 - Animações respeitam `prefers-reduced-motion`.
+
+## Ajuste visual — logo integrada sem fundo
+- A marca principal agora usa `public/brand/lordnutri-logo.png`, com transparência real, em vez da arte quadrada com fundo creme.
+- Cabeçalho, login, portal e áreas claras preservam a logo completa sem recorte.
+- Em superfícies escuras (hero interno e sidebar), usa-se o símbolo dourado transparente para manter contraste sem parecer uma imagem colada.
+- `object-fit: contain` é forçado nos pontos de marca para impedir corte da arte.

@@ -21,7 +21,7 @@ export const metadata = { alternates: { canonical: "https://revendedores.mix10pr
 export default function Home() {
   return <main className="reseller-lp final-editorial-lp">
     <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify({
-      "@context":"https://schema.org","@type":"Organization",name:"LORDNUTRI",legalName:"LORD GROUP NETWORK EPP",url:"https://revendedores.mix10pro.com.br/",logo:"https://revendedores.mix10pro.com.br/brand/lordnutri-group.png",sameAs:["https://mix10pro.com.br/lp-v2","https://www.google.com/maps/search/?api=1&query=LORD%20NUTRI&query_place_id=ChIJCZtZ98MDz5QRWv8YdIPkPic"],makesOffer:{"@type":"Offer",itemOffered:{"@type":"Product",name:"MIX10 PRO"}}
+      "@context":"https://schema.org","@type":"Organization",name:"LORDNUTRI",legalName:"LORD GROUP NETWORK EPP",url:"https://revendedores.mix10pro.com.br/",logo:"https://revendedores.mix10pro.com.br/brand/lordnutri-logo.png",sameAs:["https://mix10pro.com.br/lp-v2","https://www.google.com/maps/search/?api=1&query=LORD%20NUTRI&query_place_id=ChIJCZtZ98MDz5QRWv8YdIPkPic"],makesOffer:{"@type":"Offer",itemOffered:{"@type":"Product",name:"MIX10 PRO"}}
     }) }} />
 
     <header className="topbar"><a href="#inicio" className="brand"><BrandLogo compact /></a><nav><a href="#como-funciona">Como funciona</a><a href="#simulador">Simulador</a><a href="#kits">Kits</a><Link href="/entrar" className="login-link">Entrar no portal</Link></nav></header>
@@ -39,7 +39,7 @@ export default function Home() {
         <div className="microcopy">Entrada a partir de 20 caixas · Frete à parte · PIX ou cartão em até 6x.</div>
       </div>
       <div className="editorial-product-frame" aria-label="MIX10 PRO LORDNUTRI">
-        <div className="editorial-frame-brand"><BrandLogo /></div>
+        <div className="editorial-frame-brand"><BrandLogo mark /></div>
         <img src="/brand/mix10-trio.png" alt="MIX10 PRO LORDNUTRI" />
         <div className="editorial-frame-caption"><span className="section-kicker">Seu próximo capítulo</span><h3>Uma marca.<br/>Novas possibilidades.</h3><p>Produto físico, apoio para começar e um portal para acompanhar sua revenda.</p><div className="brand-chips"><span>Seu estoque</span><span>Seu atendimento</span><span>Suas vendas</span></div></div>
       </div>

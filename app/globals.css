@@ -567,3 +567,22 @@ body { overflow-x: clip; }
   .editorial-hero .hero-big strong,
   .editorial-hero .primary-button{animation:none!important}
 }
+
+
+/* 0.2.1 — LOGO INTEGRADA / FUNDO TRANSPARENTE */
+.lordnutri-logo,.lordnutri-logo img{background:transparent!important}
+.lordnutri-logo{overflow:visible!important}
+.lordnutri-logo img{object-fit:contain!important;object-position:center!important;border-radius:0!important;box-shadow:none!important}
+.final-editorial-lp .topbar .compact-logo{width:112px!important;height:60px!important}
+.final-editorial-lp .topbar .compact-logo img{width:100%!important;height:100%!important;object-fit:contain!important}
+.editorial-frame-brand .brand-mark{width:66px!important;height:66px!important}
+.editorial-frame-brand .brand-mark img{filter:drop-shadow(0 8px 14px rgba(0,0,0,.22))}
+.lordnutri-brand-panel .lordnutri-logo{background:transparent!important}
+.portal-header .compact-logo{width:112px!important;height:62px!important}
+.portal-header .compact-logo img{width:100%!important;height:100%!important;object-fit:contain!important}
+.portal-sidebar .side-brand .compact-logo{width:74px!important;height:74px!important;background:transparent!important;border-radius:0!important;overflow:visible!important;margin-bottom:12px!important}
+.portal-sidebar .side-brand .compact-logo img{width:100%!important;height:100%!important;object-fit:contain!important;filter:drop-shadow(0 9px 14px rgba(0,0,0,.25))}
+.reseller-lp .opportunity-logo{background:transparent!important;border:0!important;overflow:visible!important}
+.reseller-lp .opportunity-logo .lordnutri-logo,.reseller-lp .opportunity-logo img{object-fit:contain!important;border-radius:0!important}
+.auth-brand .compact-logo,.legal-brand .compact-logo{background:transparent!important;overflow:visible!important}
+@media(max-width:640px){.final-editorial-lp .topbar .compact-logo{width:94px!important;height:52px!important}.portal-header .compact-logo{width:96px!important;height:54px!important}}
