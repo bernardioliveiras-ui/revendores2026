@@ -1,3 +1,7 @@
+# Atualização atual: 0.2.3 — branco e dourado
+
+Consulte ATUALIZACOES-BRANCO-DOURADO.md para o resumo desta revisão da LP e suas validações.
+
 # LORDNUTRI — projeto completo 0.2.0
 
 Este pacote reúne a LP LORDNUTRI, BKO e portal do revendedor na mesma base Next.js + Drizzle/MySQL. Os preços KIT20/KIT50 e o Asaas existente foram preservados.
