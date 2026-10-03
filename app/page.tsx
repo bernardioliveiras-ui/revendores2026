@@ -53,7 +53,7 @@ export default function Home() {
       </div>
       <header className="lnr-header">
         <div className="lnr-shell lnr-header-inner">
-          <a href="#inicio" className="lnr-brand" aria-label="LORD NUTRI — início"><BrandLogo compact /></a>
+          <a href="#inicio" className="lnr-brand" aria-label="LORD NUTRI — início"><BrandLogo mark /></a>
           <nav aria-label="Navegação principal">
             <a href="#modelo">Como funciona</a><a href="#lord-nutri">Oportunidade</a><a href="#simulador">Simulador</a><a href="#kits">Kits</a>
           </nav>
