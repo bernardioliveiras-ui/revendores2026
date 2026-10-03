@@ -4,14 +4,16 @@ import { readFile, access } from 'node:fs/promises';
 import { join } from 'node:path';
 const root=new URL('..',import.meta.url).pathname;const read=(p)=>readFile(join(root,p),'utf8');
 
-test('LP places LORD NUTRI proof and model before MIX10 product and keeps Google reviews with brand proof', async()=>{
+test('LP presents the approved LORD NUTRI business model and opportunity before the product', async()=>{
   const src=await read('app/page.tsx');
-  const proof=src.indexOf('id="lord-nutri"');
-  const reviews=src.indexOf('<GoogleReviews');
+  const model=src.indexOf('id="modelo"');
+  const opportunity=src.indexOf('id="lord-nutri"');
+  const simulator=src.indexOf('id="simulador"');
   const product=src.indexOf('id="mix10pro"');
-  assert.ok(proof>=0 && reviews>proof && product>reviews);
-  assert.match(src,/Transforme sua rede de contatos em uma nova fonte de renda\./);
-  assert.match(src,/Conheça o MIX10 PRO\./);
+  assert.ok(model>=0 && opportunity>model && simulator>opportunity && product>simulator);
+  assert.match(src,/Vem realizar seus sonhos com a gente!/);
+  assert.match(src,/Por que escolher MIX10 PRO para começar sua revenda/);
+  assert.match(src,/A plataforma de apoio e os treinamentos estão em desenvolvimento/);
 });
 
 test('favicon is the LORDNUTRI mark and the reseller manual is embedded', async()=>{

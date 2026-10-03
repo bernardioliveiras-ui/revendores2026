@@ -18,17 +18,19 @@ test('landing page follows the approved briefing structure and VSL', async () =>
   const page = await read('app/page.tsx');
   for (const copy of [
     'PROGRAMA DE REVENDEDORES LORD NUTRI',
-    'Transforme sua rede de contatos em uma nova fonte de renda.',
-    'A oportunidade começa pela LORD NUTRI.',
-    'Começar é simples.',
-    'E se sua operação chegar a',
-    'Conheça o MIX10 PRO.',
+    'Vem realizar seus sonhos com a gente!',
+    'Uma oportunidade em um mercado que acompanha uma necessidade real.',
+    'Sua revenda LORD NUTRI em 3 passos',
+    'Quanto você quer construir de ganho bruto por mês?',
+    'Por que escolher MIX10 PRO para começar sua revenda?',
     'KIT20',
     'KIT50',
     'Isso é multinível?'
   ]) assert.match(page, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
   assert.match(page, /WelcomeVideo/);
-  assert.ok(page.indexOf('id="inicio"') < page.indexOf('lp2-video-section'));
+  assert.ok(page.indexOf('id="inicio"') < page.indexOf('id="modelo"'));
+  assert.ok(page.indexOf('id="lord-nutri"') < page.indexOf('id="mix10pro"'));
+  assert.match(page, /VER OS KITS E CALCULAR MEU CENÁRIO/);
 });
 
 test('public checkout collects reseller data, calculates freight and never accepts client price fields', async () => {

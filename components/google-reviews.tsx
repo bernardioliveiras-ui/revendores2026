@@ -53,7 +53,7 @@ export function GoogleReviews() {
           ))}
         </div>
       ) : (
-        <div className="ln-review-placeholder-grid" aria-label="Atalhos para o perfil da LORDNUTRI no Google">
+        <div className="ln-review-placeholder-grid" aria-label="Atalhos para o perfil da LORD NUTRI no Google">
           <article><b>01</b><strong>Confira a reputação</strong><span>Leia comentários publicados diretamente no Google.</span></article>
           <article><b>02</b><strong>Valide antes de começar</strong><span>Use a fonte original para conhecer experiências de clientes.</span></article>
           <article><b>03</b><strong>Compartilhe sua experiência</strong><span>Seu feedback ajuda outras pessoas a conhecerem a LORD NUTRI.</span></article>

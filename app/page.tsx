@@ -1,278 +1,132 @@
 /* eslint-disable @next/next/no-img-element */
+/* eslint-disable @next/next/no-html-link-for-pages -- Os links de kit remontam o checkout para ler a seleção da URL. */
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { WelcomeVideo } from "@/components/welcome-video";
 import { CheckoutForm } from "@/components/checkout-form";
-import { GoogleReviews } from "@/components/google-reviews";
 import { ProfitSimulator } from "@/components/profit-simulator";
+import "./landing.css";
 
-const mix10Constituents = [
-  "Cálcio",
-  "Magnésio",
-  "Vitamina C",
-  "Curcumina",
-  "Vitamina D3",
-  "Vitamina K2 MK-7",
-  "Manganês",
-  "MSM",
-  "Colágeno tipo II",
-  "Sulfato de condroitina",
+const steps = [
+  ["Escolha seu kit", "Defina seu ponto de partida: KIT20, com 20 caixas, ou KIT50, com melhor custo por unidade. Antes de pagar, você vê o valor dos produtos, o frete e as condições de parcelamento."],
+  ["Receba da LORD NUTRI", "Preencha os dados de entrega e conclua seu pedido. A LORD NUTRI separa e envia suas caixas para o endereço informado."],
+  ["Comece suas vendas", "Apresente MIX10 PRO aos seus contatos, atenda seus clientes e entregue os produtos. O seu resultado vem da diferença entre o custo de compra e as suas vendas, depois das despesas da sua operação."],
+];
+const reasons = [
+  ["Construa uma atividade no mercado de saúde e bem-estar", "Revenda um suplemento alimentar em uma categoria ligada à busca por mobilidade, conforto e qualidade de vida."],
+  ["Seu resultado acompanha as suas vendas", "Você compra com condição de revendedor e fica com a diferença entre o custo e o preço praticado na venda."],
+  ["Tenha um produto físico para apresentar", "MIX10 PRO tem embalagem própria, 30 porções e informações oficiais para apoiar uma apresentação responsável."],
+  ["Comece pela sua própria rede de contatos", "Amigos, familiares, vizinhos, colegas e contatos digitais podem conhecer seu atendimento e o produto."],
+  ["Conte com a LORD NUTRI no começo da jornada", "O canal oficial responde dúvidas sobre pedido, produto e condições de compra. Materiais e plataforma só devem aparecer quando estiverem disponíveis."],
+];
+const pillars = [
+  ["Fórmula completa", "MIX10 PRO reúne 10 ativos em uma fórmula de suplemento alimentar desenvolvida para a rotina de quem busca mais mobilidade, conforto e qualidade de vida."],
+  ["Produto para a rotina", "Cada embalagem possui 30 porções. O revendedor pode explicar o produto usando as informações oficiais de composição, modo de uso e advertências."],
+  ["Apresentação profissional", "Um produto com embalagem premium, marca definida e informações acessíveis para ajudar o cliente a decidir com clareza."],
+];
+const faqs = [
+  ["Isso é multinível?", "Não. O resultado apresentado vem da compra e da revenda dos produtos aos clientes. Não há remuneração por recrutamento."],
+  ["Quem entrega o produto?", "A LORD NUTRI envia o kit para o revendedor. Depois, o revendedor organiza a entrega das caixas aos seus próprios clientes."],
+  ["Já existe plataforma e treinamento?", "A plataforma de apoio e os treinamentos estão em desenvolvimento. Não devem ser anunciados como acesso imediato até estarem disponíveis."],
+  ["Posso parcelar?", "O pagamento pode ser feito em até 6x. O checkout deve mostrar os juros e o valor total antes da conclusão."],
+  ["Nunca vendi. Posso começar?", "Sim, mas a revenda exige divulgação, atendimento, organização e dedicação comercial. Não há garantia de vendas."],
 ];
 
 export const metadata = { alternates: { canonical: "https://revendedores.mix10pro.com.br/" } };
 
-export default function Home() {
-  return (
-    <main className="reseller-lp lp-final-v2">
-      <script
-        type="application/ld+json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "LORD NUTRI",
-            legalName: "LORD GROUP NETWORK EPP",
-            url: "https://revendedores.mix10pro.com.br/",
-            logo: "https://revendedores.mix10pro.com.br/brand/lordnutri-logo.png",
-            sameAs: [
-              "https://mix10pro.com.br/lp-v2",
-              "https://www.google.com/maps/search/?api=1&query=LORD%20NUTRI&query_place_id=ChIJCZtZ98MDz5QRWv8YdIPkPic",
-            ],
-            makesOffer: { "@type": "Offer", itemOffered: { "@type": "Product", name: "MIX10 PRO" } },
-          }),
-        }}
-      />
+function MainCta({ hero = false }: { hero?: boolean }) {
+  return <a className={`lnr-button${hero ? " lnr-hero-cta" : ""}`} href="#simulador"><span>VER OS KITS E CALCULAR MEU CENÁRIO</span><span aria-hidden="true">↗</span></a>;
+}
 
-      <header className="topbar lp2-topbar">
-        <a href="#inicio" className="brand" aria-label="LORD NUTRI">
-          <BrandLogo compact />
-        </a>
-        <nav>
-          <a href="#lord-nutri">LORD NUTRI</a>
-          <a href="#modelo">Modelo</a>
-          <a href="#simulador">Simulador</a>
-          <a href="#kits">Kits</a>
-          <a href="#mix10pro">MIX10 PRO</a>
-          <Link href="/entrar" className="login-link">Entrar no portal</Link>
-        </nav>
+export default function Home() {
+  const hasVideo = Boolean(process.env.VSL_EMBED_URL || process.env.VSL_VIDEO_URL);
+  return (
+    <main className="lnr-page">
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org", "@type": "Organization", name: "LORD NUTRI", legalName: "LORD GROUP NETWORK EPP",
+        url: "https://revendedores.mix10pro.com.br/", logo: "https://revendedores.mix10pro.com.br/brand/lordnutri-logo.png",
+        sameAs: ["https://mix10pro.com.br/lp-v2", "https://www.google.com/maps/search/?api=1&query=LORD%20NUTRI&query_place_id=ChIJCZtZ98MDz5QRWv8YdIPkPic"],
+        makesOffer: { "@type": "Offer", itemOffered: { "@type": "Product", name: "MIX10 PRO" } },
+      }) }} />
+      <header className="lnr-header">
+        <div className="lnr-shell lnr-header-inner">
+          <a href="#inicio" className="lnr-brand" aria-label="LORD NUTRI — início"><BrandLogo compact /></a>
+          <nav aria-label="Navegação principal">
+            <a href="#modelo">Modelo de negócio</a><a href="#lord-nutri">Oportunidade</a><a href="#simulador">Simulador</a><a href="#kits">Kits</a>
+          </nav>
+          <Link href="/entrar" className="lnr-login">Entrar no portal <span aria-hidden="true">↗</span></Link>
+        </div>
       </header>
 
-      <section id="inicio" className="lp2-hero">
-        <div className="section-shell lp2-hero-grid">
-          <div className="lp2-hero-copy">
-            <span className="lp2-kicker">PROGRAMA DE REVENDEDORES LORD NUTRI</span>
-            <h1>Transforme sua rede de contatos em uma nova fonte de renda.</h1>
-            <p className="lp2-lead">Revenda produtos LORD NUTRI com estoque próprio, suporte e uma estrutura criada para acompanhar sua operação.</p>
-
-            <div className="lp2-earnings-card" aria-label="Cenário de referência de ganho bruto">
-              <span>Construa um cenário de até</span>
-              <strong>R$ 10 mil</strong>
-              <b>de ganho bruto por mês</b>
-              <small>Veja no simulador como esse cenário é calculado. Resultados dependem das vendas realizadas.</small>
-            </div>
-
-            <div className="lp2-hero-actions">
-              <a className="primary-button lp2-gold-button" href="#simulador">CALCULAR MEU CENÁRIO <span>→</span></a>
-              <a className="lp2-text-link" href="#modelo">CONHECER O MODELO <span>↓</span></a>
-            </div>
+      <section id="inicio" className="lnr-hero">
+        <div className="lnr-shell lnr-hero-inner">
+          <span className="lnr-eyebrow">PROGRAMA DE REVENDEDORES LORD NUTRI</span>
+          <h1>Com a <span>LORD NUTRI</span><br />você pode!</h1>
+          <p className="lnr-dream">Vem realizar seus sonhos com a gente!</p>
+          <p className="lnr-market">O mercado de suplementos movimenta bilhões no Brasil. E cresce porque milhões de pessoas buscam mais mobilidade, conforto e qualidade de vida.</p>
+          <div className="lnr-hero-opportunity">
+            <p className="lnr-punch">Vire a chave da sua renda.</p>
+            <p className="lnr-income">Construa até <strong>R$ 10 mil</strong> <span>de ganho bruto por mês com as suas vendas.</span></p>
           </div>
-
-          <div className="lp2-brand-stage" aria-label="LORD NUTRI">
-            <div className="lp2-brand-glow" />
-            <div className="lp2-brand-mark"><BrandLogo mark /></div>
-            <div className="lp2-brand-wordmark"><BrandLogo /></div>
-            <div className="lp2-stage-copy">
-              <span>MARCA • PRODUTO • OPERAÇÃO</span>
-              <strong>Uma estrutura para começar e acompanhar sua revenda.</strong>
-            </div>
-            <div className="lp2-stage-chips"><span>Produto físico</span><span>Portal do revendedor</span><span>Suporte à operação</span></div>
-          </div>
+          <MainCta hero />
+          <p className="lnr-micro">Entrada a partir de 20 caixas · Pagamento em até 6x · Frete à parte.</p>
+          <a href="#simulador" className="lnr-reference">Cenário de referência · Ver no simulador <span aria-hidden="true">↓</span></a>
         </div>
       </section>
 
-      <section className="lp2-trust-strip" aria-label="Estrutura LORD NUTRI">
-        <div className="section-shell lp2-trust-grid">
-          <div><b>01</b><span>Marca própria</span></div>
-          <div><b>02</b><span>Produto físico</span></div>
-          <div><b>03</b><span>Portal do revendedor</span></div>
-          <div><b>04</b><span>Suporte à operação</span></div>
+      <section id="modelo" className="lnr-section lnr-model">
+        <div className="lnr-shell">
+          <div className="lnr-section-head"><span className="lnr-eyebrow">MODELO DE NEGÓCIO</span><h2>Sua revenda LORD NUTRI em 3 passos</h2><p>Revenda MIX10 PRO com a LORD NUTRI. Escolha seu estoque, receba suas caixas e venda diretamente para sua rede de contatos: amigos, familiares, colegas de trabalho, vizinhos e clientes digitais.</p></div>
+          <div className="lnr-steps">{steps.map(([title, text], i) => <details className="lnr-step lnr-disclosure" key={title}><summary><span className="lnr-number">0{i + 1}</span><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p>{text}</p></details>)}</div>
+          <div className="lnr-inline-action"><MainCta /><p className="lnr-note">A revenda exige dedicação comercial. Não há promessa de vendas, renda ou prazo para venda do estoque.</p></div>
+          {hasVideo ? <details className="lnr-video-details lnr-disclosure"><summary>Boas-vindas à LORD NUTRI<span className="lnr-plus" aria-hidden="true" /></summary><WelcomeVideo embedUrl={process.env.VSL_EMBED_URL} videoUrl={process.env.VSL_VIDEO_URL} /></details> : null}
         </div>
       </section>
 
-      <section id="lord-nutri" className="lp2-brand-story">
-        <div className="section-shell lp2-brand-story-grid">
-          <div className="lp2-story-visual">
-            <BrandLogo />
-            <div className="lp2-story-line" />
-            <span>Uma marca. Novas possibilidades.</span>
-          </div>
-          <div className="lp2-story-copy">
-            <span className="lp2-kicker">QUEM SOMOS</span>
-            <h2>A oportunidade começa pela LORD NUTRI.</h2>
-            <p>A LORD NUTRI conecta produto físico, relacionamento e uma operação simples para quem quer construir suas próprias vendas.</p>
-            <div className="lp2-pillar-grid">
-              <article><b>Produto</b><span>Mercadoria física para apresentar ao cliente.</span></article>
-              <article><b>Estrutura</b><span>Estoque, vendas e pedidos no portal.</span></article>
-              <article><b>Relacionamento</b><span>Venda para sua rede e desenvolva recompra.</span></article>
-            </div>
-          </div>
-        </div>
-        <GoogleReviews />
-      </section>
-
-      <section className="lp2-video-section">
-        <div className="section-shell lp2-video-grid">
-          <div>
-            <span className="lp2-kicker">BOAS-VINDAS</span>
-            <h2>Conheça a proposta LORD NUTRI em poucos minutos.</h2>
-            <p>Entenda a oportunidade, o modelo de revenda e como sua operação é acompanhada depois da compra.</p>
-          </div>
-          <WelcomeVideo embedUrl={process.env.VSL_EMBED_URL} videoUrl={process.env.VSL_VIDEO_URL} />
+      <section id="lord-nutri" className="lnr-section lnr-opportunity">
+        <div className="lnr-shell">
+          <div className="lnr-opportunity-intro"><div><span className="lnr-eyebrow">O MERCADO E A OPORTUNIDADE</span><h2>Uma oportunidade em um mercado que acompanha uma necessidade real.</h2></div><p>O mercado de suplementos cresce porque cada vez mais pessoas buscam incluir bem-estar e cuidado contínuo na rotina. A LORD NUTRI cria uma forma de você atender esse público com MIX10 PRO e construir suas próprias vendas.</p></div>
+          <div className="lnr-reasons-head"><h3>5 motivos para revender MIX10 PRO</h3><p>Com a LORD NUTRI você pode começar uma atividade de revenda com produto em mãos, números claros e espaço para desenvolver suas próprias vendas.</p></div>
+          <div className="lnr-reasons">{reasons.map(([title, text], i) => <details className="lnr-disclosure" key={title}><summary><span className="lnr-reason-number">0{i + 1}</span><h4>{title}</h4><span className="lnr-plus" aria-hidden="true" /></summary><p>{text}</p></details>)}</div>
         </div>
       </section>
 
-      <section id="modelo" className="lp2-model-section">
-        <div className="section-shell">
-          <div className="lp2-section-head">
-            <span className="lp2-kicker">MODELO DE NEGÓCIO</span>
-            <h2>Começar é simples.</h2>
-          </div>
-          <div className="lp2-steps">
-            <article><b>01</b><h3>Escolha seu kit</h3><p>Defina seu estoque inicial.</p></article>
-            <article><b>02</b><h3>Receba da LORD NUTRI</h3><p>Acompanhe pedido e entrega.</p></article>
-            <article><b>03</b><h3>Venda e acompanhe</h3><p>Registre vendas e controle seu estoque.</p></article>
-          </div>
-          <p className="lp2-disclaimer">A revenda exige dedicação comercial. Não há promessa de vendas, renda ou prazo para venda do estoque.</p>
+      <section id="simulador" className="lnr-section lnr-simulator">
+        <div className="lnr-shell">
+          <div className="lnr-section-head"><span className="lnr-eyebrow">NÚMEROS E SIMULADOR</span><h2>Quanto você quer construir de ganho bruto por mês?</h2><p>Informe sua meta mensal e veja quantas caixas precisaria vender. O simulador mostra ganho bruto de referência e permite considerar despesas para chegar a um cenário mais realista.</p></div>
+          <div className="lnr-scenarios">{[1, 2, 3].map((n) => <article className="lnr-scenario" key={n}><span className="lnr-scenario-rhythm"><b>{n}</b> {n === 1 ? "caixa por dia" : "caixas por dia"}</span><p>{n * 26} caixas no mês · 26 dias</p><dl><div><dt>Ganho bruto · KIT20</dt><dd>{(n * 910).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</dd></div><div><dt>Ganho bruto · KIT50</dt><dd>{(n * 1040).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</dd></div></dl></article>)}</div>
+          <p className="lnr-note">Simulações com preço de referência de R$ 109,90 por caixa. Valores brutos, antes de frete, taxas, juros, impostos, descontos e outras despesas. Vendas e resultados dependem da atuação de cada revendedor.</p>
+          <div id="simulador-calculo"><ProfitSimulator /></div>
+          <div className="lnr-inline-action"><a href="#kits" className="lnr-button"><span>VER QUAL KIT ATENDE MINHA META</span><span aria-hidden="true">↓</span></a></div>
         </div>
       </section>
 
-      <section id="simulador" className="lp2-simulator-section">
-        <div className="section-shell">
-          <div className="lp2-simulator-spotlight">
-            <div>
-              <span className="lp2-kicker">CENÁRIO DE REFERÊNCIA</span>
-              <h2>E se sua operação chegar a <strong>R$ 10 mil</strong> de ganho bruto no mês?</h2>
-              <p>Monte seu cenário e veja quantas caixas seriam necessárias.</p>
-            </div>
-            <a href="#simulador-calculo" className="lp2-spotlight-arrow" aria-label="Ir para o simulador">↘</a>
-          </div>
-          <div id="simulador-calculo" className="lp2-simulator-wrap"><ProfitSimulator /></div>
+      <section id="mix10pro" className="lnr-section lnr-product">
+        <div className="lnr-shell lnr-product-grid">
+          <div className="lnr-product-visual"><img src="/brand/mix10-box.png" alt="Embalagem real MIX10 PRO da LORD NUTRI" loading="lazy" width="1086" height="1448" /><span>SUPLEMENTO ALIMENTAR</span></div>
+          <div><span className="lnr-eyebrow">UM PRODUTO LORD NUTRI</span><h2>Por que escolher MIX10 PRO para começar sua revenda?</h2><p>Quando você escolhe um produto para revender, precisa de algo que seja fácil de apresentar, tenha posicionamento claro e ajude a construir confiança com o cliente. MIX10 PRO é o primeiro produto da LORD NUTRI para essa jornada.</p><div className="lnr-product-facts"><div><strong>10</strong><span>ativos</span></div><div><strong>30</strong><span>porções</span></div></div><div className="lnr-product-pillars">{pillars.map(([title, text]) => <details className="lnr-disclosure" key={title}><summary><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p>{text}</p></details>)}</div><p className="lnr-anvisa"><span>Processo de Notificação</span><strong>ANVISA nº 2535115572620267</strong></p><p className="lnr-note">MIX10 PRO é suplemento alimentar, não medicamento.</p></div>
         </div>
       </section>
 
-      <section id="kits" className="lp2-kits-section">
-        <div className="section-shell">
-          <div className="lp2-section-head compact">
-            <span className="lp2-kicker">SEU PONTO DE PARTIDA</span>
-            <h2>Escolha o tamanho da sua operação.</h2>
+      <section id="kits" className="lnr-section lnr-kits">
+        <div className="lnr-shell">
+          <div className="lnr-section-head"><span className="lnr-eyebrow">OFERTA DOS KITS</span><h2>Escolha seu kit</h2></div>
+          <div className="lnr-kit-grid">
+            <article className="lnr-kit"><span className="lnr-kit-badge">Menor investimento inicial</span><div className="lnr-kit-title"><h3>KIT20</h3><span>20 caixas</span></div><span className="lnr-price-label">Investimento em produtos</span><strong className="lnr-price">R$ 1.498,00</strong><dl><div><dt>Custo por caixa</dt><dd>R$ 74,90</dd></div><div><dt>Venda de referência</dt><dd>R$ 109,90</dd></div><div><dt>Diferença bruta por caixa</dt><dd>R$ 35,00</dd></div><div className="lnr-kit-total"><dt>Diferença bruta se vender todo o kit</dt><dd>R$ 700,00</dd></div></dl><a href="/?kit=kit20#checkout" className="lnr-button lnr-button-outline">QUERO COMEÇAR COM 20 CAIXAS <span aria-hidden="true">↗</span></a></article>
+            <article className="lnr-kit lnr-kit-featured"><span className="lnr-kit-badge">Melhor custo por unidade</span><div className="lnr-kit-title"><h3>KIT50</h3><span>50 caixas</span></div><span className="lnr-price-label">Investimento em produtos</span><strong className="lnr-price">R$ 3.495,00</strong><dl><div><dt>Custo por caixa</dt><dd>R$ 69,90</dd></div><div><dt>Venda de referência</dt><dd>R$ 109,90</dd></div><div><dt>Diferença bruta por caixa</dt><dd>R$ 40,00</dd></div><div className="lnr-kit-total"><dt>Diferença bruta se vender todo o kit</dt><dd>R$ 2.000,00</dd></div></dl><a href="/?kit=kit50#checkout" className="lnr-button">QUERO COMEÇAR COM 50 CAIXAS <span aria-hidden="true">↗</span></a></article>
           </div>
-          <div className="kit-cards lp2-kit-cards">
-            <article className="kit-card">
-              <span className="kit-badge">Menor investimento inicial</span>
-              <h3>KIT20</h3>
-              <strong className="kit-price">R$ 1.498,00</strong>
-              <p>20 caixas · R$ 74,90 por caixa</p>
-              <ul><li>Venda de referência: R$ 109,90</li><li>Diferença bruta por caixa: R$ 35,00</li><li>Diferença bruta do kit: R$ 700,00</li></ul>
-              <Link href="/?kit=kit20#checkout" className="secondary-button">COMEÇAR COM KIT20</Link>
-            </article>
-            <article className="kit-card featured">
-              <span className="kit-badge">Melhor custo por unidade</span>
-              <h3>KIT50</h3>
-              <strong className="kit-price">R$ 3.495,00</strong>
-              <p>50 caixas · R$ 69,90 por caixa</p>
-              <ul><li>Venda de referência: R$ 109,90</li><li>Diferença bruta por caixa: R$ 40,00</li><li>Diferença bruta do kit: R$ 2.000,00</li></ul>
-              <Link href="/?kit=kit50#checkout" className="primary-button lp2-gold-button">COMEÇAR COM KIT50</Link>
-            </article>
-          </div>
-          <p className="fine-print centered lp2-kit-note">Frete calculado pelo CEP. PIX ou cartão em até 6x; parcelamento, taxa e total final aparecem no checkout antes do redirecionamento ao Asaas.</p>
+          <p className="lnr-kit-comparison">O KIT50 reduz R$ 5,00 do custo por caixa. Em 50 caixas, isso equivale a R$ 250,00 de economia em relação ao preço do KIT20.</p>
+          <p className="lnr-note">Frete à parte nos kits de 20 e 50 caixas. Pagamento em até 6x, com juros e valor total exibidos antes do pagamento. Pedidos acima de 1.000 unidades têm frete grátis, conforme condição comercial.</p>
         </div>
       </section>
 
-      <section id="mix10pro" className="lp2-product-section">
-        <div className="section-shell lp2-product-grid">
-          <div className="lp2-product-visual">
-            <div className="lp2-product-halo" />
-            <img src="/brand/mix10-box.png" alt="Embalagem MIX10 PRO da LORD NUTRI" />
-          </div>
-          <div className="lp2-product-copy">
-            <span className="lp2-kicker">UM PRODUTO LORD NUTRI</span>
-            <h2>Conheça o MIX10 PRO.</h2>
-            <p>Suplemento alimentar em cápsulas com 10 constituintes declarados em uma fórmula de uso prático.</p>
-            <div className="mix10-quick-facts lp2-product-facts"><span><strong>30</strong> cápsulas</span><span><strong>10</strong> constituintes</span><span><strong>500 mg</strong> por cápsula</span></div>
-            <div className="mix10-constituents lp2-constituents">{mix10Constituents.map((item) => <span key={item}>{item}</span>)}</div>
-            <p className="fine-print">MIX10 PRO é suplemento alimentar, não medicamento. Não há promessa de cura, tratamento ou resultado terapêutico.</p>
-          </div>
-        </div>
+      <section id="duvidas" className="lnr-section lnr-faq">
+        <div className="lnr-shell lnr-faq-layout"><div><span className="lnr-eyebrow">FAQ</span><h2>Antes de começar.</h2></div><div className="lnr-faq-list">{faqs.map(([title, text]) => <details className="lnr-disclosure" key={title}><summary><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p>{text}</p></details>)}</div></div>
       </section>
-
-      <section className="lp2-selling-section">
-        <div className="section-shell">
-          <div className="lp2-section-head compact">
-            <span className="lp2-kicker">COMO VENDER</span>
-            <h2>Venda com relacionamento.</h2>
-          </div>
-          <div className="lp2-selling-grid">
-            <article><b>01</b><h3>Ouça</h3><p>Entenda a rotina do cliente.</p></article>
-            <article><b>02</b><h3>Apresente</h3><p>Explique o produto de maneira simples.</p></article>
-            <article><b>03</b><h3>Acompanhe</h3><p>Faça pós-venda e mantenha relacionamento.</p></article>
-          </div>
-          <p className="lp2-disclaimer">Evite promessas de cura, tratamento ou resultado garantido.</p>
-        </div>
+      <section id="checkout" className="lnr-section lnr-checkout">
+        <div className="lnr-shell lnr-checkout-layout"><div><span className="lnr-eyebrow">COMECE SUA REVENDA</span><h2>Escolha seu kit</h2><p>Antes de pagar, você vê o valor dos produtos, o frete e as condições de parcelamento.</p></div><CheckoutForm /></div>
       </section>
-
-      <section className="lp2-portal-section">
-        <div className="section-shell lp2-portal-grid">
-          <div>
-            <span className="lp2-kicker">PORTAL LORD NUTRI</span>
-            <h2>Sua operação continua depois da compra.</h2>
-            <p>Acompanhe estoque, vendas, pedidos, materiais e reposição em um único ambiente.</p>
-            <Link href="/entrar" className="primary-button lp2-gold-button">ACESSAR MEU PORTAL</Link>
-          </div>
-          <div className="lp2-portal-mock" aria-label="Recursos do portal">
-            <div className="lp2-portal-top"><BrandLogo mark /><span>PORTAL DO REVENDEDOR</span></div>
-            <div className="lp2-portal-cards"><span>Visão Geral</span><span>Manual</span><span>Estoque</span><span>Vendas</span><span>Pedidos</span><span>Reposição</span></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="checkout" className="checkout-section lp2-checkout-section">
-        <div className="section-shell checkout-layout lp2-checkout-layout">
-          <div>
-            <span className="lp2-kicker">SEU PRÓXIMO PASSO</span>
-            <h2>Preencha seus dados e siga para o pagamento.</h2>
-            <p>Frete, forma de pagamento, parcelamento, taxa e total final aparecem antes do redirecionamento ao Asaas.</p>
-            <div className="checkout-benefits"><span>✓ Dados enviados com segurança</span><span>✓ Pagamento processado pelo Asaas</span><span>✓ Acesso após confirmação do pagamento</span><span>✓ Manual e acompanhamento no portal</span></div>
-          </div>
-          <CheckoutForm />
-        </div>
-      </section>
-
-      <section className="lp2-faq-section">
-        <div className="section-shell">
-          <div className="lp2-section-head compact"><span className="lp2-kicker">DÚVIDAS RÁPIDAS</span><h2>Antes de começar.</h2></div>
-          <div className="faq-grid">
-            <details><summary>Isso é multinível?</summary><p>Não. O resultado vem da compra e da revenda dos produtos aos clientes. Não há remuneração por recrutamento.</p></details>
-            <details><summary>Quem entrega o produto?</summary><p>A LORD NUTRI envia o kit para o revendedor. Depois, o revendedor organiza a entrega das caixas aos próprios clientes.</p></details>
-            <details><summary>Posso parcelar?</summary><p>O checkout calcula o frete pelo CEP e mostra PIX ou cartão de 1x a 6x, incluindo a taxa de parcelamento e o total final antes de abrir o Asaas.</p></details>
-            <details><summary>Quando recebo acesso ao portal?</summary><p>Após a confirmação do pagamento, você recebe as orientações de acesso pelos canais informados no cadastro.</p></details>
-          </div>
-        </div>
-      </section>
-
-      <section className="lp2-final-cta">
-        <div className="section-shell lp2-final-cta-inner">
-          <div className="lp2-final-mark"><BrandLogo mark /></div>
-          <span className="lp2-kicker">LORD NUTRI</span>
-          <h2>Pronto para começar sua operação?</h2>
-          <p>Escolha seu kit, receba seu estoque e comece a construir sua base de clientes.</p>
-          <div className="lp2-final-actions"><a href="#kits" className="primary-button lp2-gold-button">QUERO SER REVENDEDOR</a><a href="#simulador" className="lp2-text-link light">Calcular meu cenário</a></div>
-        </div>
-      </section>
-
-      <footer>
-        <div className="section-shell footer-grid"><div><strong>LORD NUTRI · MIX10 PRO</strong><p>Programa de Revendedores</p></div><div><Link href="/termos-de-uso">Termos de Uso</Link><Link href="/politica-de-privacidade">Política de Privacidade</Link><Link href="/reembolso-e-devolucao">Reembolso e Devolução</Link><Link href="/entrar">Portal do Revendedor</Link></div></div>
-      </footer>
+      <footer className="lnr-footer"><div className="lnr-shell"><div><strong>LORD NUTRI · MIX10 PRO</strong><p>Programa de Revendedores</p></div><nav aria-label="Informações e acesso"><Link href="/termos-de-uso">Termos de Uso</Link><Link href="/politica-de-privacidade">Política de Privacidade</Link><Link href="/reembolso-e-devolucao">Reembolso e Devolução</Link><Link href="/entrar">Portal do Revendedor</Link><a className="lnr-google-check" href="https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F" target="_blank" rel="noopener noreferrer">Consultar segurança do site no Google <span aria-hidden="true">↗</span></a></nav></div></footer>
     </main>
   );
 }
