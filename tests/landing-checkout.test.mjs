@@ -28,7 +28,7 @@ test('landing page follows the approved briefing structure and VSL', async () =>
     'Isso é multinível?'
   ]) assert.match(page, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
   assert.match(page, /WelcomeVideo/);
-  assert.ok(page.indexOf('welcome-first') < page.indexOf('id="inicio"'));
+  assert.ok(page.indexOf('id="inicio"') < page.indexOf('welcome-first'));
 });
 
 test('public checkout collects reseller data, calculates freight and never accepts client price fields', async () => {

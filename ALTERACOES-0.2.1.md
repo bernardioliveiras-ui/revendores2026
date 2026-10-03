@@ -46,3 +46,20 @@
 - Avaliações do Google movidas para a área institucional LORDNUTRI, antes da seção do produto.
 - Seção MIX10 PRO ganhou resumo visual de cápsulas, constituintes e composição declarada, sem remover o texto comercial existente e sem promessas terapêuticas.
 - Espaçamentos, cards, galerias, simulador, kits, checkout e FAQ compactados.
+
+## Consolidação funcional final
+- Navegação do Portal do Revendedor organizada exatamente em: Boas Vindas → Visão Geral → Manual do Revendedor → Estoque → Vendas → Acompanhe seu Pedido.
+- Reposição de estoque deixou de ser apenas botão visual: agora calcula frete/parcelamento, cria um novo pedido e abre a cobrança no Asaas.
+- Quando o Asaas confirma a reposição, o webhook reutiliza o mesmo provisionamento idempotente e adiciona o novo lote ao estoque do revendedor sem criar outra conta nem trocar sua senha.
+- Pedidos pendentes exibem link para continuar o pagamento no Asaas e todos os pedidos aparecem no acompanhamento do portal.
+- Confirmação do primeiro pagamento cria/libera o acesso, gera senha provisória quando necessário e dispara boas-vindas por automação externa ou, como fallback, por e-mail via Resend.
+- Mudanças de expedição para Em percurso/Entregue podem vir do BKO ou do webhook logístico e disparam e-mail de acompanhamento quando o Resend está configurado.
+- Manual do Revendedor incorporado dentro do portal, com PDF final de 11 páginas: 5 páginas de LORDNUTRI/modelo/operação e 6 páginas de MIX10 PRO/produto/ativos/venda/boas práticas/relacionamento.
+- Favicon alterado para o símbolo dourado LORDNUTRI.
+- LP final remove a galeria/mosaico antigo, posiciona reputação/Google junto da área institucional LORDNUTRI e usa apenas os PNGs atuais do produto nas áreas públicas.
+
+## Variáveis para automações
+- `ASAAS_API_KEY`, `ASAAS_ENVIRONMENT` e `ASAAS_WEBHOOK_TOKEN`: cobrança e confirmação automática.
+- `RESEND_API_KEY` + `WELCOME_EMAIL_FROM` (ou `EMAIL_FROM`): e-mail de acesso/boas-vindas e atualizações de entrega.
+- `WELCOME_AUTOMATION_URL` + `WELCOME_AUTOMATION_TOKEN`: opcional; quando preenchido, tem prioridade e pode cuidar de e-mail + WhatsApp.
+- `SHIPPING_WEBHOOK_TOKEN`: opcional; permite que logística externa atualize Separação/Em percurso/Entregue.
