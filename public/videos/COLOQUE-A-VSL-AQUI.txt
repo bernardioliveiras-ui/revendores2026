@@ -1,6 +1,0 @@
-Coloque o arquivo final da VSL com este nome:
-
-vsl-mix10.mp4
-
-Caminho final esperado pelo site:
-public/videos/vsl-mix10.mp4

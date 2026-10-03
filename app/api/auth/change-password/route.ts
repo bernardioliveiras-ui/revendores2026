@@ -1,6 +1,0 @@
-import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
-import { users } from "@/db/schema";
-import { requireSession } from "@/lib/auth";
-import { hashPassword } from "@/lib/passwords";
-export async function POST(request: Request) { try { const user = await requireSession(request); const body = await request.json() as { password?:unknown; confirm?:unknown }; const password = typeof body.password === "string" ? body.password : ""; const confirm = typeof body.confirm === "string" ? body.confirm : ""; if (password.length < 8) return Response.json({error:"Use pelo menos 8 caracteres."},{status:400}); if (password!==confirm) return Response.json({error:"As senhas não conferem."},{status:400}); await getDb().update(users).set({passwordHash:await hashPassword(password),mustChangePassword:0,failedLoginAttempts:0,lockedUntil:null,updatedAt:new Date().toISOString()}).where(eq(users.id,user.id)); return Response.json({updated:true}); } catch(error) { if(error instanceof Error&&error.message==="UNAUTHORIZED") return Response.json({error:"Sessão expirada."},{status:401}); console.error("change_password_failed",error); return Response.json({error:"Não foi possível alterar a senha."},{status:500}); } }
