@@ -1,0 +1,23 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> mix10-pro-revendedores@0.2.0-lordnutri db:generate
+> drizzle-kit generate
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/workspace/scratch/1925521d560e/release/LORDNUTRI/drizzle.config.ts'
+Reading schema files:
+/workspace/scratch/1925521d560e/release/LORDNUTRI/db/schema.ts
+
+10 tables
+affiliate_cashbacks 19 columns 3 indexes 0 fks
+affiliate_clicks 5 columns 1 indexes 0 fks
+affiliate_referrals 9 columns 2 indexes 0 fks
+asaas_events 4 columns 1 indexes 0 fks
+auth_sessions 5 columns 2 indexes 0 fks
+purchases 39 columns 4 indexes 0 fks
+reseller_profiles 14 columns 2 indexes 0 fks
+sales 10 columns 1 indexes 0 fks
+stock_movements 9 columns 1 indexes 0 fks
+users 12 columns 2 indexes 0 fks
+
+[✓] Your SQL migration file ➜ drizzle-mysql/0001_ancient_nitro.sql 🚀
