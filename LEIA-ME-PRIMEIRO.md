@@ -1,11 +1,3 @@
-# Versão atual: 0.2.4
-
-Leia ATUALIZACOES-0.2.4.md para os ajustes de LP, calculadora, revendedor e BKO.
-
-# Atualização atual: 0.2.3 — branco e dourado
-
-Consulte ATUALIZACOES-BRANCO-DOURADO.md para o resumo desta revisão da LP e suas validações.
-
 # LORDNUTRI — projeto completo 0.2.0
 
 Este pacote reúne a LP LORDNUTRI, BKO e portal do revendedor na mesma base Next.js + Drizzle/MySQL. Os preços KIT20/KIT50 e o Asaas existente foram preservados.
@@ -60,3 +52,13 @@ Pagamentos com referência externa que não corresponde a uma compra deste porta
 - 1x sem taxa; de 2x a 6x, taxa de 2,99% a.m. pela Tabela Price, preservando a regra do checkout anterior.
 - Produto, frete, taxa e total final são recalculados no backend; o navegador não define preço.
 - Build da Hostinger usa `next build --webpack` para evitar o panic do Turbopack observado no Next 16.2.6.
+
+## 0.2.1 consolidada - configuração obrigatória para automação total
+Para o fluxo ficar automático em produção, configure na Hostinger:
+1. `ASAAS_API_KEY` e `ASAAS_ENVIRONMENT=production` somente após validar no sandbox.
+2. `ASAAS_WEBHOOK_TOKEN` e, no Asaas, aponte o webhook para `/api/billing/webhook` usando o mesmo token.
+3. `RESEND_API_KEY` e `WELCOME_EMAIL_FROM` para boas-vindas/acesso e e-mails de andamento do pedido.
+4. `NEXT_PUBLIC_APP_URL` com a URL final do portal.
+5. Opcional: `WELCOME_AUTOMATION_URL/TOKEN` para uma ponte de e-mail + WhatsApp e `SHIPPING_WEBHOOK_TOKEN` para integração logística externa.
+
+A reposição do revendedor está em Estoque: ele escolhe kit/frete/pagamento, segue ao Asaas e, depois da confirmação do webhook, as caixas entram no estoque sem recriar a conta.

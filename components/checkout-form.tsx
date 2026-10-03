@@ -62,23 +62,11 @@ export function CheckoutForm() {
     : selected.totalCents;
 
   useEffect(() => {
-    function syncKit(event?: Event) {
-      const requested = event instanceof CustomEvent ? event.detail : new URLSearchParams(window.location.search).get("kit");
-      if (requested === "kit20" || requested === "kit50") {
-        setKit(requested);
-        setQuote(null);
-        setInstallments(1);
-        setQuoteError("");
-      }
-    }
-    const timer = setTimeout(syncKit, 0);
-    window.addEventListener("lordnutri:select-kit", syncKit);
-    window.addEventListener("popstate", syncKit);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("lordnutri:select-kit", syncKit);
-      window.removeEventListener("popstate", syncKit);
-    };
+    const timer = setTimeout(() => {
+      const requested = new URLSearchParams(window.location.search).get("kit");
+      if (requested === "kit20" || requested === "kit50") setKit(requested);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   async function loadQuote(rawPostalCode: string, requestedKit = kit) {
@@ -166,7 +154,7 @@ export function CheckoutForm() {
 
       <div className="kit-toggle" role="group" aria-label="Escolha do kit">
         {(Object.keys(display) as KitId[]).map((id) => (
-          <button key={id} type="button" aria-pressed={kit === id} className={kit === id ? "active" : ""} onClick={() => chooseKit(id)}>
+          <button key={id} type="button" className={kit === id ? "active" : ""} onClick={() => chooseKit(id)}>
             <strong>{display[id].label}</strong><span>{display[id].boxes} caixas · {money(display[id].unitCents)}/caixa</span>
           </button>
         ))}
@@ -178,7 +166,7 @@ export function CheckoutForm() {
         <span>Frete</span><strong>{selectedShipping ? money(selectedShipping.priceCents) : "Calcule pelo CEP"}</strong>
         <span>Taxa de parcelamento</span><strong>{selectedShipping ? money(feeCents) : "—"}</strong>
         <span className="checkout-total-label">Total final</span><strong className="checkout-total-value">{selectedShipping ? money(finalCents) : "—"}</strong>
-        <small>PIX ou cartão em até 6x. Confira frete, taxas e total antes de pagar.</small>
+        <small>O valor é recalculado no servidor antes da cobrança. PIX e cartão em até 6x.</small>
       </div>
 
       <div className="form-grid">
@@ -259,7 +247,7 @@ export function CheckoutForm() {
         </div>
       ) : null}
 
-      <label className="consent"><input required type="checkbox" name="acceptedTerms" value="yes" /> <span>Li e concordo com os <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer">Termos de Uso</a> e a <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.</span></label>
+      <label className="consent"><input required type="checkbox" name="acceptedTerms" value="yes" /> Li e concordo com os Termos de Uso e a Política de Privacidade.</label>
       {error ? <div className="form-error">{error}</div> : null}
       <button className="primary-button full" disabled={busy || quoteBusy}>{busy ? "Abrindo pagamento…" : selectedShipping ? `Ir para pagamento · ${money(finalCents)}` : "Calcule o frete para continuar"}</button>
     </form>
