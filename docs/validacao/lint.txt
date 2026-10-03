@@ -1,0 +1,5 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> mix10-pro-revendedores@0.2.0-lordnutri lint
+> eslint . --ignore-pattern .next
+
