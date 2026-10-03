@@ -14,21 +14,17 @@ test('kit helper owns authoritative prices', () => {
   assert.equal(KITS.kit50.unitPriceCents, 6990);
 });
 
-test('landing page follows the approved briefing structure and VSL', async () => {
+test('landing preserves the product, reseller journey, calculator and purchasing flow', async () => {
   const page = await read('app/page.tsx');
-  for (const copy of [
-    'Com a LORD NUTRI você pode!',
-    'Seu plano de negócio LORD NUTRI em 3 passos',
-    'LORD NUTRI: uma oportunidade',
-    'MIX10PRO: conheça o produto da LORD NUTRI',
-    '5 motivos para começar com a LORD NUTRI',
-    'Calculadora de ganhos: quanto você quer construir por mês?',
-    'KIT20',
-    'KIT50',
-    'Isso é multinível?'
-  ]) assert.match(page, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
-  assert.match(page, /WelcomeVideo/);
-  assert.ok(page.indexOf('welcome-first') < page.indexOf('id="inicio"'));
+  for (const id of ['inicio', 'mix10pro', 'como-funciona', 'simulador', 'kits', 'checkout']) {
+    assert.ok(page.includes(`id="${id}"`), `Missing section ${id}`);
+  }
+  assert.match(page, /ProfitSimulator/);
+  assert.match(page, /CheckoutForm/);
+  assert.match(page, /KitLink kit="kit20"/);
+  assert.match(page, /KitLink kit="kit50"/);
+  assert.match(page, /MIX10PRO/);
+  assert.doesNotMatch(page, /mix10-gallery|mix10-trio|mix10-box/);
 });
 
 test('public checkout collects reseller data, calculates freight and never accepts client price fields', async () => {

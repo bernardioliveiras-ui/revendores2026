@@ -1,6 +1,6 @@
 {
   "name": "mix10-pro-revendedores",
-  "version": "0.2.1-lordnutri",
+  "version": "0.2.2-lordnutri",
   "private": true,
   "engines": {
     "node": "22.x"

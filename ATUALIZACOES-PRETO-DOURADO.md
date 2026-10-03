@@ -1,18 +1,27 @@
-# LORD NUTRI — atualização visual
+# LORD NUTRI — apresentação revisada 0.2.2
 
-A plataforma utiliza LORD NUTRI como marca institucional e MIX10PRO como produto.
+- Layout público reconstruído com escala tipográfica, espaçamentos e componentes consistentes.
+- Logo original transparente em arquivo novo para evitar cache antigo, sem recorte nem duplicação.
+- Favicon explícito com o símbolo LORD NUTRI.
+- Caixa inteira em PNG transparente; removido o banner de montagem cortado.
+- Área do produto, constituintes e benefícios nutricionais, jornada da revenda, calculadora, kits, checkout, avaliações e perguntas frequentes.
+- Blocos de vídeo exibidos somente quando há vídeo configurado.
+- Comparador de kits sincronizado com o checkout; calculadora informa quando não existe margem.
 
-- Fundo preto, superfícies em cinza escuro, dourado nos destaques e texto claro.
-- Logo transparente fornecida aplicada no cabeçalho, apresentação e demais usos da marca. O arquivo original tem 508 × 491 pixels, preservados sem ampliação artificial. As letras recebem contraste dourado na exibição sobre preto.
-- Embalagens e imagens do MIX10PRO preservadas integralmente.
-- Seção do produto com os dez constituintes já informados no projeto e explicação das funções nutricionais do cálcio, magnésio e vitamina C.
-- Calculadora de ganhos e checkout de KIT20/KIT50 mantidos, com frete e pagamento Asaas.
-- Portal, BKO, entrada e páginas legais seguem o tema preto e dourado.
+O pagamento real depende da configuração Asaas/MySQL do ambiente. Esta entrega não altera credenciais nem publica automaticamente em produção.
 
-## Validação
+## Verificações desta entrega
 
-Compilação de produção e TypeScript concluídos. Dez testes focados em landing, checkout e regras de cashback passaram. Verificação em navegador a 1440 e 390 pixels, sem transbordamento horizontal ou erros JavaScript na página inicial. Calculadora com meta de R$ 4.000: KIT20 precisa de 115 caixas e KIT50 de 100, com os valores padrão. Seleção do KIT50 no checkout: R$ 3.495,00 em produtos.
+- Compilação de produção e TypeScript aprovados.
+- Logo original em PNG RGBA, um único elemento e sem clip-path. Favicon SVG respondendo corretamente.
+- Caixa em PNG RGBA com transparência real.
+- Verificação em navegador a 320, 390, 768 e 1440 pixels, sem largura excedendo a tela.
+- Escolha dos kits refletida no checkout; calculadora com meta de R$ 4.000 e aviso de ausência de margem abaixo do custo.
+- Consulta ao endpoint local de frete: KIT20 e CEP 06400-000, produtos R$ 1.498,00 + frete R$ 26,50 = R$ 1.524,50.
+- Entrada, área do revendedor e BKO inspecionados. Os painéis autenticados foram avaliados com dados fictícios locais, sem alterar cadastros.
+- Nenhum pagamento real foi realizado e nenhum pedido foi criado.
+- A suíte completa legada já apresentava 25 falhas no arquivo originalmente enviado; esta revisão trata a apresentação e os fluxos de interface citados. Não constitui validação integral do backend em produção.
 
-A suíte completa original possui 25 falhas anteriores a esta atualização; não foram alteradas regras operacionais para resolver esses testes antigos. Pagamento real não foi efetuado nesta verificação. A operação de produção depende das variáveis Asaas, MySQL e frete configuradas no ambiente existente.
+## Publicação
 
-A imagem enviada foi utilizada na resolução nativa. Conteúdos dos PDFs e arquivos do manual não foram reeditados nesta atualização da plataforma.
+Substitua os arquivos do projeto pelos deste ZIP e refaça o build. Preserve as variáveis de ambiente já configuradas no servidor. Os novos nomes dos arquivos de marca evitam reaproveitamento das versões antigas em cache. Caso o navegador ainda mostre a versão anterior, atualize com Ctrl+F5 após o novo deploy.

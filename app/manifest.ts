@@ -8,6 +8,6 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     background_color: "#080808",
     theme_color: "#080808",
-    icons: [{ src: "/brand/lordnutri-group.png", sizes: "508x491", type: "image/png" }],
+    icons: [{ src: "/brand/lord-nutri-transparent-v022.png", sizes: "508x491", type: "image/png" }],
   };
 }

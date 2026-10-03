@@ -1,77 +1,83 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import { ArrowUpRight, ArrowRight, Package, Truck, ChartNoAxesCombined, ShieldCheck, Check, Plus, Leaf, Layers3 } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { WelcomeVideo } from "@/components/welcome-video";
 import { CheckoutForm } from "@/components/checkout-form";
 import { GoogleReviews } from "@/components/google-reviews";
 import { ProfitSimulator } from "@/components/profit-simulator";
+import { KitLink } from "@/components/kit-link";
 
-const reasons = [
-  ["01", "Atividade no mercado de saúde e bem-estar", "Revenda um suplemento alimentar em uma categoria ligada à busca por mobilidade, conforto e qualidade de vida."],
-  ["02", "Seu resultado acompanha as suas vendas", "Você compra com condição de revendedor e fica com a diferença entre o custo e o preço praticado na venda."],
-  ["03", "Produto físico para apresentar", "MIX10 PRO tem embalagem própria, 30 cápsulas e informações oficiais para apoiar uma apresentação responsável."],
-  ["04", "Comece pela sua rede", "Amigos, familiares, vizinhos, colegas e contatos digitais podem conhecer seu atendimento e o produto."],
-  ["05", "Conte com a LORD NUTRI", "O canal oficial responde dúvidas sobre pedido, produto e condições de compra."],
+const constituents = ["Cálcio", "Magnésio", "Vitamina C", "Curcumina", "Vitamina D3", "Vitamina K2 MK-7", "Manganês", "MSM", "Colágeno tipo II", "Sulfato de condroitina"];
+const faqs = [
+  ["Como funciona a revenda?", "Você compra um kit da LORD NUTRI, recebe as caixas de MIX10PRO e revende diretamente aos seus clientes. Seu resultado vem da diferença entre o preço de venda e seus custos."],
+  ["Isso é multinível?", "Não. O modelo é de compra e revenda de produto físico. Não há remuneração por recrutamento."],
+  ["Quem entrega o produto?", "A LORD NUTRI envia o kit ao endereço informado no checkout. Depois, você organiza a entrega das caixas aos seus clientes."],
+  ["Quais são as formas de pagamento?", "PIX ou cartão em até 6x pelo Asaas. O frete, as condições de parcelamento, as taxas e o total final aparecem antes da confirmação."],
+  ["Quando recebo acesso ao portal?", "Após a confirmação do pagamento, você recebe as orientações de acesso. No portal, pode acompanhar o pedido, consultar materiais e organizar suas vendas."],
+  ["Preciso ter experiência para começar?", "Não é obrigatório. Você recebe um manual de apoio, mas a revenda exige divulgação, organização e atendimento. Não há garantia de vendas ou de renda."],
 ];
-
-const mix10Constituents = [
-  "Cálcio",
-  "Magnésio",
-  "Vitamina C",
-  "Curcumina",
-  "Vitamina D3",
-  "Vitamina K2 MK-7",
-  "Manganês",
-  "MSM",
-  "Colágeno tipo II",
-  "Sulfato de condroitina",
-];
-
 export const metadata = { alternates: { canonical: "https://revendedores.mix10pro.com.br/" } };
 
 export default function Home() {
-  return <main className="reseller-lp">
-    <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      name: "LORD NUTRI",
-      legalName: "LORD GROUP NETWORK EPP",
-      url: "https://revendedores.mix10pro.com.br/",
-      logo: "https://revendedores.mix10pro.com.br/brand/lordnutri-group.png",
-      sameAs: ["https://mix10pro.com.br/lp-v2", "https://www.google.com/maps/search/?api=1&query=LORD%20NUTRI&query_place_id=ChIJCZtZ98MDz5QRWv8YdIPkPic"],
-      makesOffer: { "@type": "Offer", itemOffered: { "@type": "Product", name: "MIX10 PRO" } }
-    }) }} />
+  const hasVideo = Boolean(process.env.VSL_EMBED_URL || process.env.VSL_VIDEO_URL);
+  return <main className="lord-site">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "Organization", name: "LORD NUTRI", legalName: "LORD GROUP NETWORK EPP", url: "https://revendedores.mix10pro.com.br/", logo: "https://revendedores.mix10pro.com.br/brand/lordnutri-group.png", makesOffer: { "@type": "Offer", itemOffered: { "@type": "Product", name: "MIX10PRO" } } }) }} />
+    <a className="skip-link" href="#inicio">Ir para o conteúdo</a>
+    <header className="site-header">
+      <div className="site-header-inner shell">
+        <a href="#inicio" className="site-brand" aria-label="LORD NUTRI — início"><BrandLogo compact /></a>
+        <nav aria-label="Navegação principal"><a href="#mix10pro">O produto</a><a href="#como-funciona">Como funciona</a><a href="#simulador">Calculadora</a><a href="#kits">Kits de revenda</a></nav>
+        <Link href="/entrar" className="portal-link">Meu portal <ArrowUpRight size={16}/></Link>
+      </div>
+    </header>
 
-    <header className="topbar"><a href="#inicio" className="brand"><BrandLogo compact /></a><nav><a href="#mix10pro">MIX10PRO</a><a href="#como-funciona">Revenda</a><a href="#simulador">Calculadora</a><a href="#kits">Kits</a><Link href="/entrar" className="login-link">Entrar no portal</Link></nav></header>
-
-    <section className="vsl-section section-shell welcome-first welcome-inline"><div className="welcome-inline-copy"><div className="section-heading"><span className="section-kicker">Uma nova jornada começa aqui</span><h2>Bem-vindo à LORD NUTRI</h2><p>Conheça nossa proposta de revenda e dê o primeiro passo com a gente.</p></div></div><WelcomeVideo embedUrl={process.env.VSL_EMBED_URL} videoUrl={process.env.VSL_VIDEO_URL} /></section>
-
-    <section id="inicio" className="hero section-shell">
-      <div className="hero-copy"><div className="eyebrow">PROGRAMA DE REVENDEDORES LORD NUTRI</div><h1>Com a LORD NUTRI você pode!</h1><h2>Vem realizar seus sonhos com a gente.</h2><p className="hero-market">O mercado de suplementos acompanha a busca de cada vez mais pessoas por mobilidade, conforto e qualidade de vida.</p><div className="hero-punch">Vire a chave da sua renda.</div><p className="hero-big">Construa até <strong>R$ 10 mil de ganho bruto</strong> por mês com as suas vendas.</p><p>Revenda MIX10 PRO. Escolha seu estoque, receba suas caixas e venda diretamente para sua rede de contatos.</p><a className="primary-button" href="#kits">VER OS KITS E CALCULAR MEU CENÁRIO</a><div className="microcopy">Entrada a partir de 20 caixas · Frete à parte · PIX ou cartão em até 6x.</div></div>
-      <div className="hero-brand"><div className="hero-brand-logo"><BrandLogo /></div><img className="hero-product-png" src="/brand/mix10-trio.png" alt="MIX10 PRO LORD NUTRI" /><span className="section-kicker">Seu próximo capítulo</span><h3>Uma marca.<br/>Novas possibilidades.</h3><p>Produto físico, apoio para começar e um portal para acompanhar sua revenda.</p><div className="brand-chips"><span>Seu estoque</span><span>Seu atendimento</span><span>Suas vendas</span></div></div>
+    <section id="inicio" className="hero-section shell">
+      <div className="hero-editorial">
+        <span className="eyebrow"><span/> PROGRAMA DE REVENDEDORES</span>
+        <h1>Uma marca forte.<br/>Um novo capítulo<br/><em>para você.</em></h1>
+        <p className="hero-description">Faça parte da LORD NUTRI. Conheça o MIX10PRO e transforme sua rede de contatos em oportunidades de revenda.</p>
+        <div className="hero-actions"><a href="#kits" className="primary-button">Quero ser revendedor <ArrowUpRight size={18}/></a><a href="#mix10pro" className="text-link">Conhecer o produto <ArrowRight size={16}/></a></div>
+        <div className="hero-details"><span><Check size={15}/> Kits a partir de 20 caixas</span><span><Check size={15}/> PIX ou cartão em até 6x</span></div>
+      </div>
+      <div className="hero-showcase">
+        <span className="showcase-overline">LORD NUTRI APRESENTA</span>
+        <div className="product-stage"><div className="product-orbit"/><img src="/brand/mix10-cutout.png" alt="Caixa completa MIX10PRO da LORD NUTRI" width={1086} height={1448} fetchPriority="high" className="hero-pack"/></div>
+        <div className="showcase-caption"><span>MIX10<span className="gold">PRO</span></span><small>SUPLEMENTO ALIMENTAR<br/>30 CÁPSULAS · 500 MG</small></div>
+      </div>
+      <div className="hero-bottom"><span>SEU NEGÓCIO, PASSO A PASSO</span><a href="#como-funciona">Descubra as possibilidades <ArrowRight size={15}/></a></div>
     </section>
 
-    <section id="como-funciona" className="light-section"><div className="section-shell"><div className="section-heading narrow"><span className="section-kicker">Simples de entender</span><h2>Seu plano de negócio LORD NUTRI em 3 passos</h2></div><div className="steps"><article><b>1</b><h3>Escolha seu kit</h3><p>Comece com KIT20 ou KIT50. Antes de pagar, você vê produtos, frete, parcelamento, taxa e total final.</p></article><article><b>2</b><h3>Receba da LORD NUTRI</h3><p>Preencha os dados de entrega e conclua o pedido. Acompanhe a separação, o percurso e a entrega no portal.</p></article><article><b>3</b><h3>Comece suas vendas</h3><p>Apresente MIX10 PRO aos seus contatos, atenda seus clientes e registre suas vendas no portal.</p></article></div><p className="warning-note">A revenda exige dedicação comercial. Não há promessa de vendas, renda ou prazo para venda do estoque.</p></div></section>
+    <section className="trust-strip"><div className="shell"><span><Package/> Produto físico</span><span><Truck/> Entrega do seu kit</span><span><Layers3/> Material de apoio</span><span><ChartNoAxesCombined/> Portal de gestão</span></div></section>
 
-    <div className="lordnutri-story" id="lordnutri">
-      <section className="section-shell opportunity"><div><span className="section-kicker">Mercado e oportunidade</span><h2>LORD NUTRI: uma oportunidade para construir suas próprias vendas.</h2><p>Mais pessoas buscam incluir bem-estar e cuidado contínuo na rotina. A LORD NUTRI cria uma forma de você atender esse público com MIX10 PRO e construir suas próprias vendas.</p></div><div className="opportunity-stat"><div className="opportunity-logo"><BrandLogo /></div><span>Seu negócio</span><strong>Estoque em mãos</strong><p>Modelo de negócio: compra e revenda. Escolha seu estoque MIX10 PRO e venda diretamente aos seus clientes.</p></div></section>
-      <GoogleReviews />
-    </div>
+    <section id="mix10pro" className="product-section section-space shell">
+      <div className="section-intro"><span className="eyebrow">01 / O PRODUTO</span><h2>Bem-estar na fórmula.<br/><em>Possibilidades na revenda.</em></h2><p>O MIX10PRO é o suplemento alimentar da LORD NUTRI que reúne vitaminas, minerais e outros constituintes em uma única fórmula.</p></div>
+      <div className="product-layout">
+        <div className="product-display"><span className="product-label"><Leaf size={15}/> MIX10PRO</span><img src="/brand/mix10-cutout.png" alt="Embalagem MIX10PRO, 30 cápsulas" width={1086} height={1448} loading="lazy"/><div className="product-specs"><span><b>30</b> cápsulas</span><span><b>10</b> constituintes</span><span><b>500 mg</b> por cápsula</span></div></div>
+        <div className="product-information"><h3>Conheça a composição</h3><p>Dez constituintes declarados no material do produto, organizados para você conhecer e apresentar a fórmula.</p><div className="ingredient-list">{constituents.map((name,i)=><div key={name}><span>{String(i+1).padStart(2,"0")}</span><strong>{name}</strong><Plus size={14}/></div>)}</div><a href="/brand/mix10-details.jpg" target="_blank" rel="noopener noreferrer" className="text-link">Consultar a embalagem e o rótulo <ArrowUpRight size={16}/></a></div>
+      </div>
+      <div className="benefits-heading"><span className="eyebrow">ENTENDA OS NUTRIENTES</span><h3>Funções que fazem parte do cuidado diário.</h3></div>
+      <div className="benefit-grid"><article><span>01</span><h3>Ossos e dentes</h3><p>O cálcio participa da formação e manutenção de ossos e dentes.</p></article><article><span>02</span><h3>Função muscular</h3><p>O magnésio participa do funcionamento muscular e do metabolismo energético.</p></article><article><span>03</span><h3>Formação de colágeno</h3><p>A vitamina C participa da formação de colágeno e da proteção antioxidante.</p></article></div>
+      <p className="fine-print product-note">As funções descritas são dos nutrientes. Consulte no rótulo as quantidades por porção, o modo de uso e as advertências. MIX10PRO é suplemento alimentar, não medicamento. <a href="https://www.gov.br/anvisa/pt-br/assuntos/alimentos/suplementos-alimentares/conheca-os-beneficios-comprovados" target="_blank" rel="noopener noreferrer">Saiba mais · Anvisa</a></p>
+    </section>
 
-    <section className="product-section" id="mix10pro"><div className="section-shell product-grid"><div className="product-visual"><img src="/brand/mix10-box.png" alt="Embalagens MIX10 PRO, suplemento alimentar da LORD NUTRI" /><a className="packaging-detail" href="/brand/mix10-details.jpg" target="_blank" rel="noopener noreferrer">Ver as embalagens e informações do rótulo ↗</a></div><div className="product-copy"><span className="section-kicker">Um produto da LORD NUTRI</span><h2>MIX10PRO: conheça o produto da LORD NUTRI</h2><p>Um suplemento alimentar em cápsulas que reúne vitaminas, minerais e outros constituintes em uma única fórmula. Conheça a composição, entenda o papel dos nutrientes e consulte as informações da embalagem.</p><div className="mix10-quick-facts" aria-label="Informações principais do MIX10 PRO"><span><strong>30</strong> cápsulas</span><span><strong>10</strong> constituintes declarados</span><span><strong>500 mg</strong> por cápsula</span></div><div className="product-points"><div><strong>Fórmula completa</strong><span>10 ativos em uma fórmula de suplemento alimentar.</span></div><div><strong>Produto para a rotina</strong><span>Cada embalagem possui 30 cápsulas, com modo de uso e advertências oficiais.</span></div><div><strong>Apresentação profissional</strong><span>Embalagem premium, marca definida e comunicação responsável.</span></div></div><div className="mix10-constituents" aria-label="Constituintes declarados na fórmula">{mix10Constituents.map((item) => <span key={item}>{item}</span>)}</div><div className="mix10-benefits"><h3>Benefícios nutricionais dos componentes</h3><p>Conheça algumas funções dos nutrientes presentes na composição:</p><div className="mix10-benefit-grid"><article><strong>Ossos e dentes</strong><p>O cálcio participa da formação e manutenção de ossos e dentes.</p></article><article><strong>Função muscular</strong><p>O magnésio participa do funcionamento muscular e do metabolismo energético.</p></article><article><strong>Formação de colágeno</strong><p>A vitamina C participa da formação de colágeno e da proteção antioxidante.</p></article></div><p className="fine-print">As funções descritas são dos nutrientes. As quantidades por porção, as condições de uso e as advertências devem ser conferidas no rótulo do MIX10PRO.</p><a className="packaging-detail" href="https://www.gov.br/anvisa/pt-br/assuntos/alimentos/suplementos-alimentares/conheca-os-beneficios-comprovados" target="_blank" rel="noopener noreferrer">Saiba mais sobre os nutrientes · Anvisa ↗</a></div><p className="fine-print">MIX10 PRO é suplemento alimentar, não medicamento. Não há promessa de cura, tratamento ou resultado terapêutico.</p></div></div></section>
+    <section id="como-funciona" className="business-section section-space"><div className="shell"><div className="split-heading"><div><span className="eyebrow">02 / SUA REVENDA</span><h2>Começar pode ser simples.<br/><em>Construir é com você.</em></h2></div><p>Produto em mãos, informação para apresentar e um portal para acompanhar sua operação.</p></div><div className="steps-grid">{[
+      ["01","Escolha seu kit","Compare o investimento e o custo por caixa. Escolha entre 20 ou 50 unidades de MIX10PRO."],
+      ["02","Receba e conheça","Receba o estoque, consulte o manual e prepare sua apresentação para os primeiros clientes."],
+      ["03","Venda e acompanhe","Revenda para sua rede, registre as vendas e acompanhe estoque e pedidos pelo portal."],
+    ].map(([n,title,text])=><article key={n}><span className="step-number">{n}</span><h3>{title}</h3><p>{text}</p></article>)}</div><p className="fine-print">Modelo de compra e revenda. O resultado depende das vendas, dos custos e da dedicação de cada revendedor.</p>{hasVideo?<div className="brand-video"><div><span className="eyebrow">CONHEÇA A LORD NUTRI</span><h3>Seu próximo capítulo começa aqui.</h3></div><WelcomeVideo embedUrl={process.env.VSL_EMBED_URL} videoUrl={process.env.VSL_VIDEO_URL}/></div>:null}</div></section>
 
-    <section className="lp-product-gallery section-shell" aria-hidden="true"><img src="/brand/mix10-gallery.png" alt="" /></section>
+    <section id="simulador" className="calculator-section section-space shell"><div className="section-intro"><span className="eyebrow">03 / PLANEJE SEU RESULTADO</span><h2>O próximo passo<br/><em>começa nos números.</em></h2><p>Defina sua meta e compare os dois kits. A calculadora considera o preço de revenda, os dias trabalhados e as despesas que você informar.</p></div><ProfitSimulator/></section>
 
-    <section className="section-shell reasons-section"><div className="section-heading"><span className="section-kicker">Por que começar</span><h2>5 motivos para começar com a LORD NUTRI</h2></div><div className="reasons">{reasons.map(([n,t,d]) => <article key={n}><b>{n}</b><h3>{t}</h3><p>{d}</p></article>)}</div></section>
+    <section id="kits" className="kits-section section-space"><div className="shell"><div className="section-intro centered"><span className="eyebrow">04 / ESCOLHA SEU KIT</span><h2>Seu estoque inicial.<br/><em>Seu ponto de partida.</em></h2><p>O mesmo MIX10PRO. Duas condições para começar.</p></div><div className="kit-cards">
+      <article className="kit-card"><div className="kit-heading"><span className="kit-label">PARA COMEÇAR</span><Package size={25}/></div><h3>KIT<span>20</span></h3><p className="kit-description">20 caixas para as suas primeiras vendas.</p><div className="kit-price"><small>R$</small> 1.498<span>,00</span></div><p className="unit-cost">R$ 74,90 por caixa</p><div className="kit-metrics"><div><span>Revenda de referência</span><b>R$ 109,90 / caixa</b></div><div><span>Diferença bruta por caixa</span><b>R$ 35,00</b></div><div><span>Diferença bruta do kit</span><b>R$ 700,00</b></div></div><KitLink kit="kit20" className="secondary-button full">Escolher KIT20 <ArrowUpRight size={17}/></KitLink></article>
+      <article className="kit-card featured"><div className="kit-heading"><span className="kit-label">MELHOR CUSTO POR CAIXA</span><Package size={25}/></div><h3>KIT<span>50</span></h3><p className="kit-description">50 caixas para ampliar suas possibilidades.</p><div className="kit-price"><small>R$</small> 3.495<span>,00</span></div><p className="unit-cost">R$ 69,90 por caixa <span>R$ 5 a menos por unidade</span></p><div className="kit-metrics"><div><span>Revenda de referência</span><b>R$ 109,90 / caixa</b></div><div><span>Diferença bruta por caixa</span><b>R$ 40,00</b></div><div><span>Diferença bruta do kit</span><b>R$ 2.000,00</b></div></div><KitLink kit="kit50" className="primary-button full">Escolher KIT50 <ArrowUpRight size={17}/></KitLink></article>
+    </div><p className="fine-print kit-footnote">Diferenças brutas antes de frete, taxas, impostos, descontos e outras despesas. Frete calculado pelo CEP. PIX ou cartão em até 6x, com condições exibidas no checkout.</p></div></section>
 
-    <section id="simulador" className="dark-section"><div className="section-shell"><div className="section-heading light"><span className="section-kicker">Números transparentes</span><h2>Calculadora de ganhos: quanto você quer construir por mês?</h2><p>Informe um cenário e compare o custo dos dois kits. O resultado abaixo é uma referência, não promessa.</p></div><ProfitSimulator /></div></section>
+    <section id="checkout" className="checkout-section section-space shell"><div className="checkout-layout"><div className="checkout-intro"><span className="eyebrow">05 / COMECE COM A LORD NUTRI</span><h2>Seu kit.<br/>Seu negócio.<br/><em>Sua próxima etapa.</em></h2><p>Escolha seu estoque e preencha os dados para a entrega. Você confere todos os valores antes de seguir para o pagamento.</p><div className="checkout-assurances"><div><ShieldCheck/><span><strong>Pagamento pelo Asaas</strong><small>PIX ou cartão, com o total apresentado antes de pagar.</small></span></div><div><Truck/><span><strong>Entrega acompanhada</strong><small>Consulte o andamento do pedido pelo portal.</small></span></div><div><Layers3/><span><strong>Apoio para começar</strong><small>Manual do revendedor e acesso à sua área de gestão.</small></span></div></div></div><CheckoutForm/></div></section>
 
-    <section id="kits" className="section-shell"><div className="section-heading"><span className="section-kicker">Escolha seu ponto de partida</span><h2>Escolha seu estoque inicial MIX10 PRO.</h2><p>O KIT50 reduz R$ 5,00 no custo por caixa e dá mais espaço de margem bruta por unidade.</p></div><div className="kit-cards"><article className="kit-card"><span className="kit-badge">Menor investimento inicial</span><h3>KIT20</h3><strong className="kit-price">R$ 1.498,00</strong><p>20 caixas · R$ 74,90 por caixa</p><ul><li>Venda de referência: R$ 109,90</li><li>Diferença bruta por caixa: R$ 35,00</li><li>Diferença bruta do kit: R$ 700,00</li></ul><Link href="/?kit=kit20#checkout" className="secondary-button">QUERO COMEÇAR COM 20 CAIXAS</Link></article><article className="kit-card featured"><span className="kit-badge">Melhor custo por unidade</span><h3>KIT50</h3><strong className="kit-price">R$ 3.495,00</strong><p>50 caixas · R$ 69,90 por caixa</p><ul><li>Venda de referência: R$ 109,90</li><li>Diferença bruta por caixa: R$ 40,00</li><li>Diferença bruta do kit: R$ 2.000,00</li></ul><Link href="/?kit=kit50#checkout" className="primary-button">QUERO COMEÇAR COM 50 CAIXAS</Link></article></div><p className="fine-print centered">Frete calculado pelo CEP. PIX ou cartão em até 6x; parcelamento, taxa e total final aparecem no checkout antes do redirecionamento ao Asaas.</p></section>
-
-    <section id="checkout" className="checkout-section"><div className="section-shell checkout-layout"><div><span className="section-kicker">Checkout MIX10PRO</span><h2>Compre seu kit e comece com a LORD NUTRI</h2><p>Preencha seus dados e endereço de entrega. Após a confirmação do pagamento, acompanhe seu pedido e encontre os materiais de apoio no portal.</p><div className="checkout-benefits"><span>✓ Dados enviados com segurança</span><span>✓ Pagamento processado pelo Asaas</span><span>✓ Acesso após confirmação do pagamento</span><span>✓ Manual e acompanhamento no portal</span></div></div><CheckoutForm /></div></section>
-
-    <section className="light-section faq"><div className="section-shell"><div className="section-heading"><span className="section-kicker">Dúvidas frequentes</span><h2>FAQ</h2></div><div className="faq-grid"><details><summary>Isso é multinível?</summary><p>Não. O resultado vem da compra e da revenda dos produtos aos clientes. Não há remuneração por recrutamento.</p></details><details><summary>Quem entrega o produto?</summary><p>A LORD NUTRI envia o kit para o revendedor. Depois, o revendedor organiza a entrega das caixas aos próprios clientes.</p></details><details><summary>Posso parcelar?</summary><p>O checkout calcula o frete pelo CEP e mostra PIX ou cartão de 1x a 6x, incluindo a taxa de parcelamento e o total final antes de abrir o Asaas.</p></details><details><summary>Quando recebo acesso ao portal?</summary><p>Após a confirmação do pagamento, você recebe as orientações de acesso pelos canais informados no cadastro. O BKO também pode ajudar com a liberação e a recuperação do acesso.</p></details><details><summary>Nunca vendi. Posso começar?</summary><p>Sim, mas a revenda exige divulgação, atendimento, organização e dedicação comercial. Não há garantia de vendas.</p></details></div><div className="faq-cta"><a className="secondary-button" href={`https://wa.me/${process.env.NEXT_PUBLIC_BKO_WHATSAPP || "5511934924155"}`} target="_blank">TIRAR DÚVIDAS NO WHATSAPP</a></div></div></section>
-
-    <footer><div className="section-shell footer-grid"><div><strong>LORD NUTRI · MIX10 PRO</strong><p>Programa de Revendedores</p></div><div><Link href="/termos-de-uso">Termos de Uso</Link><Link href="/politica-de-privacidade">Política de Privacidade</Link><Link href="/reembolso-e-devolucao">Reembolso e Devolução</Link><Link href="/entrar">Portal do Revendedor</Link></div></div></footer>
+    <GoogleReviews/>
+    <section className="faq-section section-space shell"><div><span className="eyebrow">ANTES DE COMEÇAR</span><h2>Ficou alguma<br/><em>dúvida?</em></h2><p>Encontre as respostas mais comuns ou fale com a equipe.</p><a className="text-link" href={`https://wa.me/${process.env.NEXT_PUBLIC_BKO_WHATSAPP || "5511934924155"}`} target="_blank" rel="noopener noreferrer">Falar com a LORD NUTRI <ArrowUpRight size={16}/></a></div><div className="faq-list">{faqs.map(([q,a])=><details key={q}><summary>{q}<Plus size={18}/></summary><p>{a}</p></details>)}</div></section>
+    <footer className="site-footer"><div className="shell footer-main"><div className="footer-brand"><BrandLogo/><p>Bem-estar, oportunidades<br/>e um novo capítulo.</p></div><div><span>EXPLORE</span><a href="#mix10pro">MIX10PRO</a><a href="#simulador">Calculadora de ganhos</a><a href="#kits">Kits de revenda</a><Link href="/entrar">Portal do revendedor</Link></div><div><span>INFORMAÇÕES</span><Link href="/termos-de-uso">Termos de uso</Link><Link href="/politica-de-privacidade">Privacidade</Link><Link href="/reembolso-e-devolucao">Reembolso e devolução</Link><Link href="/cookies">Cookies</Link></div></div><div className="shell footer-bottom"><span>© {new Date().getFullYear()} LORD NUTRI. Todos os direitos reservados.</span><span>LORD GROUP NETWORK EPP · CNPJ 47.201.289/0001-70</span></div></footer>
   </main>;
 }
