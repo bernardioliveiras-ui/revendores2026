@@ -6,7 +6,7 @@ const root=new URL('..',import.meta.url).pathname;const read=(p)=>readFile(join(
 
 test('reseller portal shows sales, resources and delivery work areas',async()=>{
   const src=await read('app/painel/portal-client.tsx');
-  for(const label of ['Boas Vindas','Visão Geral','Manual do Revendedor','Estoque','Vendas','Acompanhe seu Pedido'])assert.match(src,new RegExp(label));
+  for(const label of ['Visão geral','Estoque','Vendas','Manual do Revendedor','Vídeo de boas-vindas','Acompanhe seu pedido'])assert.match(src,new RegExp(label));
   assert.match(src,/Registrar venda/);assert.doesNotMatch(src,/view==="affiliates"/);
 });
 

@@ -26,7 +26,7 @@ export function GoogleReviews() {
     <section className="ln-reviews section-shell" id="avaliacoes">
       <div className="ln-section-head left">
         <span className="section-kicker">Reputação e confiança</span>
-        <h2>A LORDNUTRI também está no Google.</h2>
+        <h2>A LORD NUTRI também está no Google.</h2>
         <p>Consulte avaliações públicas no perfil da empresa e, se já teve uma experiência conosco, compartilhe sua opinião diretamente no Google.</p>
       </div>
 
@@ -53,7 +53,7 @@ export function GoogleReviews() {
           ))}
         </div>
       ) : (
-        <div className="ln-review-placeholder-grid" aria-label="Atalhos para o perfil da LORDNUTRI no Google">
+        <div className="ln-review-placeholder-grid" aria-label="Atalhos para o perfil da LORD NUTRI no Google">
           <article><b>01</b><strong>Confira a reputação</strong><span>Leia comentários publicados diretamente no Google.</span></article>
           <article><b>02</b><strong>Valide antes de começar</strong><span>Use a fonte original para conhecer experiências de clientes.</span></article>
           <article><b>03</b><strong>Compartilhe sua experiência</strong><span>Seu feedback ajuda outras pessoas a conhecerem a LORDNUTRI.</span></article>
@@ -62,7 +62,7 @@ export function GoogleReviews() {
 
       <div className="ln-review-actions">
         <a className="primary-button" href={VIEW_URL} target="_blank" rel="noopener noreferrer">VER AVALIAÇÕES NO GOOGLE</a>
-        <a className="secondary-button" href={WRITE_URL} target="_blank" rel="noopener noreferrer">AVALIAR A LORDNUTRI</a>
+        <a className="secondary-button" href={WRITE_URL} target="_blank" rel="noopener noreferrer">AVALIAR A LORD NUTRI</a>
       </div>
     </section>
   );

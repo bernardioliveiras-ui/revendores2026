@@ -6,7 +6,7 @@ import { getOptionalEnv } from "@/lib/env";
 const SESSION_COOKIE = "mix10_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30;
 
-export type SessionUser = { id: string; email: string; name: string; phone: string; role: "admin" | "reseller"; mustChangePassword: boolean };
+export type SessionUser = { id: string; email: string; name: string; role: "admin" | "reseller"; mustChangePassword: boolean };
 
 function secret() {
   const value = getOptionalEnv("AUTH_SECRET");
@@ -46,9 +46,9 @@ export async function createSession(userId: string, request: Request) {
 }
 export async function getSessionUser(request: Request): Promise<SessionUser|null> {
   const token = cookieValue(request, SESSION_COOKIE); if (!token) return null;
-  const [row] = await getDb().select({ id: users.id, email: users.email, name: users.name, phone: users.phone, role: users.role, mustChangePassword: users.mustChangePassword }).from(authSessions).innerJoin(users, eq(users.id,authSessions.userId)).where(and(eq(authSessions.tokenHash, await keyedHash("session",token)),gt(authSessions.expiresAt,new Date().toISOString()),eq(users.status,"active"))).limit(1);
+  const [row] = await getDb().select({ id: users.id, email: users.email, name: users.name, role: users.role, mustChangePassword: users.mustChangePassword }).from(authSessions).innerJoin(users, eq(users.id,authSessions.userId)).where(and(eq(authSessions.tokenHash, await keyedHash("session",token)),gt(authSessions.expiresAt,new Date().toISOString()),eq(users.status,"active"))).limit(1);
   if (!row) return null;
-  return { id: row.id, email: row.email, name: row.name, phone: row.phone, role: row.role === "admin" || isAdminEmail(row.email) ? "admin" : "reseller", mustChangePassword: Boolean(row.mustChangePassword) };
+  return { id: row.id, email: row.email, name: row.name, role: row.role === "admin" || isAdminEmail(row.email) ? "admin" : "reseller", mustChangePassword: Boolean(row.mustChangePassword) };
 }
 export async function requireSession(request: Request) { const user = await getSessionUser(request); if (!user) throw new Error("UNAUTHORIZED"); return user; }
 export async function requireAdmin(request: Request) { const user = await requireSession(request); if (user.role !== "admin") throw new Error("FORBIDDEN"); return user; }

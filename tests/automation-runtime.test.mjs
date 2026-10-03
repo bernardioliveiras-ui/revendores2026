@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {load,memoryDb,operators,table} from './runtime-loader.mjs';
-const schema={purchases:table('id','asaasPaymentId','paymentStatus'),asaasEvents:table('eventId'),users:table('id','email'),stockMovements:table('id','userId','referenceId'),resellerProfiles:table('id')};
+const schema={purchases:table('id','asaasPaymentId','paymentStatus'),asaasEvents:table('eventId'),users:table('id','email'),stockMovements:table('id'),resellerProfiles:table('id')};
 const paid={id:'p1',email:'buyer@test.com',paymentStatus:'paid',boxes:20,kit:'kit20',asaasPaymentId:'pay1'};
 function provision(initial){
  const state=memoryDb(schema,initial);
- const service=load('lib/access-provisioning.ts',{'drizzle-orm':operators,'@/db':{getDb:()=>state.db},'@/db/schema':schema,'@/lib/temporary-secret':{encryptTemporarySecret:()=>({ciphertext:'encrypted',iv:'iv'})},'@/lib/passwords':{generateTemporaryPassword:()=> 'temporary',hashPassword:async()=> 'hash'},'@/lib/mysql-errors':{isMysqlDuplicateKeyError:()=>false},'@/lib/purchase-fields':{operationalPurchaseFields:{}}});
+ const service=load('lib/access-provisioning.ts',{'drizzle-orm':operators,'@/db':{getDb:()=>state.db},'@/db/schema':schema,'@/lib/temporary-secret':{encryptTemporarySecret:()=>({ciphertext:'encrypted',iv:'iv'})},'@/lib/passwords':{generateTemporaryPassword:()=> 'temporary',hashPassword:async()=> 'hash'},'@/lib/mysql-errors':{isMysqlDuplicateKeyError:()=>false}});
  return {...state,...service};
 }
 test('pagamento pendente não libera acesso nem estoque',async()=>{
@@ -24,13 +24,13 @@ test('boas-vindas da recompra permitem conta existente sem senha provisória',as
  const s=memoryDb(schema,{purchases:[{...paid,userId:'u1',welcomeStatus:'pending'}]});let sent;
  const original=globalThis.fetch;globalThis.fetch=async(_url,options)=>{sent=JSON.parse(options.body);return {ok:true}};
  try{
- const {sendWelcome}=load('lib/welcome-notification.ts',{'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/env':{getOptionalEnv:(key)=>key==='WELCOME_AUTOMATION_URL'?'https://example.test/hook':'token'},'@/lib/temporary-secret':{decryptTemporarySecret:()=>{throw Error('No password')}},'@/lib/welcome-contract':{welcomeEndpoint:v=>v,welcomeKey:v=>v},'@/lib/purchase-fields':{operationalPurchaseFields:{}}});
+ const {sendWelcome}=load('lib/welcome-notification.ts',{'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/env':{getOptionalEnv:(key)=>key==='WELCOME_AUTOMATION_URL'?'https://example.test/hook':'token'},'@/lib/temporary-secret':{decryptTemporarySecret:()=>{throw Error('No password')}},'@/lib/welcome-contract':{welcomeEndpoint:v=>v,welcomeKey:v=>v}});
  assert.equal((await sendWelcome('p1')).sent,true);assert.equal(sent.temporaryPassword,null);assert.equal(s.rows.purchases[0].welcomeStatus,'sent');
  }finally{globalThis.fetch=original}
 });
 function webhook(initial, overrides={}){
  const s=memoryDb(schema,initial);let releases=0;
- const {POST}=load('app/api/billing/webhook/route.ts',{'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/auth':{safeHashEqual:(a,b)=>a===b},'@/lib/env':{getOptionalEnv:()=> 'secret'},'@/lib/mysql-errors':{isMysqlDuplicateKeyError:()=>false},'@/lib/access-provisioning':{provisionPaidPurchase:async()=>{releases++}},'@/lib/welcome-notification':{sendWelcome:async()=>({sent:true})},'@/lib/purchase-fields':{operationalPurchaseFields:{}},...overrides});
+ const {POST}=load('app/api/billing/webhook/route.ts',{'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/auth':{safeHashEqual:(a,b)=>a===b},'@/lib/env':{getOptionalEnv:()=> 'secret'},'@/lib/mysql-errors':{isMysqlDuplicateKeyError:()=>false},'@/lib/access-provisioning':{provisionPaidPurchase:async()=>{releases++}},'@/lib/welcome-notification':{sendWelcome:async()=>({sent:true})},...overrides});
  const call=(body,token='secret')=>POST(new Request('https://example.test/api/billing/webhook',{method:'POST',headers:{'asaas-access-token':token,'content-type':'application/json'},body:typeof body==='string'?body:JSON.stringify(body)}));
  return {...s,call,get releases(){return releases}};
 }
@@ -53,7 +53,7 @@ test('mesmo identificador com outro pagamento é rejeitado',async()=>{
 });
 test('expedição avança, preserva rastreio e rejeita regressão',async()=>{
  const s=memoryDb(schema,{purchases:[{...paid,shippingStatus:'separating',carrier:null,trackingCode:null}]});
- const {updatePurchaseShipping}=load('lib/shipping.ts',{'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/delivery-progress':load('lib/delivery-progress.ts'),'@/lib/purchase-fields':{operationalPurchaseFields:{}},'@/lib/order-notification':{sendOrderStatusEmail:async()=>({sent:true})}});
+ const {updatePurchaseShipping}=load('lib/shipping.ts',{'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/delivery-progress':load('lib/delivery-progress.ts')});
  await updatePurchaseShipping('p1','shipped','Transportadora','BR123');await updatePurchaseShipping('p1','delivered');
  assert.equal(s.rows.purchases[0].trackingCode,'BR123');assert.equal((await updatePurchaseShipping('p1','separating')).ignored,true);assert.equal(s.rows.purchases[0].shippingStatus,'delivered');
 });

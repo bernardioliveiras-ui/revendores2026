@@ -17,18 +17,18 @@ test('kit helper owns authoritative prices', () => {
 test('landing page follows the approved briefing structure and VSL', async () => {
   const page = await read('app/page.tsx');
   for (const copy of [
-    'Com a LordNutri você pode!',
-    'Seu plano de negócio LORDNUTRI em 3 passos',
-    'LORDNUTRI: uma oportunidade',
-    'MIX10 PRO: o produto LORDNUTRI',
-    '5 motivos para começar com a LORDNUTRI',
-    'Quanto você quer construir de ganho bruto por mês?',
+    'Com a LORD NUTRI você pode!',
+    'Seu plano de negócio LORD NUTRI em 3 passos',
+    'LORD NUTRI: uma oportunidade',
+    'MIX10PRO: conheça o produto da LORD NUTRI',
+    '5 motivos para começar com a LORD NUTRI',
+    'Calculadora de ganhos: quanto você quer construir por mês?',
     'KIT20',
     'KIT50',
     'Isso é multinível?'
   ]) assert.match(page, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
   assert.match(page, /WelcomeVideo/);
-  assert.ok(page.indexOf('id="inicio"') < page.indexOf('welcome-first'));
+  assert.ok(page.indexOf('welcome-first') < page.indexOf('id="inicio"'));
 });
 
 test('public checkout collects reseller data, calculates freight and never accepts client price fields', async () => {

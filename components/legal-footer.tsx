@@ -1,5 +1,5 @@
 export function LegalFooter({ dark = false }: { dark?: boolean }) {
-  const tone = dark ? "text-white/45 hover:text-white" : "text-[#60766f] hover:text-[#08705c]";
+  const tone = dark ? "text-white/45 hover:text-white" : "text-[#c8c3b9] hover:text-[#c8c3b9]";
   return (
     <nav aria-label="Links legais" className={`flex flex-wrap gap-x-4 gap-y-2 text-xs ${tone}`}>
       <a href="/termos-de-uso">Termos de Uso</a>
