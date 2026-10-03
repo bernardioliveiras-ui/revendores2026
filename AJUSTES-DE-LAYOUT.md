@@ -44,3 +44,20 @@ Prévias e relatório de medidas em `docs/validacao/layout-2026-10-03/`.
 - Inspeção visual isolada do topo: sem rolagem horizontal nas três larguras acima. Prévias em `docs/validacao/layout-2026-10-03/microajuste-hero-*.png`.
 - Testes de contrato de landing/checkout e CSS executados após o ajuste: 7/7 aprovados.
 - O restante da landing page, simulador, kits, checkout, APIs, banco e portal não foi alterado nesta microrevisão.
+
+## Reestruturação responsiva com referência TheMembers — 03/10/2026
+
+- A arquitetura visual do topo foi refeita tomando como referência a organização da página `themembers.com.br/f?tmv=af`: faixa informativa curta, cabeçalho limpo, hero editorial forte, CTA direto e faixa de números logo abaixo da primeira dobra.
+- A identidade, textos comerciais, produto, cores e funcionalidades continuam sendo LORD NUTRI / MIX10 PRO; não foram copiados textos, imagens ou identidade visual da referência.
+- No desktop, o hero passou de um card centralizado para uma composição em duas colunas: mensagem à esquerda e produto à direita. Isso elimina a sensação de conteúdo “solto” no centro de telas largas.
+- No celular, o topo vira uma coluna única, com headline, cenário, CTA e produto em sequência natural. Logo, botão do portal, headline e números possuem regras específicas para 780 px e 360 px.
+- A primeira dobra ganhou uma faixa de resumo com kit inicial, parcelamento e cenário bruto simulado.
+- Títulos de seção foram alinhados à esquerda e receberam mais espaço vertical no desktop, aproximando a leitura de uma landing editorial; no mobile, o espaçamento é reduzido para evitar telas excessivamente longas.
+- Simulador, kits, checkout, APIs, banco e portal não tiveram lógica funcional alterada.
+
+### Validação desta revisão
+
+- `tests/landing-checkout.test.mjs`: 5/5 aprovados.
+- `tests/layout-css.test.mjs`: 2/2 aprovados.
+- Um teste jurídico/autenticação fora do escopo (`entrada exige aceite antes de login por senha`) continua falhando no código-base e não foi causado por esta revisão; o arquivo de login não foi alterado.
+- A instalação local de dependências não concluiu dentro do limite do ambiente, por isso a recompilação Next.js desta revisão não foi reexecutada aqui. A alteração está restrita a `app/page.tsx` e `app/landing.css`.

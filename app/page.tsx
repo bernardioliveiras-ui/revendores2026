@@ -48,11 +48,14 @@ export default function Home() {
         sameAs: ["https://mix10pro.com.br/lp-v2", "https://www.google.com/maps/search/?api=1&query=LORD%20NUTRI&query_place_id=ChIJCZtZ98MDz5QRWv8YdIPkPic"],
         makesOffer: { "@type": "Offer", itemOffered: { "@type": "Product", name: "MIX10 PRO" } },
       }) }} />
+      <div className="lnr-announce" role="note">
+        <div className="lnr-shell"><span>REVENDA DIRETA</span><i aria-hidden="true" /> <span>KITS A PARTIR DE 20 CAIXAS</span><i aria-hidden="true" /> <span>PAGAMENTO EM ATÉ 6X</span></div>
+      </div>
       <header className="lnr-header">
         <div className="lnr-shell lnr-header-inner">
           <a href="#inicio" className="lnr-brand" aria-label="LORD NUTRI — início"><BrandLogo compact /></a>
           <nav aria-label="Navegação principal">
-            <a href="#modelo">Modelo de negócio</a><a href="#lord-nutri">Oportunidade</a><a href="#simulador">Simulador</a><a href="#kits">Kits</a>
+            <a href="#modelo">Como funciona</a><a href="#lord-nutri">Oportunidade</a><a href="#simulador">Simulador</a><a href="#kits">Kits</a>
           </nav>
           <Link href="/entrar" className="lnr-login">Entrar no portal <span aria-hidden="true">↗</span></Link>
         </div>
@@ -60,18 +63,30 @@ export default function Home() {
 
       <section id="inicio" className="lnr-hero">
         <div className="lnr-shell lnr-hero-inner">
-          <span className="lnr-eyebrow">PROGRAMA DE REVENDEDORES LORD NUTRI</span>
-          <div className="lnr-hero-message">
-            <h1>Com a <span>LORD NUTRI</span><br />você pode!</h1>
-            <p className="lnr-dream">Vem realizar seus sonhos com a gente!</p>
+          <div className="lnr-hero-copy">
+            <span className="lnr-eyebrow">PROGRAMA DE REVENDEDORES LORD NUTRI</span>
+            <h1>Vem realizar seus sonhos com a <span>LORD NUTRI.</span></h1>
+            <p className="lnr-dream">Vem realizar seus sonhos com a gente! Comece uma operação de revenda simples, com produto físico, números claros e suporte para dar o primeiro passo.</p>
             <div className="lnr-hero-opportunity">
-              <p className="lnr-income">Construa até <strong>R$ 10 mil</strong> <span>de ganho bruto por mês com as suas vendas.</span></p>
+              <p className="lnr-income">Construa até <strong>R$ 10 mil</strong> <span>de ganho bruto por mês em um cenário de vendas simulado.</span></p>
             </div>
+            <div className="lnr-hero-actions">
+              <MainCta hero />
+              <a href="#modelo" className="lnr-text-cta">Entender como funciona <span aria-hidden="true">↓</span></a>
+            </div>
+            <p className="lnr-market">O mercado de suplementos movimenta bilhões no Brasil. Sua construção acontece com vendas reais, atendimento e dedicação comercial.</p>
+            <p className="lnr-micro">Entrada a partir de 20 caixas · Pagamento em até 6x · Frete à parte.</p>
           </div>
-          <MainCta hero />
-          <p className="lnr-market">O mercado de suplementos movimenta bilhões no Brasil. E cresce porque milhões de pessoas buscam mais mobilidade, conforto e qualidade de vida.</p>
-          <p className="lnr-micro">Entrada a partir de 20 caixas · Pagamento em até 6x · Frete à parte.</p>
-          <a href="#simulador" className="lnr-reference">Cenário de referência · Ver no simulador <span aria-hidden="true">↓</span></a>
+          <div className="lnr-hero-stage" aria-label="MIX10 PRO da LORD NUTRI">
+            <span className="lnr-stage-kicker">MIX10 PRO</span>
+            <img src="/brand/mix10-box.png" alt="Embalagem MIX10 PRO da LORD NUTRI" width="1086" height="1448" fetchPriority="high" />
+            <div className="lnr-stage-card"><span>COMECE COM</span><strong>20 ou 50</strong><small>caixas</small></div>
+          </div>
+        </div>
+        <div className="lnr-shell lnr-hero-metrics" aria-label="Resumo da oportunidade">
+          <div><strong>20 caixas</strong><span>kit inicial</span></div>
+          <div><strong>até 6x</strong><span>no pagamento</span></div>
+          <div><strong>R$ 10 mil</strong><span>cenário bruto simulado</span></div>
         </div>
       </section>
 
