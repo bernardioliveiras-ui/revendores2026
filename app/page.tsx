@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @next/next/no-html-link-for-pages -- Os links de kit remontam o checkout para ler a seleção da URL. */
 import Link from "next/link";
+import { Activity, Building2, Heart, MessageCircle, ShieldCheck, Sparkles, WalletCards } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { BrandText } from "@/components/brand-text";
 import { WelcomeVideo } from "@/components/welcome-video";
@@ -13,17 +14,17 @@ const steps = [
   ["Receba da LORD NUTRI", "Conclua seu pedido. A LORD NUTRI envia o kit para seu endereço."],
   ["Comece suas vendas", "Apresente o produto, atenda e entregue. Seu resultado vem das vendas, descontados os custos."],
 ];
-const reasons = [
-  ["Mercado de bem-estar", "Atenda pessoas que buscam incluir cuidado na rotina."],
-  ["Resultado nas vendas", "Compre como revendedor e organize sua margem de venda."],
-  ["Produto em mãos", "Embalagem profissional e informações no rótulo."],
-  ["Sua rede de contatos", "Comece por amigos, familiares e contatos digitais."],
-  ["Canal oficial LORD NUTRI", "Tire dúvidas sobre produtos, pedidos e condições de compra."],
+const trustReasons = [
+  { title: "Uma marca identificada", text: "Conheça a empresa responsável, os canais oficiais e as informações do produto antes de decidir.", Icon: Building2 },
+  { title: "Compra com clareza", text: "Confira o kit, o frete e o total do parcelamento antes de pagar. Planeje seu investimento com informação.", Icon: WalletCards },
+  { title: "Relacionamento próximo", text: "Um canal oficial para dúvidas sobre o produto, seus pedidos e as condições comerciais.", Icon: MessageCircle },
 ];
-const pillars = [
-  ["Fórmula completa", "Dez ativos, entre vitaminas, minerais e outros ingredientes."],
-  ["Produto para a rotina", "30 cápsulas. Uso e advertências conforme o rótulo vigente."],
-  ["Apresentação profissional", "Caixa atualizada e composição acessível para uma decisão informada."],
+const benefits = [
+  { title: "Mobilidade", text: "A vitamina D auxilia no funcionamento muscular, que faz parte da sua rotina de movimento.", Icon: Activity },
+  { title: "Conforto", text: "Um cuidado nutricional que se soma à alimentação e aos seus hábitos de bem-estar.", Icon: Heart },
+  { title: "Movimento", text: "O magnésio contribui para as funções muscular e neuromuscular.", Icon: Activity },
+  { title: "Qualidade de vida", text: "Vitamina C e magnésio participam do metabolismo energético do organismo.", Icon: Sparkles },
+  { title: "Cuidado diário", text: "A vitamina C tem ação antioxidante e auxilia o funcionamento do sistema imune.", Icon: ShieldCheck },
 ];
 const activeIngredients = [
   ["Curcumina", "80 mg"], ["Colágeno tipo II", "35 mg"], ["Magnésio", "77 mg"],
@@ -41,8 +42,8 @@ const faqs = [
 
 export const metadata = { alternates: { canonical: "https://revendedores.mix10pro.com.br/" } };
 
-function MainCta({ hero = false }: { hero?: boolean }) {
-  return <a className={`lnr-button${hero ? " lnr-hero-cta" : ""}`} href="#simulador"><span>VER OS KITS E CALCULAR MEU CENÁRIO</span></a>;
+function MainCta({ href, label, hero = false }: { href: string; label: string; hero?: boolean }) {
+  return <a className={`lnr-button${hero ? " lnr-hero-cta" : ""}`} href={href}><span>{label}</span></a>;
 }
 
 export default function Home() {
@@ -56,13 +57,13 @@ export default function Home() {
         makesOffer: { "@type": "Offer", itemOffered: { "@type": "Product", name: "MIX10 PRO" } },
       }) }} />
       <div className="lnr-announce" role="note">
-        <div className="lnr-shell"><span>REVENDA DIRETA</span><i aria-hidden="true" /> <span>KITS A PARTIR DE 20 CAIXAS</span><i aria-hidden="true" /> <span>PAGAMENTO EM ATÉ 6X</span></div>
+        <div className="lnr-shell"><span>LORD NUTRI</span><i aria-hidden="true" /> <span>REVENDA DIRETA</span><i aria-hidden="true" /> <span>COMECE SUA NOVA ETAPA</span></div>
       </div>
       <header className="lnr-header">
         <div className="lnr-shell lnr-header-inner">
           <a href="#inicio" className="lnr-brand" aria-label="LORD NUTRI — início"><BrandLogo compact /></a>
           <nav aria-label="Navegação principal">
-            <a href="#modelo">Como funciona</a><a href="#lord-nutri">Oportunidade</a><a href="#simulador">Simulador</a><a href="#kits">Kits</a>
+            <a href="#lord-nutri">A marca</a><a href="#beneficios">Benefícios</a><a href="#modelo">Como começar</a><a href="#kits">Kits</a>
           </nav>
           <Link href="/entrar" className="lnr-login">Entrar no portal </Link>
         </div>
@@ -74,61 +75,81 @@ export default function Home() {
           <h1>Vem realizar seus sonhos com a gente!</h1>
           <p className="lnr-dream"><BrandText text="Construa sua revenda com a LORD NUTRI." /><br/>Relacionamento, atendimento e novas oportunidades.</p>
           <div className="lnr-hero-opportunity">
-            <p className="lnr-income">Construa até <strong>R$ 10 mil</strong><span>de ganho bruto por mês em um cenário de vendas simulado.</span></p>
+            <span className="lnr-income-kicker">SUA PRÓXIMA ETAPA PODE COMEÇAR HOJE</span>
+            <p className="lnr-income">Meta de faturamento:<strong>R$ 10 mil<span>/mês</span></strong><span>Uma meta para construir com vendas reais, atendimento e dedicação.</span></p>
           </div>
-          <div className="lnr-hero-actions"><MainCta hero /><a href="#modelo" className="lnr-text-cta">Entender como funciona</a></div>
-          <p className="lnr-micro">Entrada a partir de 20 caixas · Até 6x · Frete à parte.</p>
-        </div>
-        <div className="lnr-shell lnr-hero-metrics" aria-label="Resumo da oportunidade">
-          <div><strong>20 caixas</strong><span>kit inicial</span></div>
-          <div><strong>até 6x</strong><span>no pagamento</span></div>
-          <div><strong>Revenda direta</strong><span>vendas reais aos seus clientes</span></div>
-        </div>
-      </section>
-
-      <section id="modelo" className="lnr-section lnr-model">
-        <div className="lnr-shell">
-          <div className="lnr-section-head"><span className="lnr-eyebrow">MODELO DE NEGÓCIO</span><h2><BrandText text="Sua revenda LORD NUTRI em 3 passos" /></h2><p>Escolha o kit, receba suas caixas e venda diretamente aos seus clientes.</p></div>
-          <div className="lnr-steps">{steps.map(([title, text], i) => <article className="lnr-step lnr-disclosure" key={title}><div className="lnr-step-heading"><span className="lnr-number">0{i + 1}</span><h3><BrandText text={title} /></h3></div><p><BrandText text={text} /></p></article>)}</div>
-          <div className="lnr-care-band"><img src="/brand/caminhada-bem-estar.png" alt="Casal em uma caminhada ao ar livre" width="1536" height="1024" loading="lazy"/><div><span className="lnr-eyebrow">RELACIONAMENTO QUE CONTINUA</span><h3>Clareza para apresentar.<br/>Cuidado para atender.</h3><p>Comece pela sua rede e cresça com um atendimento próximo.</p></div></div><div className="lnr-inline-action"><MainCta /><p className="lnr-note">A revenda exige dedicação comercial. Não há promessa de vendas, renda ou prazo para venda do estoque.</p></div>
-          {hasVideo ? <details className="lnr-video-details lnr-disclosure"><summary><BrandText text="Boas-vindas à LORD NUTRI" /><span className="lnr-plus" aria-hidden="true" /></summary><WelcomeVideo embedUrl={process.env.VSL_EMBED_URL} videoUrl={process.env.VSL_VIDEO_URL} /></details> : null}
+          <div className="lnr-hero-actions"><MainCta hero href="#lord-nutri" label="QUERO COMEÇAR MINHA REVENDA" /><a href="#lord-nutri" className="lnr-text-cta">Conhecer a LORD NUTRI</a></div>
+          <p className="lnr-micro">Faturamento é o total das vendas, antes dos custos. A meta não é garantia de resultado.</p>
         </div>
       </section>
 
       <section id="lord-nutri" className="lnr-section lnr-opportunity">
         <div className="lnr-shell">
-          <div className="lnr-opportunity-intro"><div><span className="lnr-eyebrow">O MERCADO E A OPORTUNIDADE</span><h2>Uma oportunidade em um mercado que acompanha uma necessidade real.</h2><p><BrandText text="A LORD NUTRI conecta produto físico, revenda direta e atendimento próximo. Uma forma de atender quem busca cuidado na rotina." /></p></div><figure className="lnr-people-visual"><img src="/brand/conversa-revenda.png" alt="Duas pessoas conversando sobre uma oportunidade de revenda" width="1536" height="1024" loading="lazy"/><figcaption>Escute. Apresente. Construa confiança.</figcaption></figure></div>
-          <div className="lnr-reasons-head"><h3><BrandText text="5 motivos para revender MIX10 PRO" /></h3><p>Comece pela sua rede. Cresça com atendimento e organização.</p></div>
-          <div className="lnr-reasons">{reasons.map(([title, text], i) => <details className="lnr-disclosure" key={title}><summary><span className="lnr-reason-number">0{i + 1}</span><h4><BrandText text={title} /></h4><span className="lnr-plus" aria-hidden="true" /></summary><p><BrandText text={text} /></p></details>)}</div>
+          <div className="lnr-opportunity-intro">
+            <div>
+              <span className="lnr-eyebrow">CONFIANÇA PARA COMEÇAR</span>
+              <h2><BrandText text="Por que vender com a LORD NUTRI?" /></h2>
+              <p>Uma oportunidade em um mercado que acompanha uma necessidade real.</p>
+              <p>Bem-estar, cuidado diário e relações de confiança. Construa sua revenda com uma marca identificada, condições claras e contato oficial.</p>
+            </div>
+            <figure className="lnr-people-visual">
+              <img src="/brand/conversa-revenda-1280-v4.webp" srcSet="/brand/conversa-revenda-640-v4.webp 640w, /brand/conversa-revenda-1280-v4.webp 1280w" sizes="(max-width: 700px) calc(100vw - 32px), (max-width: 1199px) calc((100vw - 48px) / 2), 600px" alt="Pessoas conversando em um ambiente acolhedor" width="1280" height="853" loading="lazy" decoding="async" />
+              <figcaption>Escute. Apresente. Construa confiança.</figcaption>
+            </figure>
+          </div>
+          <div className="lnr-trust-grid">
+            {trustReasons.map(({ title, text, Icon }) => <article className="lnr-trust-card" key={title}><Icon aria-hidden="true" size={28} strokeWidth={1.5} /><h3>{title}</h3><p>{text}</p></article>)}
+          </div>
+          <div className="lnr-company-line"><p><strong>LORD GROUP NETWORK EPP</strong><span>CNPJ 47.201.289/0001-70</span></p><a href="mailto:revendedor@lordnutri.com.br">revendedor@lordnutri.com.br</a></div>
+          <div className="lnr-inline-action"><MainCta href="#mix10pro" label="CONHECER O MIX10 PRO" /></div>
+        </div>
+      </section>
+
+      <section id="mix10pro" className="lnr-section lnr-product">
+        <div className="lnr-shell">
+          <div className="lnr-product-grid">
+            <div className="lnr-product-copy">
+              <span className="lnr-eyebrow"><BrandText text="UM PRODUTO LORD NUTRI" /></span>
+              <h2><BrandText text="Conheça o MIX10 PRO." /></h2>
+              <p className="lnr-product-lead">Cuidado diário para a rotina de quem tem 40+.</p>
+              <p>Suplemento alimentar em cápsulas que reúne vitaminas, minerais e outros ativos para complementar a alimentação, conforme o rótulo.</p>
+              <div className="lnr-product-facts"><div><strong>10</strong><span>ativos na fórmula</span></div><div><strong>30</strong><span>cápsulas por caixa</span></div><div><strong>40+</strong><span>cuidado diário</span></div></div>
+              <p className="lnr-anvisa"><span>REGISTRO ANVISA</span><strong>ANVISA nº 2535115572620267</strong></p>
+            </div>
+            <div className="lnr-product-visual"><img src="/brand/mix10-box-transparent-v3-web.webp" alt="Caixa atualizada MIX10 PRO da LORD NUTRI, sem fundo branco" loading="lazy" decoding="async" width="800" height="1067" /><span>SUPLEMENTO ALIMENTAR</span></div>
+          </div>
+          <div id="beneficios" className="lnr-benefits">
+            <div className="lnr-section-head"><span className="lnr-eyebrow">BENEFÍCIOS</span><h2>Benefícios pensados para o seu corpo</h2><p>Uma abordagem completa para apoiar a sua rotina com leveza e movimento.</p></div>
+            <div className="lnr-benefit-grid">{benefits.map(({ title, text, Icon }) => <article className="lnr-benefit-card" key={title}><Icon aria-hidden="true" size={28} strokeWidth={1.5} /><h3>{title}</h3><p>{text}</p></article>)}</div>
+            <p className="lnr-note">As funções descritas se referem aos nutrientes da fórmula. Suplementação complementa a alimentação e acompanha hábitos saudáveis.</p>
+          </div>
+          <div className="lnr-product-detail-grid">
+            <div><span className="lnr-eyebrow">INFORMAÇÃO PARA APRESENTAR BEM</span><h3><BrandText text="Por que escolher MIX10 PRO para começar sua revenda?" /></h3><p>Uma caixa com composição acessível, orientação de uso e 30 cápsulas. Apresente com clareza, respeite o rótulo e ajude cada cliente a fazer uma escolha informada.</p><p className="lnr-note"><BrandText text="MIX10 PRO é suplemento alimentar, não medicamento." /> Em caso de dúvidas de saúde ou uso de medicamentos, procure orientação profissional.</p></div>
+            <div className="lnr-product-pillars">
+              <details className="lnr-disclosure"><summary><h3>Conheça os 10 ativos</h3><span className="lnr-plus" aria-hidden="true" /></summary><div className="lnr-active-composition"><p>Quantidades por porção diária de 1 cápsula, conforme a embalagem atual.</p><dl>{activeIngredients.map(([name, amount]) => <div key={name}><dt>{name}</dt><dd>{amount}</dd></div>)}</dl></div></details>
+              <details className="lnr-disclosure"><summary><h3>Uso, conservação e cuidados</h3><span className="lnr-plus" aria-hidden="true" /></summary><div className="lnr-product-guidance"><p><strong>Uso indicado:</strong> 1 cápsula ao dia, para adultos a partir de 19 anos, conforme o rótulo vigente.</p><p><strong>Conservação:</strong> proteger de luz, calor e umidade. Após abrir, consumir em até 45 dias.</p><p><strong>Cuidados:</strong> não indicado para gestantes, lactantes e crianças. Não exceder a recomendação diária. Manter fora do alcance de crianças.</p></div></details>
+            </div>
+          </div>
+          <div className="lnr-inline-action"><MainCta href="#modelo" label="ENTENDER COMO COMEÇAR" /></div>
+        </div>
+      </section>
+
+      <section id="modelo" className="lnr-section lnr-model">
+        <div className="lnr-shell">
+          <div className="lnr-section-head"><span className="lnr-eyebrow">MODELO DE NEGÓCIO</span><h2><BrandText text="Sua revenda LORD NUTRI em 3 passos" /></h2><p>Comece pela sua rede de contatos e construa uma revenda com atendimento próximo.</p></div>
+          <div className="lnr-model-facts" aria-label="Condições para começar"><div><strong>20 ou 50</strong><span>caixas no kit</span></div><div><strong>até 6x</strong><span>no pagamento</span></div><div><strong>Revenda direta</strong><span>venda aos seus clientes</span></div></div><div className="lnr-steps">{steps.map(([title, text], i) => <article className="lnr-step lnr-disclosure" key={title}><div className="lnr-step-heading"><span className="lnr-number">0{i + 1}</span><h3><BrandText text={title} /></h3></div><p><BrandText text={text} /></p></article>)}</div>
+          <div className="lnr-care-band"><img src="/brand/caminhada-bem-estar-1280-v4.webp" srcSet="/brand/caminhada-bem-estar-640-v4.webp 640w, /brand/caminhada-bem-estar-1280-v4.webp 1280w" sizes="(max-width: 700px) calc(100vw - 32px), (max-width: 1199px) calc((100vw - 48px) / 2), 600px" alt="Casal em uma caminhada ao ar livre" width="1280" height="853" loading="lazy" decoding="async"/><div><span className="lnr-eyebrow">RELACIONAMENTO QUE CONTINUA</span><h3>Clareza para apresentar.<br/>Cuidado para atender.</h3><p>Comece pela sua rede e cresça com um atendimento próximo.</p></div></div><div className="lnr-inline-action"><MainCta href="#simulador" label="VER OS KITS E CALCULAR MEU CENÁRIO" /><p className="lnr-note">Frete à parte. Juros e total do parcelamento aparecem antes do pagamento. A revenda exige dedicação e não há garantia de renda.</p></div>
+          {hasVideo ? <details className="lnr-video-details lnr-disclosure"><summary><BrandText text="Boas-vindas à LORD NUTRI" /><span className="lnr-plus" aria-hidden="true" /></summary><WelcomeVideo embedUrl={process.env.VSL_EMBED_URL} videoUrl={process.env.VSL_VIDEO_URL} /></details> : null}
         </div>
       </section>
 
       <section id="simulador" className="lnr-section lnr-simulator">
         <div className="lnr-shell">
-          <div className="lnr-section-head"><span className="lnr-eyebrow">NÚMEROS E SIMULADOR</span><h2>Quanto você quer construir de ganho bruto por mês?</h2><p>Defina sua meta e estime as caixas por dia. Inclua despesas para refinar seu cenário.</p></div>
+          <div className="lnr-section-head"><span className="lnr-eyebrow">NÚMEROS E SIMULADOR</span><h2>Quanto você quer construir de ganho bruto por mês?</h2><p>Faturamento e ganho bruto são diferentes. Aqui, a conta considera o preço de venda menos o custo das caixas. Inclua suas despesas para refinar o resultado.</p></div>
           <div className="lnr-scenarios">{[1, 2, 3].map((n) => <article className="lnr-scenario" key={n}><span className="lnr-scenario-rhythm"><b>{n}</b> {n === 1 ? "caixa por dia" : "caixas por dia"}</span><p>{n * 26} caixas no mês · 26 dias</p><dl><div><dt>Ganho bruto · KIT20</dt><dd>{(n * 910).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</dd></div><div><dt>Ganho bruto · KIT50</dt><dd>{(n * 1040).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</dd></div></dl></article>)}</div>
           <p className="lnr-note">Simulações com preço de referência de R$ 109,90 por caixa. Valores brutos, antes de frete, taxas, juros, impostos, descontos e outras despesas. Vendas e resultados dependem da atuação de cada revendedor.</p>
           <div id="simulador-calculo"><ProfitSimulator /></div>
           <div className="lnr-inline-action"><a href="#kits" className="lnr-button"><span>VER QUAL KIT ATENDE MINHA META</span></a></div>
-        </div>
-      </section>
-
-      <section id="mix10pro" className="lnr-section lnr-product">
-        <div className="lnr-shell lnr-product-grid">
-          <div className="lnr-product-visual"><img src="/brand/mix10-box-transparent-v3.png" alt="Embalagem real MIX10 PRO da LORD NUTRI" loading="lazy" width="1086" height="1448" /><span>SUPLEMENTO ALIMENTAR</span></div>
-          <div>
-            <span className="lnr-eyebrow"><BrandText text="UM PRODUTO LORD NUTRI" /></span>
-            <h2><BrandText text="Por que escolher MIX10 PRO para começar sua revenda?" /></h2>
-            <p>Suplemento alimentar em cápsulas que reúne vitaminas, minerais e outros ativos para complementar a alimentação, conforme o rótulo.</p>
-            <div className="lnr-product-facts"><div><strong>10</strong><span>ativos</span></div><div><strong>30</strong><span>cápsulas</span></div><div><strong>19+</strong><span>público adulto</span></div></div>
-            <div className="lnr-product-pillars">
-              {pillars.map(([title, text]) => <details className="lnr-disclosure" key={title}><summary><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p><BrandText text={text} /></p></details>)}
-              <details className="lnr-disclosure"><summary><h3>Conheça os 10 ativos</h3><span className="lnr-plus" aria-hidden="true" /></summary><div className="lnr-active-composition"><p>Quantidades por porção diária de 1 cápsula, conforme a embalagem atual.</p><dl>{activeIngredients.map(([name, amount]) => <div key={name}><dt>{name}</dt><dd>{amount}</dd></div>)}</dl></div></details>
-              <details className="lnr-disclosure"><summary><h3>Uso, conservação e cuidados</h3><span className="lnr-plus" aria-hidden="true" /></summary><div className="lnr-product-guidance"><p><strong>Uso indicado:</strong> 1 cápsula ao dia, para adultos a partir de 19 anos, conforme o rótulo vigente.</p><p><strong>Conservação:</strong> proteger de luz, calor e umidade. Após abrir, consumir em até 45 dias.</p><p><strong>Cuidados:</strong> não indicado para gestantes, lactantes e crianças. Não exceder a recomendação diária. Manter fora do alcance de crianças.</p></div></details>
-            </div>
-            <p className="lnr-anvisa"><span>REGISTRO ANVISA</span><strong>ANVISA nº 2535115572620267</strong></p>
-            <p className="lnr-note"><BrandText text="MIX10 PRO é suplemento alimentar, não medicamento." /> Em caso de dúvidas de saúde ou uso de medicamentos, procure orientação profissional.</p>
-          </div>
         </div>
       </section>
 

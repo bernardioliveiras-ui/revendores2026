@@ -1,4 +1,4 @@
-# LORD NUTRI — revisão final 0.2.3
+# LORD NUTRI — revisão final 0.2.5
 
 Projeto completo: LP, checkout, portal, BKO, manual e correções de automação.
 
@@ -13,7 +13,7 @@ Projeto completo: LP, checkout, portal, BKO, manual e correções de automação
 3. Revise as alterações no GitHub Desktop, faça commit e push na branch vinculada à Hostinger.
 4. Na Hostinger: Node 22, instalação `npm ci`, compilação `npm run build`, inicialização `npm start`. O start executa a migração aditiva com `scripts/migrate.mjs`. Se a hospedagem separar as etapas, execute `npm run db:migrate` antes de `npm run start:app`.
 5. Preserve suas variáveis atuais. Não copie valores vazios do `.env.example` sobre credenciais existentes.
-6. Confira que a versão publicada é `0.2.4-lordnutri-cards-flutuantes`.
+6. Confira que a versão publicada é `0.2.5-lordnutri-marca-beneficios`.
 
 Use a atualização completa para receber as correções de automação. `APLICAR-LAYOUT-MANUAL.mjs` também aplica a atualização completa, pois o manual precisa da nova rota protegida.
 
@@ -46,3 +46,6 @@ O manual está em `private/manual`, fora de `public`, e só é servido a usuári
 
 
 Atualização 04/10: abertura sem logo central duplicada, frase e CTA ampliados, cards com flutuação suave. Manual privado revisado com escrita preservada, dados técnicos atualizados e páginas sobre pessoas próximas, fechamento e construção da revenda.
+
+
+Última atualização: prioridade de leitura no celular e público 40+. Primeiro bloco com meta de faturamento; confiança na marca e benefícios do suplemento antes dos cálculos. Valores dos kits, fórmulas comerciais e manual privado preservados. Consulte a revisão e as evidências em `docs/validacao`.

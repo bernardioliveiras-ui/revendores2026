@@ -211,3 +211,149 @@
  .lnr-page .lnr-income strong{font-size:36px}
 }
 @media(prefers-reduced-motion:reduce){.lnr-page .lnr-hero-opportunity,.lnr-page :is(.lnr-step,.lnr-scenario,.lnr-kit,.lnr-reasons>details,.simulator-result,.lnr-product-pillars>details,.lnr-anvisa,.lnr-hero-metrics>div,.lnr-care-band,.lnr-people-visual,.lnr-product-visual,.lnr-faq-list>details){animation:none!important;transform:none!important}}
+
+/* Marca, benefícios e leitura para o público 40+, desktop e celular. */
+.lnr-page p{font-size:16px;line-height:1.65}
+.lnr-page .lnr-eyebrow{font-size:11px;letter-spacing:.12em}
+.lnr-page .lnr-button{font-size:15px;min-height:56px;padding:16px 25px}
+.lnr-page .lnr-hero-cta{font-size:17px;min-height:64px;min-width:440px;padding:18px 30px}
+.lnr-page .lnr-note{font-size:13px;line-height:1.65}
+.lnr-page .lnr-income-kicker{display:block;font-size:11px;letter-spacing:.1em;color:#f1d994;margin-bottom:11px}
+.lnr-page .lnr-income{font-size:19px}
+.lnr-page .lnr-income strong{display:block;font-size:clamp(44px,4.8vw,62px);line-height:1.2;margin:8px 0}
+.lnr-income strong>span{font:400 24px/1.2 Arial,Helvetica,sans-serif;letter-spacing:0;color:#f1d994;margin-left:5px}
+.lnr-page .lnr-income>span{font-size:15px;line-height:1.5;max-width:450px;margin:10px auto 0}
+.lnr-page .lnr-micro{max-width:580px;font-size:13px;line-height:1.6;margin-top:18px}
+.lnr-page .lnr-hero-inner{padding-top:40px;padding-bottom:42px}
+.lnr-page .lnr-hero-opportunity{margin-bottom:24px}
+.lnr-page .lnr-text-cta{display:inline-flex;align-items:center;min-height:44px;font-size:15px}
+.lnr-header nav{font-size:14px}
+.lnr-header nav a{min-height:44px}
+.lnr-page .lnr-brand,.lnr-page .lnr-brand .compact-logo{width:82px!important;height:68px!important}
+.lnr-page .lnr-login{font-size:14px;min-height:44px;padding:10px 14px}
+.lnr-trust-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:32px}
+.lnr-trust-card,.lnr-benefit-card{min-width:0;border:1px solid #8e743a70;border-radius:16px;padding:24px;background:linear-gradient(150deg,#18342685,#0b1b12);box-shadow:0 12px 30px #0002;animation:lnr-card-float 7s ease-in-out infinite}
+.lnr-trust-card svg,.lnr-benefit-card svg{color:#f1d994;margin-bottom:18px}
+.lnr-trust-card h3{font-size:21px;color:#f1d994;margin:0 0 12px}
+.lnr-trust-card p,.lnr-benefit-card p{font-size:15px;color:#d6dfd8;margin:0;line-height:1.65}
+.lnr-trust-card:nth-child(2n),.lnr-benefit-card:nth-child(2n){animation-delay:-2.3s}
+.lnr-trust-card:nth-child(3n),.lnr-benefit-card:nth-child(3n){animation-delay:-4.6s}
+.lnr-trust-card:hover,.lnr-benefit-card:hover{animation-play-state:paused;border-color:#d7b25a}
+.lnr-company-line{display:flex;align-items:center;justify-content:space-between;gap:22px;border-block:1px solid #66512880;padding:20px 0;margin-top:30px}
+.lnr-company-line p{display:flex;flex-direction:column;gap:6px;margin:0;font-size:13px;color:#d0d9d1}
+.lnr-company-line strong{color:#f1d994;letter-spacing:.035em}
+.lnr-company-line a{font-size:14px;color:#f1d994;overflow-wrap:anywhere;text-decoration:underline;text-underline-offset:4px;padding:10px 0}
+.lnr-page .lnr-product-grid{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:64px;align-items:center}
+.lnr-page .lnr-product-grid>div>p{color:#d0d9d1}
+.lnr-page .lnr-product-grid h2{font-size:clamp(35px,4.5vw,58px)}
+.lnr-page .lnr-product-grid .lnr-product-lead{font-size:21px;color:#f4ecd9;line-height:1.5;margin-bottom:16px}
+.lnr-page .lnr-product-visual{border:0;background:radial-gradient(ellipse at 50% 45%,#26543b70,transparent 65%);box-shadow:none;padding:0 20px;animation:lnr-card-float 7s ease-in-out infinite}
+.lnr-page .lnr-product-visual img{max-width:320px;max-height:none;height:auto}
+.lnr-page .lnr-product-facts{gap:16px;align-items:start}
+.lnr-page .lnr-product-facts>div{flex-direction:column;align-items:start;gap:7px}
+.lnr-page .lnr-product-facts span{font-size:14px;line-height:1.4}
+.lnr-page .lnr-anvisa>span{font-size:11px}
+.lnr-benefits{margin-top:56px;padding-top:34px;border-top:1px solid #66512880}
+.lnr-benefit-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;align-items:stretch}
+.lnr-benefit-card{padding:22px 18px}
+.lnr-benefit-card h3{font-size:20px;line-height:1.35;color:#f1d994;margin:0 0 12px;min-height:54px}
+.lnr-benefits>.lnr-note{text-align:center;margin-top:22px}
+.lnr-product-detail-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:42px;margin-top:40px;padding-top:32px;border-top:1px solid #66512880;align-items:start}
+.lnr-product-detail-grid>div{min-width:0}
+.lnr-product-detail-grid h3{font-size:23px;line-height:1.35;color:#f1d994;margin-bottom:14px}
+.lnr-product-detail-grid p{color:#d0d9d1}
+.lnr-page .lnr-product-pillars summary{min-height:64px;padding:18px}
+.lnr-page .lnr-product-pillars summary h3{font-size:17px;margin:0}
+.lnr-page .lnr-active-composition>p,.lnr-page .lnr-product-guidance p{font-size:15px}
+.lnr-page .lnr-active-composition dl>div{font-size:14px}
+.lnr-model-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;border-block:1px solid #66512880;padding:20px 0;margin-bottom:26px;text-align:center}
+.lnr-model-facts>div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lnr-model-facts strong{font-size:24px;color:#f1d994;line-height:1.35}
+.lnr-model-facts span{font-size:14px;color:#d0d9d1}
+.lnr-page .lnr-scenario>p{font-size:14px}
+.lnr-page .lnr-scenario dt{font-size:13px}
+.lnr-page .simulator-grid label{font-size:14px}
+.lnr-page .simulator-result>span,.lnr-page .simulator-result>small{font-size:14px}
+.lnr-page .simulator-grid .fine-print{font-size:13px!important}
+.lnr-page .lnr-kit-badge,.lnr-page .lnr-price-label{font-size:12px}
+.lnr-page .lnr-kit .lnr-button{font-size:14px;min-height:58px}
+.lnr-page .lnr-kit dt{font-size:14px}
+.lnr-page .lnr-kit-comparison{font-size:14px}
+.lnr-page .lnr-faq summary h3{font-size:16px}
+.lnr-page .lnr-disclosure>p{font-size:15px;line-height:1.65}
+.lnr-page .checkout-card label{font-size:15px}
+.lnr-page .checkout-card :is(input,select){font-size:16px;min-height:48px}
+.lnr-page .checkout-card :is(button,.primary-button){min-height:48px}
+.lnr-page .checkout-card .primary-button{font-size:16px;padding-inline:14px;line-height:1.5}
+.lnr-page .checkout-card .choice-card{font-size:15px}
+.lnr-page .checkout-card .checkout-summary small{font-size:13px}
+.lnr-page .lnr-footer p,.lnr-page .lnr-footer nav{font-size:13px}
+.lnr-page .lnr-footer nav a{min-height:44px;display:inline-flex;align-items:center}
+@media(max-width:1050px){
+ .lnr-benefit-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .lnr-benefit-card h3{min-height:0}
+ .lnr-page .lnr-product-grid{gap:36px}
+ .lnr-trust-card{padding:22px 18px}
+}
+@media(max-width:700px){
+ .lnr-page p{font-size:16px}
+ .lnr-page .lnr-eyebrow{font-size:10px}
+ .lnr-page .lnr-brand,.lnr-page .lnr-brand .compact-logo{width:65px!important;height:58px!important}
+ .lnr-page .lnr-login{font-size:13px;padding:9px 12px}
+ .lnr-page .lnr-hero-inner{padding:28px 0 32px}
+ .lnr-page .lnr-hero h1{font-size:clamp(35px,10.5vw,44px);margin-bottom:18px}
+ .lnr-page .lnr-dream{font-size:16px;line-height:1.5;margin-bottom:22px}
+ .lnr-page .lnr-hero-opportunity{padding:18px 16px;margin-bottom:22px}
+ .lnr-page .lnr-income-kicker{font-size:10px;letter-spacing:.055em;line-height:1.6}
+ .lnr-page .lnr-income{font-size:17px}
+ .lnr-page .lnr-income strong{font-size:clamp(36px,10.3vw,43px)}
+ .lnr-income strong>span{font-size:20px}
+ .lnr-page .lnr-income>span{font-size:14px;max-width:300px}
+ .lnr-page .lnr-hero-cta{font-size:15px;padding:17px 16px;min-height:62px;min-width:0}
+ .lnr-page .lnr-micro{font-size:12px;margin-top:12px}
+ .lnr-page .lnr-section{padding:42px 0}
+ .lnr-trust-grid{grid-template-columns:1fr;gap:12px;margin-top:26px}
+ .lnr-trust-card{padding:22px}
+ .lnr-trust-card svg{margin-bottom:12px}
+ .lnr-company-line{flex-direction:column;align-items:start;gap:4px;padding:18px 0;margin-top:24px}
+ .lnr-company-line p{font-size:13px}
+ .lnr-page .lnr-product-grid{grid-template-columns:1fr;gap:26px}
+ .lnr-page .lnr-product-grid h2{font-size:39px}
+ .lnr-page .lnr-product-grid .lnr-product-lead{font-size:19px}
+ .lnr-page .lnr-product-visual img{width:100%;max-width:235px;max-height:none}
+ .lnr-page .lnr-product-facts span{font-size:13px}
+ .lnr-page .lnr-product-facts strong{font-size:30px}
+ .lnr-benefits{margin-top:32px;padding-top:30px}
+ .lnr-benefit-grid{grid-template-columns:1fr;gap:12px}
+ .lnr-benefit-card{display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:16px;padding:20px}
+ .lnr-benefit-card svg{grid-row:1/3;margin:2px 0 0}
+ .lnr-benefit-card h3{font-size:20px;margin-bottom:8px}
+ .lnr-benefit-card p{font-size:15px;grid-column:2}
+ .lnr-product-detail-grid{grid-template-columns:1fr;gap:22px;margin-top:28px;padding-top:28px}
+ .lnr-page .lnr-note{font-size:13px}
+ .lnr-model-facts{gap:12px}
+ .lnr-model-facts strong{font-size:19px}
+ .lnr-model-facts span{font-size:13px}
+ .lnr-page .lnr-inline-action>.lnr-button{font-size:15px;width:100%;padding-inline:16px}
+ .lnr-page .simulator-grid{padding:18px 16px}
+ .lnr-page .simulator-grid label{font-size:14px;line-height:1.5;min-height:91px}
+ .lnr-page .lnr-scenario dt{font-size:13px}
+ .lnr-page .lnr-kit dt{font-size:14px}
+ .lnr-page .lnr-kit .lnr-button{font-size:14px}
+ .lnr-page .checkout-card{padding:20px 16px}
+ .lnr-page .lnr-footer>.lnr-shell{flex-direction:column;align-items:start;gap:24px}
+ .lnr-page .lnr-footer nav{justify-content:start}
+}
+@media(max-width:360px){
+ .lnr-benefit-grid{grid-template-columns:1fr}
+ .lnr-benefit-card:last-child{grid-column:auto}
+ .lnr-page .lnr-hero-cta{font-size:14px}
+ .lnr-page .lnr-kit dl>div{gap:10px}
+ .lnr-page .lnr-kit dt{font-size:13px}
+ .lnr-page .lnr-kit-total dd{font-size:19px}
+ .lnr-page .checkout-card .cep-row{grid-template-columns:1fr}
+ .lnr-page .checkout-card .cep-row button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .lnr-page :is(.lnr-trust-card,.lnr-benefit-card){animation:none!important;transform:none!important}
+}

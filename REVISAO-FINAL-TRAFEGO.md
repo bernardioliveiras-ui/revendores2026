@@ -1,6 +1,6 @@
 # LORD NUTRI — revisão final da LP e dos fluxos
 
-**Versão:** 0.2.4-lordnutri-cards-flutuantes · **Data:** 04/10/2026 UTC.
+**Versão:** 0.2.5-lordnutri-marca-beneficios · **Data:** 04/10/2026 UTC.
 
 **Resultado:** revisão local concluída. A aprovação para tráfego com objetivo de compra depende da validação no ambiente publicado e dos provedores reais. Nenhuma credencial de produção foi disponibilizada neste pacote; não houve cobrança real, envio real de mensagens, alteração do banco remoto ou publicação.
 
@@ -32,7 +32,7 @@
 ## Evidências locais
 
 - Compilação de produção concluída com TypeScript e 44 rotas.
-- Suíte atual: 97 testes aprovados, zero falhas.
+- Suíte atual: 113 testes aprovados, zero falhas.
 - Testes específicos de execução: 39 aprovados, zero falhas.
 - ESLint: zero erros; um aviso de otimização de imagem no portal.
 - Navegador: 1440, 768, 390 e 320 px; sem vazamento horizontal, imagens quebradas ou erros JavaScript. Logo dourada e PNG transparente confirmados em todas as larguras. Nenhuma seta decorativa encontrada no texto da LP.
@@ -73,3 +73,25 @@ A base recebida tinha 16 falhas em testes que inspecionavam contratos antigos. O
 ## Abertura e movimento aprovados
 
 Logo central removida da primeira seção, mantendo a identidade no cabeçalho. Frase e CTA maiores. Cards com flutuação discreta, pausada no foco/hover e desativada em preferência por movimento reduzido.
+
+
+## Marca, benefícios e experiência no celular — 04/10/2026
+
+- Primeiro bloco institucional, sem produto, cenário de vendas, preço de kit ou cálculo. CTA ampliado leva à confiança na marca. Card em movimento destaca uma **meta de faturamento** de R$ 10 mil/mês, antes dos custos, sem garantia de resultado.
+- Sequência: oportunidade → por que vender com a LORD NUTRI → MIX10 PRO e benefícios → como começar → simulador → kits → dúvidas → checkout.
+- Cinco benefícios visíveis: mobilidade, conforto, movimento, qualidade de vida e cuidado diário. As descrições se referem aos nutrientes e aos hábitos de cuidado; não prometem alívio, tratamento ou redução de rigidez.
+- Apresentação voltada a adultos 40+. A instrução de consumo da embalagem para adultos a partir de 19 anos continua nos cuidados; público de comunicação não substitui o rótulo.
+- REGISTRO ANVISA e nº 2535115572620267 mantidos conforme informação da marca, sem afirmar aprovação ou eficácia verificadas.
+- CNPJ e canal oficial já presentes nos Termos aparecem na seção da marca. Não foram inventados depoimentos, certificações ou números de clientes.
+- Fontes maiores, botões de pelo menos 44 px, composição e cuidados expansíveis, PNG da caixa sem fundo branco, duas cenas de pessoas usadas uma vez cada e movimento reduzido respeitado.
+- Preços, fórmula do simulador, checkout, CEP, Asaas, estoque, vendas e rotas do portal preservados. A suíte inclui os testes dessas funções; não houve transação real.
+- Manual privado de 22 páginas preservado byte a byte nesta atualização. Nenhum manual na LP.
+
+Referências para o conteúdo dos benefícios:
+
+- ANVISA, IN nº 28/2018, Anexo V (texto consolidado): https://anvisalegis.datalegis.net/action/ActionDatalegis.php?acao=abrirTextoAto&cod_menu=1686&cod_modulo=135&link=S&numeroAto=00000028&orgao=DC/ANVISA/MS&seqAto=000&tipo=INM&valorAno=2018
+- ANVISA, cuidado com a propaganda enganosa: https://www.gov.br/anvisa/pt-br/assuntos/alimentos/suplementos-alimentares/cuidado-com-a-propaganda-enganosa
+
+As quatro imagens principais da LP passaram de 7,075,589 bytes a 479,372 bytes no conjunto de desktop (93.2% de redução). Fotos com variantes de 640 e 1280 px; carregamento tardio abaixo da abertura, dimensões explícitas e caixa/logo com transparência preservada. Esta medida compara o peso dos arquivos, não uma pontuação de velocidade no servidor publicado.
+
+Verificação final desta versão: 113 testes aprovados; build de produção e TypeScript concluídos; ESLint sem erros (um aviso existente no portal). Navegador em 1440, 768, 390 e 320 px: sem imagem quebrada, transbordamento lateral ou erro JavaScript. Jornada dos CTAs, cinco benefícios, referências de cálculo e movimento reduzido conferidos. Os três endereços do manual recusam acesso anônimo com 401.

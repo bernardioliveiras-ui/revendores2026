@@ -1,6 +1,6 @@
 {
   "name": "mix10-pro-revendedores",
-  "version": "0.2.4-lordnutri-cards-flutuantes",
+  "version": "0.2.5-lordnutri-marca-beneficios",
   "private": true,
   "engines": {
     "node": "22.x"
