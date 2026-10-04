@@ -33,7 +33,7 @@ async function portalFetch(url: string, init: RequestInit = {}) {
   }
 }
 
-export function PortalClient({ embedUrl = "", videoUrl = "", manualUrl = "/manual/MANUAL-DO-REVENDEDOR-LORDNUTRI-MIX10PRO.pdf" }: { embedUrl?: string; videoUrl?: string; manualUrl?: string }) {
+export function PortalClient({ embedUrl = "", videoUrl = "", manualUrl = "/api/reseller/manual" }: { embedUrl?: string; videoUrl?: string; manualUrl?: string }) {
   const saleInFlight = useRef(false);
   const adminSaleInFlight = useRef(false);
   const [savingSale, setSavingSale] = useState(false);

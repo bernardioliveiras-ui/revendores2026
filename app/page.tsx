@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-html-link-for-pages -- Os links de kit remontam o checkout para ler a seleção da URL. */
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
+import { BrandText } from "@/components/brand-text";
 import { WelcomeVideo } from "@/components/welcome-video";
 import { CheckoutForm } from "@/components/checkout-form";
 import { ProfitSimulator } from "@/components/profit-simulator";
@@ -23,6 +24,12 @@ const pillars = [
   ["Fórmula completa", "Dez ativos, entre vitaminas, minerais e outros ingredientes."],
   ["Produto para a rotina", "30 cápsulas. Uso e advertências conforme o rótulo vigente."],
   ["Apresentação profissional", "Caixa atualizada e composição acessível para uma decisão informada."],
+];
+const activeIngredients = [
+  ["Curcumina", "80 mg"], ["Colágeno tipo II", "35 mg"], ["Magnésio", "77 mg"],
+  ["Cálcio", "180 mg"], ["Vitamina C", "45 mg"], ["Manganês", "2,3 mg"],
+  ["MSM", "60 mg"], ["Sulfato de condroitina", "38 mg"],
+  ["Vitamina D3", "38 µg"], ["Vitamina K (MK-7)", "92 µg"],
 ];
 const faqs = [
   ["Isso é multinível?", "Não. O resultado apresentado vem da compra e da revenda dos produtos aos clientes. Não há remuneração por recrutamento."],
@@ -64,7 +71,7 @@ export default function Home() {
       <section id="inicio" className="lnr-hero">
         <div className="lnr-shell lnr-hero-inner">
           <div className="lnr-cover-logo"><BrandLogo /></div>
-          <span className="lnr-eyebrow">PROGRAMA DE REVENDEDORES LORD NUTRI</span>
+          <span className="lnr-eyebrow"><BrandText text="PROGRAMA DE REVENDEDORES LORD NUTRI" /></span>
           <h1>Vem realizar seus sonhos com a gente!</h1>
           <p className="lnr-dream">Produto em mãos. Números claros.<br/>Uma oportunidade para construir suas próprias vendas.</p>
           <div className="lnr-hero-opportunity">
@@ -82,18 +89,18 @@ export default function Home() {
 
       <section id="modelo" className="lnr-section lnr-model">
         <div className="lnr-shell">
-          <div className="lnr-section-head"><span className="lnr-eyebrow">MODELO DE NEGÓCIO</span><h2>Sua revenda LORD NUTRI em 3 passos</h2><p>Escolha o kit, receba suas caixas e venda diretamente aos seus clientes.</p></div>
-          <div className="lnr-steps">{steps.map(([title, text], i) => <article className="lnr-step lnr-disclosure" key={title}><div className="lnr-step-heading"><span className="lnr-number">0{i + 1}</span><h3>{title}</h3></div><p>{text}</p></article>)}</div>
+          <div className="lnr-section-head"><span className="lnr-eyebrow">MODELO DE NEGÓCIO</span><h2><BrandText text="Sua revenda LORD NUTRI em 3 passos" /></h2><p>Escolha o kit, receba suas caixas e venda diretamente aos seus clientes.</p></div>
+          <div className="lnr-steps">{steps.map(([title, text], i) => <article className="lnr-step lnr-disclosure" key={title}><div className="lnr-step-heading"><span className="lnr-number">0{i + 1}</span><h3><BrandText text={title} /></h3></div><p><BrandText text={text} /></p></article>)}</div>
           <div className="lnr-care-band"><img src="/brand/caminhada-bem-estar.png" alt="Casal em uma caminhada ao ar livre" width="1536" height="1024" loading="lazy"/><div><span className="lnr-eyebrow">RELACIONAMENTO QUE CONTINUA</span><h3>Clareza para apresentar.<br/>Cuidado para atender.</h3><p>Comece pela sua rede e cresça com um atendimento próximo.</p></div></div><div className="lnr-inline-action"><MainCta /><p className="lnr-note">A revenda exige dedicação comercial. Não há promessa de vendas, renda ou prazo para venda do estoque.</p></div>
-          {hasVideo ? <details className="lnr-video-details lnr-disclosure"><summary>Boas-vindas à LORD NUTRI<span className="lnr-plus" aria-hidden="true" /></summary><WelcomeVideo embedUrl={process.env.VSL_EMBED_URL} videoUrl={process.env.VSL_VIDEO_URL} /></details> : null}
+          {hasVideo ? <details className="lnr-video-details lnr-disclosure"><summary><BrandText text="Boas-vindas à LORD NUTRI" /><span className="lnr-plus" aria-hidden="true" /></summary><WelcomeVideo embedUrl={process.env.VSL_EMBED_URL} videoUrl={process.env.VSL_VIDEO_URL} /></details> : null}
         </div>
       </section>
 
       <section id="lord-nutri" className="lnr-section lnr-opportunity">
         <div className="lnr-shell">
-          <div className="lnr-opportunity-intro"><div><span className="lnr-eyebrow">O MERCADO E A OPORTUNIDADE</span><h2>Uma oportunidade em um mercado que acompanha uma necessidade real.</h2><p>A LORD NUTRI conecta produto físico, revenda direta e atendimento próximo. Uma forma de atender quem busca cuidado na rotina.</p></div><figure className="lnr-people-visual"><img src="/brand/conversa-revenda.png" alt="Duas pessoas conversando sobre uma oportunidade de revenda" width="1536" height="1024" loading="lazy"/><figcaption>Escute. Apresente. Construa confiança.</figcaption></figure></div>
-          <div className="lnr-reasons-head"><h3>5 motivos para revender MIX10 PRO</h3><p>Comece pela sua rede. Cresça com atendimento e organização.</p></div>
-          <div className="lnr-reasons">{reasons.map(([title, text], i) => <details className="lnr-disclosure" key={title}><summary><span className="lnr-reason-number">0{i + 1}</span><h4>{title}</h4><span className="lnr-plus" aria-hidden="true" /></summary><p>{text}</p></details>)}</div>
+          <div className="lnr-opportunity-intro"><div><span className="lnr-eyebrow">O MERCADO E A OPORTUNIDADE</span><h2>Uma oportunidade em um mercado que acompanha uma necessidade real.</h2><p><BrandText text="A LORD NUTRI conecta produto físico, revenda direta e atendimento próximo. Uma forma de atender quem busca cuidado na rotina." /></p></div><figure className="lnr-people-visual"><img src="/brand/conversa-revenda.png" alt="Duas pessoas conversando sobre uma oportunidade de revenda" width="1536" height="1024" loading="lazy"/><figcaption>Escute. Apresente. Construa confiança.</figcaption></figure></div>
+          <div className="lnr-reasons-head"><h3><BrandText text="5 motivos para revender MIX10 PRO" /></h3><p>Comece pela sua rede. Cresça com atendimento e organização.</p></div>
+          <div className="lnr-reasons">{reasons.map(([title, text], i) => <details className="lnr-disclosure" key={title}><summary><span className="lnr-reason-number">0{i + 1}</span><h4><BrandText text={title} /></h4><span className="lnr-plus" aria-hidden="true" /></summary><p><BrandText text={text} /></p></details>)}</div>
         </div>
       </section>
 
@@ -110,7 +117,19 @@ export default function Home() {
       <section id="mix10pro" className="lnr-section lnr-product">
         <div className="lnr-shell lnr-product-grid">
           <div className="lnr-product-visual"><img src="/brand/mix10-box-transparent-v3.png" alt="Embalagem real MIX10 PRO da LORD NUTRI" loading="lazy" width="1086" height="1448" /><span>SUPLEMENTO ALIMENTAR</span></div>
-          <div><span className="lnr-eyebrow">UM PRODUTO LORD NUTRI</span><h2>Por que escolher MIX10 PRO para começar sua revenda?</h2><p>Suplemento alimentar em cápsulas, com dez ativos e uma apresentação profissional para sua revenda.</p><div className="lnr-product-facts"><div><strong>10</strong><span>ativos</span></div><div><strong>30</strong><span>cápsulas</span></div></div><div className="lnr-product-pillars">{pillars.map(([title, text]) => <details className="lnr-disclosure" key={title}><summary><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p>{text}</p></details>)}</div><p className="lnr-anvisa"><span>Processo de Notificação</span><strong>ANVISA nº 2535115572620267</strong></p><p className="lnr-note">MIX10 PRO é suplemento alimentar, não medicamento.</p><a className="lnr-manual-link" href="/manual/MANUAL-DO-REVENDEDOR-LORDNUTRI-MIX10PRO.pdf" target="_blank" rel="noopener noreferrer">Conhecer o Manual do Revendedor</a></div>
+          <div>
+            <span className="lnr-eyebrow"><BrandText text="UM PRODUTO LORD NUTRI" /></span>
+            <h2><BrandText text="Por que escolher MIX10 PRO para começar sua revenda?" /></h2>
+            <p>Suplemento alimentar em cápsulas que reúne vitaminas, minerais e outros ativos para complementar a alimentação, conforme o rótulo.</p>
+            <div className="lnr-product-facts"><div><strong>10</strong><span>ativos</span></div><div><strong>30</strong><span>cápsulas</span></div><div><strong>19+</strong><span>público adulto</span></div></div>
+            <div className="lnr-product-pillars">
+              {pillars.map(([title, text]) => <details className="lnr-disclosure" key={title}><summary><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p><BrandText text={text} /></p></details>)}
+              <details className="lnr-disclosure"><summary><h3>Conheça os 10 ativos</h3><span className="lnr-plus" aria-hidden="true" /></summary><div className="lnr-active-composition"><p>Quantidades por porção diária de 1 cápsula, conforme a embalagem atual.</p><dl>{activeIngredients.map(([name, amount]) => <div key={name}><dt>{name}</dt><dd>{amount}</dd></div>)}</dl></div></details>
+              <details className="lnr-disclosure"><summary><h3>Uso, conservação e cuidados</h3><span className="lnr-plus" aria-hidden="true" /></summary><div className="lnr-product-guidance"><p><strong>Uso indicado:</strong> 1 cápsula ao dia, para adultos a partir de 19 anos, conforme o rótulo vigente.</p><p><strong>Conservação:</strong> proteger de luz, calor e umidade. Após abrir, consumir em até 45 dias.</p><p><strong>Cuidados:</strong> não indicado para gestantes, lactantes e crianças. Não exceder a recomendação diária. Manter fora do alcance de crianças.</p></div></details>
+            </div>
+            <p className="lnr-anvisa"><span>INFORMAÇÃO ANVISA</span><strong>ANVISA nº 2535115572620267</strong></p>
+            <p className="lnr-note"><BrandText text="MIX10 PRO é suplemento alimentar, não medicamento." /> Em caso de dúvidas de saúde ou uso de medicamentos, procure orientação profissional.</p>
+          </div>
         </div>
       </section>
 
@@ -127,12 +146,12 @@ export default function Home() {
       </section>
 
       <section id="duvidas" className="lnr-section lnr-faq">
-        <div className="lnr-shell lnr-faq-layout"><div><span className="lnr-eyebrow">FAQ</span><h2>Antes de começar.</h2></div><div className="lnr-faq-list">{faqs.map(([title, text]) => <details className="lnr-disclosure" key={title}><summary><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p>{text}</p></details>)}</div></div>
+        <div className="lnr-shell lnr-faq-layout"><div><span className="lnr-eyebrow">FAQ</span><h2>Antes de começar.</h2></div><div className="lnr-faq-list">{faqs.map(([title, text]) => <details className="lnr-disclosure" key={title}><summary><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p><BrandText text={text} /></p></details>)}</div></div>
       </section>
       <section id="checkout" className="lnr-section lnr-checkout">
         <div className="lnr-shell lnr-checkout-layout"><div><span className="lnr-eyebrow">COMECE SUA REVENDA</span><h2>Escolha seu kit</h2><p>Antes de pagar, você vê o valor dos produtos, o frete e as condições de parcelamento.</p></div><CheckoutForm /></div>
       </section>
-      <footer className="lnr-footer"><div className="lnr-shell"><div><BrandLogo compact /><p>MIX10 PRO</p><p>Programa de Revendedores</p></div><nav aria-label="Informações e acesso"><Link href="/termos-de-uso">Termos de Uso</Link><Link href="/politica-de-privacidade">Política de Privacidade</Link><Link href="/reembolso-e-devolucao">Reembolso e Devolução</Link><Link href="/entrar">Portal do Revendedor</Link><a className="lnr-google-check" href="https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F" target="_blank" rel="noopener noreferrer">Consultar segurança do site no Google </a></nav></div></footer>
+      <footer className="lnr-footer"><div className="lnr-shell"><div><BrandLogo compact /><p><BrandText text="MIX10 PRO" /></p><p>Programa de Revendedores</p></div><nav aria-label="Informações e acesso"><Link href="/termos-de-uso">Termos de Uso</Link><Link href="/politica-de-privacidade">Política de Privacidade</Link><Link href="/reembolso-e-devolucao">Reembolso e Devolução</Link><Link href="/entrar">Portal do Revendedor</Link><a className="lnr-google-check" href="https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F" target="_blank" rel="noopener noreferrer">Consultar segurança do site no Google </a></nav></div></footer>
     </main>
   );
 }

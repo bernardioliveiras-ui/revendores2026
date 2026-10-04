@@ -1,6 +1,6 @@
 # LORD NUTRI — revisão final da LP e dos fluxos
 
-**Versão:** 0.2.2-lordnutri-final · **Data:** 04/10/2026 UTC.
+**Versão:** 0.2.3-lordnutri-manual-exclusivo · **Data:** 04/10/2026 UTC.
 
 **Resultado:** revisão local concluída. A aprovação para tráfego com objetivo de compra depende da validação no ambiente publicado e dos provedores reais. Nenhuma credencial de produção foi disponibilizada neste pacote; não houve cobrança real, envio real de mensagens, alteração do banco remoto ou publicação.
 
@@ -11,7 +11,7 @@
 - Nomes novos dos recursos para evitar reaproveitar as imagens antigas em cache.
 - Setas decorativas removidas dos botões, links e chamadas da LP.
 - Paleta verde, preto e dourado preservada. Pessoas em cenas completas.
-- Preços dos kits, regras comerciais e manual preservados. O flyer não foi alterado nesta revisão.
+- Preços dos kits e regras comerciais preservados. Manual substituído pela revisão de 18 páginas, com oito cenas de pessoas sem repetição. O flyer não foi alterado nesta revisão.
 
 ## Revisão funcional
 
@@ -58,3 +58,14 @@ A base recebida tinha 16 falhas em testes que inspecionavam contratos antigos. O
 - Asaas, eventos de cobrança: https://docs.asaas.com/docs/webhook-para-cobrancas
 - Asaas, cartão e fatura hospedada: https://docs.asaas.com/docs/cobrancas-via-cartao-de-credito
 - ViaCEP: https://viacep.com.br/
+
+## Revisão solicitada em 04/10/2026
+
+- Manual retirado da LP e dos arquivos públicos; PDF atual entregue somente por rota privada autenticada, com kit pago do próprio usuário e acesso liberado. Administradores têm acesso para conferência.
+- Endereços antigos de PDF/PPTX passam pela rota protegida; `prebuild` remove cópias antigas da pasta pública. O atualizador completo substitui a pasta `public`.
+- Card R$ 10 mil com movimento e brilho suaves, sem alteração dos números; preferência de movimento reduzido respeitada.
+- Dez ativos com quantidades da caixa atual, público adulto, uso, conservação e cuidados em blocos expansíveis.
+- Código exibido como ANVISA nº 2535115572620267. Não foi convertido em afirmação de registro ou aprovação comprovada: a documentação enviada o identifica como processo de notificação. Referência oficial: https://www.gov.br/anvisa/pt-br/assuntos/alimentos/suplementos-alimentares/como-saber-se-um-suplemento-alimentar-e-autorizado .
+- 113 testes passaram, incluindo 16 novos cenários de privacidade e limpeza de cópias públicas. Compilação passou; lint sem erros, com um aviso já existente sobre imagem no portal.
+- Verificação de navegador nas larguras 1440, 768, 390 e 320 px: nenhuma imagem quebrada ou rolagem lateral; nenhum link público ao manual. Tentativas anônimas pela API e endereços legados retornaram 401.
+- Validação local de acesso com banco simulado. Compras, sessões e entrega real do material precisam ser conferidas no ambiente publicado. Nenhum deploy realizado.

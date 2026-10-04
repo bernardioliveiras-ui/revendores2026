@@ -1,12 +1,13 @@
 {
   "name": "mix10-pro-revendedores",
-  "version": "0.2.2-lordnutri-final",
+  "version": "0.2.3-lordnutri-manual-exclusivo",
   "private": true,
   "engines": {
     "node": "22.x"
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/protect-manual-assets.mjs",
     "build": "next build --webpack",
     "start": "node scripts/migrate.mjs && next start",
     "lint": "eslint . --ignore-pattern .next",

@@ -164,3 +164,25 @@
 
 /* Recursos transparentes únicos no desktop e no celular. */
 .lnr-page .lnr-product-visual img{background:transparent!important;border:0;box-shadow:none;mix-blend-mode:normal}
+
+/* Identidades da marca e do produto, mantendo o layout aprovado. */
+.lnr-page .lnr-lord-name{color:#f1d994;text-shadow:0 1px 0 #68420a,0 0 18px #d7a83f20}
+.lnr-page .lnr-mix-name{display:inline-block;white-space:nowrap;font-family:Arial,Helvetica,sans-serif;font-style:italic;font-weight:900;letter-spacing:-.045em}
+.lnr-page .lnr-mix-name>span:first-child{color:#f5f2e9}
+.lnr-page .lnr-mix-name>span:last-child{color:#45c8a6}
+.lnr-page .lnr-hero-opportunity{position:relative;isolation:isolate;overflow:hidden;animation:lnr-income-float 4.5s ease-in-out infinite;border-color:#c19c48;box-shadow:0 10px 32px #0005,0 0 22px #d7a83f18;will-change:transform}
+.lnr-page .lnr-hero-opportunity::before{content:"";position:absolute;z-index:-1;inset:-90% -120%;pointer-events:none;background:linear-gradient(115deg,transparent 43%,#e9c66c16 49%,#ffe7a539 50%,#e9c66c16 51%,transparent 57%);animation:lnr-income-shine 7s ease-in-out infinite}
+@keyframes lnr-income-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes lnr-income-shine{0%,25%{transform:translateX(-25%)}65%,100%{transform:translateX(25%)}}
+.lnr-page .lnr-active-composition,.lnr-page .lnr-product-guidance{padding:0 19px 19px;color:#d0d9d1}
+.lnr-page .lnr-active-composition>p{font-size:13px;line-height:1.5;margin:2px 0 16px}
+.lnr-active-composition dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;margin:0}
+.lnr-active-composition dl>div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #66512866;font-size:13px}
+.lnr-active-composition dt{min-width:0}.lnr-active-composition dd{white-space:nowrap;margin:0;color:#f1d994;font-weight:700}
+.lnr-page .lnr-product-guidance p{font-size:14px;line-height:1.65;margin:0 0 13px}.lnr-product-guidance p:last-child{margin-bottom:0}.lnr-product-guidance strong{color:#f1d994}
+.lnr-page .lnr-product-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.lnr-page .lnr-product-facts>div{min-width:0}
+.lnr-page .lnr-anvisa{border:1px solid #8f793e;border-radius:12px;padding:14px 16px;background:#101e15;display:flex;flex-direction:column;gap:5px;align-items:flex-start}
+.lnr-page .lnr-anvisa>span{font-size:10px;letter-spacing:.12em;color:#d7b25a}.lnr-page .lnr-anvisa>strong{color:#f1d994;font-size:clamp(13px,1.3vw,17px);overflow-wrap:anywhere}
+@media(max-width:700px){.lnr-active-composition dl{grid-template-columns:1fr}.lnr-page .lnr-active-composition,.lnr-page .lnr-product-guidance{padding:0 15px 15px}.lnr-page .lnr-product-facts{gap:10px}.lnr-page .lnr-product-facts>div{flex-direction:column;gap:5px;align-items:flex-start}.lnr-page .lnr-product-facts span{font-size:12px;line-height:1.4}}
+@media(prefers-reduced-motion:reduce){.lnr-page .lnr-hero-opportunity,.lnr-page .lnr-hero-opportunity::before{animation:none;will-change:auto}}

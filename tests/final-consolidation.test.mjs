@@ -16,12 +16,12 @@ test('LP presents the approved LORD NUTRI business model and opportunity before 
   assert.match(src,/A plataforma de apoio e os treinamentos estão em desenvolvimento/);
 });
 
-test('favicon is the LORDNUTRI mark and the reseller manual is embedded', async()=>{
+test('favicon is the LORDNUTRI mark and the exclusive reseller manual is embedded in the portal', async()=>{
   await access(join(root,'app/icon.png'));
   await access(join(root,'public/brand/lordnutri-mark.png'));
-  await access(join(root,'public/manual/MANUAL-DO-REVENDEDOR-LORDNUTRI-MIX10PRO.pdf'));
+  await access(join(root,'private/manual/Manual_do_Revendedor_LORD_NUTRI.pdf'));
   const portal=await read('app/painel/portal-client.tsx');
-  assert.match(portal,/MANUAL-DO-REVENDEDOR-LORDNUTRI-MIX10PRO\.pdf/);
+  assert.match(portal,/\/api\/reseller\/manual/);
   assert.match(portal,/<iframe/);
 });
 

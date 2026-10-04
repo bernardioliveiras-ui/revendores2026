@@ -1,0 +1,21 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> mix10-pro-revendedores@0.2.3-lordnutri-manual-exclusivo prebuild
+> node scripts/protect-manual-assets.mjs
+
+
+> mix10-pro-revendedores@0.2.3-lordnutri-manual-exclusivo build
+> next build --webpack
+
+▲ Next.js 16.2.6 (webpack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.5s
+  Running TypeScript ...
+  Finished TypeScript in 5.5s ...
+  Collecting page data using 8 workers ...
+  Generating static pages using 8 workers (0/44) ...
+  Generating static pages using 8 workers (11/44) 
+  Generating static pages using 8 workers (22/44) 
+  Generating static pages using 8 workers (33/44) 
+✓ Generating static pages using 8 workers (44/44) in 323ms

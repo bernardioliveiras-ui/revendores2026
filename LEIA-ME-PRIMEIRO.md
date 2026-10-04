@@ -1,4 +1,4 @@
-# LORD NUTRI — revisão final 0.2.2
+# LORD NUTRI — revisão final 0.2.3
 
 Projeto completo: LP, checkout, portal, BKO, manual e correções de automação.
 
@@ -13,9 +13,9 @@ Projeto completo: LP, checkout, portal, BKO, manual e correções de automação
 3. Revise as alterações no GitHub Desktop, faça commit e push na branch vinculada à Hostinger.
 4. Na Hostinger: Node 22, instalação `npm ci`, compilação `npm run build`, inicialização `npm start`. O start executa a migração aditiva com `scripts/migrate.mjs`. Se a hospedagem separar as etapas, execute `npm run db:migrate` antes de `npm run start:app`.
 5. Preserve suas variáveis atuais. Não copie valores vazios do `.env.example` sobre credenciais existentes.
-6. Confira que a versão publicada é `0.2.2-lordnutri-final`.
+6. Confira que a versão publicada é `0.2.3-lordnutri-manual-exclusivo`.
 
-Use a atualização completa para receber as correções de automação. `APLICAR-LAYOUT-MANUAL.mjs` aplica somente o layout.
+Use a atualização completa para receber as correções de automação. `APLICAR-LAYOUT-MANUAL.mjs` também aplica a atualização completa, pois o manual precisa da nova rota protegida.
 
 ## Banco e credenciais
 
@@ -39,3 +39,7 @@ Entrega: o BKO atualiza a expedição. Um sistema logístico externo pode enviar
 O diagnóstico verifica apenas a configuração. Não comprova conexão, pagamento, entrega ou envio de mensagens reais.
 
 Leia `REVISAO-FINAL-TRAFEGO.md` antes de ativar campanhas. O ZIP foi validado localmente; não foi publicado neste atendimento.
+
+## Manual exclusivo e última revisão
+
+O manual está em `private/manual`, fora de `public`, e só é servido a usuários autenticados com kit pago e acesso liberado. O BKO pode conferi-lo. O arquivo não deve ser enviado a serviços de arquivos públicos nem recolocado em `public`. O build limpa cópias públicas antigas e endereços legados passam pela autorização. O card dos R$ 10 mil ganhou animação suave; a seção de produto inclui ativos, uso, conservação e cuidados. LORD NUTRI usa dourado; MIX10 PRO usa branco e verde com tipografia de destaque.
