@@ -4,6 +4,7 @@ import { ensureOperationalSchema } from "@/lib/runtime-schema";
 export async function PATCH(request: Request){
   try {
     await requireAdmin(request);
+    await ensureOperationalSchema();
     const body=await request.json().catch(()=>null);
     if(typeof body?.purchaseId!=="string" || !body.purchaseId || !["separating","shipped","delivered"].includes(body.status)) return Response.json({error:"Atualização inválida."},{status:400});
     const result=await updatePurchaseShipping(body.purchaseId,body.status,body.carrier,body.trackingCode);

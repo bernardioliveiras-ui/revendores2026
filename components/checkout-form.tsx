@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { KitId } from "@/lib/kits";
 
 type Installment = {
@@ -22,6 +22,8 @@ type ShippingOption = {
 };
 
 type QuoteResponse = {
+  postalCode: string;
+  address: {street: string; district: string; city: string; state: string};
   kit: { id: KitId; label: string; boxes: number; productTotalCents: number };
   shippingOptions: ShippingOption[];
 };
@@ -33,6 +35,10 @@ const display = {
 } as const;
 
 export function CheckoutForm() {
+  const quoteSequence = useRef(0);
+  const quoteController = useRef<AbortController | null>(null);
+  const submitInFlight = useRef(false);
+  const [address, setAddress] = useState({street:"",district:"",city:"",state:""});
   const [kit, setKit] = useState<KitId>("kit20");
   const [postalCode, setPostalCode] = useState("");
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
@@ -45,7 +51,7 @@ export function CheckoutForm() {
   const [quoteError, setQuoteError] = useState("");
   const selected = useMemo(() => display[kit], [kit]);
 
-  const activeQuote = quote?.kit.id === kit ? quote : null;
+  const activeQuote = quote?.kit.id === kit && quote.postalCode === postalCode.replace(/\D/g, "") ? quote : null;
   const selectedShipping = useMemo(
     () => activeQuote?.shippingOptions.find((item) => item.id === shippingType) || null,
     [activeQuote, shippingType],
@@ -69,7 +75,18 @@ export function CheckoutForm() {
     return () => clearTimeout(timer);
   }, []);
 
+  function invalidateQuote() {
+    quoteSequence.current++;
+    quoteController.current?.abort();
+    setQuote(null);
+    setQuoteBusy(false);
+  }
+
   async function loadQuote(rawPostalCode: string, requestedKit = kit) {
+    const sequence = ++quoteSequence.current;
+    quoteController.current?.abort();
+    const controller = new AbortController();
+    quoteController.current = controller;
     const cleanPostalCode = rawPostalCode.replace(/\D/g, "").slice(0, 8);
     if (cleanPostalCode.length !== 8) {
       setQuote(null);
@@ -82,24 +99,28 @@ export function CheckoutForm() {
       const response = await fetch("/api/public/quote", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10000)]),
         body: JSON.stringify({ postalCode: cleanPostalCode, kit: requestedKit }),
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Não foi possível calcular o frete.");
+      if (sequence !== quoteSequence.current) return;
       setQuote(body as QuoteResponse);
+      setAddress(body.address);
       setShippingType("economical");
       setInstallments(1);
     } catch (cause) {
+      if (sequence !== quoteSequence.current) return;
       setQuote(null);
       setQuoteError(cause instanceof Error ? cause.message : "Não foi possível calcular o frete.");
     } finally {
-      setQuoteBusy(false);
+      if (sequence === quoteSequence.current) setQuoteBusy(false);
     }
   }
 
   function chooseKit(id: KitId) {
     setKit(id);
-    setQuote(null);
+    invalidateQuote();
     setInstallments(1);
     setQuoteError("");
     if (postalCode.replace(/\D/g, "").length === 8) void loadQuote(postalCode, id);
@@ -107,6 +128,7 @@ export function CheckoutForm() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitInFlight.current) return;
     setError("");
     if (!selectedShipping) {
       setError("Calcule o frete pelo CEP e escolha uma modalidade de entrega antes de continuar.");
@@ -116,6 +138,7 @@ export function CheckoutForm() {
       setError("Escolha uma opção de parcelamento válida.");
       return;
     }
+    submitInFlight.current = true;
     setBusy(true);
     const form = new FormData(event.currentTarget);
     let attribution: Record<string, string> = {};
@@ -134,7 +157,7 @@ export function CheckoutForm() {
     try {
       const response = await fetch("/api/public/checkout", {
         method: "POST",
-        signal: AbortSignal.timeout(25000),
+        signal: AbortSignal.timeout(75000),
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -144,6 +167,7 @@ export function CheckoutForm() {
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível iniciar o pagamento.");
       setBusy(false);
+      submitInFlight.current = false;
     }
   }
 
@@ -187,7 +211,8 @@ export function CheckoutForm() {
                 const digits = event.target.value.replace(/\D/g, "").slice(0, 8);
                 const formatted = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
                 setPostalCode(formatted);
-                setQuote(null);
+                invalidateQuote();
+                setAddress({street:"",district:"",city:"",state:""});
                 setQuoteError("");
               }}
               onBlur={() => { if (postalCode.replace(/\D/g, "").length === 8 && !quote) void loadQuote(postalCode); }}
@@ -195,12 +220,12 @@ export function CheckoutForm() {
             <button type="button" className="quote-button" disabled={quoteBusy} onClick={() => void loadQuote(postalCode)}>{quoteBusy ? "Calculando…" : "Calcular frete"}</button>
           </div>
         </label>
-        <label>Rua / Avenida<input required name="street" autoComplete="address-line1" /></label>
+        <label>Rua / Avenida<input required name="street" value={address.street} onChange={event => setAddress(current => ({...current, street: event.target.value}))} autoComplete="address-line1" /></label>
         <label>Número<input required name="number" /></label>
         <label>Complemento<input name="complement" autoComplete="address-line2" /></label>
-        <label>Bairro<input required name="district" /></label>
-        <label>Cidade<input required name="city" autoComplete="address-level2" /></label>
-        <label>UF<input required name="state" maxLength={2} autoComplete="address-level1" /></label>
+        <label>Bairro<input required name="district" value={address.district} onChange={event => setAddress(current => ({...current, district: event.target.value}))} /></label>
+        <label>Cidade<input required name="city" value={address.city} onChange={event => setAddress(current => ({...current, city: event.target.value}))} autoComplete="address-level2" /></label>
+        <label>UF<input required name="state" value={address.state} onChange={event => setAddress(current => ({...current, state: event.target.value.toUpperCase()}))} maxLength={2} autoComplete="address-level1" /></label>
       </div>
 
       {quoteError ? <div className="form-error quote-error">{quoteError}</div> : null}
@@ -249,7 +274,7 @@ export function CheckoutForm() {
 
       <label className="consent"><input required type="checkbox" name="acceptedTerms" value="yes" /> Li e concordo com os Termos de Uso e a Política de Privacidade.</label>
       {error ? <div className="form-error">{error}</div> : null}
-      <button className="primary-button full" disabled={busy || quoteBusy}>{busy ? "Abrindo pagamento…" : selectedShipping ? `Ir para pagamento · ${money(finalCents)}` : "Calcule o frete para continuar"}</button>
+      <button className="primary-button full" disabled={busy || quoteBusy || !selectedShipping}>{busy ? "Abrindo pagamento…" : selectedShipping ? `Ir para pagamento · ${money(finalCents)}` : "Calcule o frete para continuar"}</button>
     </form>
   );
 }

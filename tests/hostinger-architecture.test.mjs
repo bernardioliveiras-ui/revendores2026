@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, access } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { glob } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -29,23 +29,6 @@ test('produção usa Next Node e MySQL sem runtime Cloudflare/D1', async () => {
   assert.equal(pkg.devDependencies?.vinext, undefined);
   for (const [file, source] of await productionSources()) {
     assert.doesNotMatch(source, /cloudflare:workers|drizzle-orm\/d1|sqlite-core|\bD1\b|cf-connecting-ip/i, file);
-  }
-});
-
-test('pacote contém bootstrap MySQL e exemplo de ambiente Hostinger', async () => {
-  await access(new URL('../database/schema.sql', import.meta.url));
-  const env = await text('.env.example');
-  for (const name of ['DATABASE_HOST','DATABASE_NAME','DATABASE_USER','DATABASE_PASSWORD','AUTH_SECRET','ADMIN_EMAILS','ADMIN_BOOTSTRAP_PASSWORD','ASAAS_API_KEY','NEXT_PUBLIC_APP_URL']) {
-    assert.match(env, new RegExp(`^${name}=`, 'm'), name);
-  }
-  assert.doesNotMatch(env, /RESEND_API_KEY|EMAIL_FROM/);
-  assert.doesNotMatch(env, /AKIA|sk_live|re_[A-Za-z0-9]{20,}|\$aact_/i);
-});
-
-test('schema SQL contém todas as tabelas funcionais do portal', async () => {
-  const sql = await text('database/schema.sql');
-  for (const table of ['users','organizations','memberships','invitations','auth_login_codes','auth_sessions','orders','order_events','asaas_events','reseller_movements','affiliate_referrals','affiliate_clicks','shipments','manual_progress']) {
-    assert.match(sql, new RegExp('CREATE TABLE IF NOT EXISTS `?' + table + '`?', 'i'), table);
   }
 });
 

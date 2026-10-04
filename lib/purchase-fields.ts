@@ -32,6 +32,7 @@ export const operationalPurchaseFields = {
   deliveredAt: purchases.deliveredAt,
   asaasCustomerId: purchases.asaasCustomerId,
   asaasPaymentId: purchases.asaasPaymentId,
+  asaasInstallmentId: purchases.asaasInstallmentId,
   asaasInvoiceUrl: purchases.asaasInvoiceUrl,
   userId: purchases.userId,
   accessReleasedAt: purchases.accessReleasedAt,

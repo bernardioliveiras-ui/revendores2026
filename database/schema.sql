@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `purchases` (
   `payment_method` varchar(20) NOT NULL DEFAULT '', `installments` int NOT NULL DEFAULT 1, `installment_value_cents` int NOT NULL DEFAULT 0, `interest_cents` int NOT NULL DEFAULT 0, `total_cents` int NOT NULL,
   `payment_status` varchar(30) NOT NULL DEFAULT 'payment_pending', `shipping_status` varchar(30) NOT NULL DEFAULT 'awaiting_payment',
   `carrier` varchar(120) DEFAULT NULL, `tracking_code` varchar(120) DEFAULT NULL, `shipped_at` varchar(40) DEFAULT NULL, `delivered_at` varchar(40) DEFAULT NULL,
-  `asaas_customer_id` varchar(120) DEFAULT NULL, `asaas_payment_id` varchar(120) DEFAULT NULL, `asaas_invoice_url` varchar(1000) DEFAULT NULL,
+  `asaas_customer_id` varchar(120) DEFAULT NULL, `asaas_payment_id` varchar(120) DEFAULT NULL, `asaas_installment_id` varchar(120) DEFAULT NULL, `asaas_invoice_url` varchar(1000) DEFAULT NULL,
   `user_id` varchar(80) DEFAULT NULL, `access_released_at` varchar(40) DEFAULT NULL,
   `welcome_status` varchar(30) NOT NULL DEFAULT 'pending',
   `welcome_secret` varchar(1000) DEFAULT NULL,

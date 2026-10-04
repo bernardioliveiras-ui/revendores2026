@@ -4,7 +4,7 @@ type AsaasEnvironment = "sandbox" | "production";
 type AsaasErrorBody = { errors?: Array<{ code?: string; description?: string }> };
 
 export type AsaasCustomer = { id: string };
-export type AsaasPayment = { id: string; status?: string; invoiceUrl?: string; externalReference?: string };
+export type AsaasPayment = { id: string; status?: string; invoiceUrl?: string; externalReference?: string; installment?: string };
 
 export class AsaasRequestError extends Error {
   constructor(message: string, readonly status: number) {
@@ -97,4 +97,8 @@ export async function createPayment(input: {
     method: "POST",
     body: JSON.stringify(body),
   });
+}
+
+export async function getPayment(id: string) {
+  return asaasRequest<AsaasPayment>(`/payments/${encodeURIComponent(id)}`);
 }

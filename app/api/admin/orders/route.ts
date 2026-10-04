@@ -8,8 +8,8 @@ import { provisionPaidPurchase } from "@/lib/access-provisioning";
 import { ensureOperationalSchema } from "@/lib/runtime-schema";
 export async function PATCH(request: Request) {
   try {
-    await ensureOperationalSchema();
     await requireAdmin(request);
+    await ensureOperationalSchema();
     const b = await request.json();
     const id = typeof b.purchaseId === "string" ? b.purchaseId : typeof b.orderId === "string" ? b.orderId : "";
     if (!id || b.status !== "paid") return Response.json({error:"Informe um pedido e o status paid para confirmar manualmente."},{status:400});

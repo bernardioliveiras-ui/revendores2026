@@ -59,6 +59,7 @@ export const purchases = mysqlTable("purchases", {
   deliveredAt: varchar("delivered_at", { length: 40 }),
   asaasCustomerId: varchar("asaas_customer_id", { length: 120 }),
   asaasPaymentId: varchar("asaas_payment_id", { length: 120 }),
+  asaasInstallmentId: varchar("asaas_installment_id", { length: 120 }),
   asaasInvoiceUrl: varchar("asaas_invoice_url", { length: 1000 }),
   userId: varchar("user_id", { length: 80 }),
   accessReleasedAt: varchar("access_released_at", { length: 40 }),

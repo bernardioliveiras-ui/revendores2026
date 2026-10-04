@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { purchases, resellerProfiles } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
@@ -13,9 +13,9 @@ function orderNumber() { return `MIXR${Date.now().toString(36).toUpperCase()}${c
 
 export async function GET(request: Request) {
   try {
-    await ensureOperationalSchema();
     const user = await requireSession(request);
     if (user.role !== "reseller") return Response.json({ error: "Área do revendedor." }, { status: 403 });
+    await ensureOperationalSchema();
     const [profile] = await getDb().select().from(resellerProfiles).where(eq(resellerProfiles.userId, user.id)).limit(1);
     if (!profile) return Response.json({ error: "Endereço do revendedor não encontrado. Fale com o BKO." }, { status: 409 });
     const kits = Object.values(KITS).map((kit) => {
@@ -40,9 +40,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   let purchaseId = "";
   try {
-    await ensureOperationalSchema();
     const user = await requireSession(request);
     if (user.role !== "reseller") return Response.json({ error: "Área do revendedor." }, { status: 403 });
+    await ensureOperationalSchema();
     const body = await request.json().catch(() => null) as Record<string, unknown> | null;
     if (!body) return Response.json({ error: "Dados inválidos." }, { status: 400 });
     const kit = getKit(body.kit);
@@ -83,11 +83,11 @@ export async function POST(request: Request) {
     const customer = await createCheckoutCustomer({ purchaseId, name: user.name, cpfCnpj: profile.cpfCnpj, email: user.email, phone: user.phone || "" });
     const asaasPayment = await createPayment({ customerId: customer.id, purchaseId, orderNumber: number, valueCents: payment.chargedValueCents, billingType: paymentMethod === "pix" ? "PIX" : "CREDIT_CARD", installments, dueDate: dueDate() });
     if (!asaasPayment.id || !asaasPayment.invoiceUrl) throw new Error("O Asaas não retornou o link de pagamento.");
-    await db.update(purchases).set({ asaasCustomerId: customer.id, asaasPaymentId: asaasPayment.id, asaasInvoiceUrl: asaasPayment.invoiceUrl, updatedAt: new Date().toISOString() }).where(eq(purchases.id, purchaseId));
+    await db.update(purchases).set({ asaasCustomerId: customer.id, asaasPaymentId: asaasPayment.id, asaasInstallmentId: asaasPayment.installment || null, asaasInvoiceUrl: asaasPayment.invoiceUrl, updatedAt: new Date().toISOString() }).where(eq(purchases.id, purchaseId));
     return Response.json({ invoiceUrl: asaasPayment.invoiceUrl, orderNumber: number });
   } catch (error) {
     if (purchaseId) {
-      try { await getDb().update(purchases).set({ paymentStatus: "payment_error", updatedAt: new Date().toISOString() }).where(eq(purchases.id, purchaseId)); } catch { /* preserve original */ }
+      try { await getDb().update(purchases).set({ paymentStatus: "payment_error", updatedAt: new Date().toISOString() }).where(and(eq(purchases.id, purchaseId), eq(purchases.paymentStatus, "payment_pending"))); } catch { /* preserve original */ }
     }
     if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Faça login novamente." }, { status: 401 });
     if (error instanceof AsaasRequestError) return Response.json({ error: error.message }, { status: error.status });

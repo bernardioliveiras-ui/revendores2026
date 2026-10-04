@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm";
+import { lookupPostalCode, PostalLookupError } from "@/lib/postal-code";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { purchases } from "@/db/schema";
 import { createCheckoutCustomer, createPayment, AsaasRequestError } from "@/lib/asaas";
@@ -35,6 +36,9 @@ export async function POST(request: Request) {
       return Response.json({ error: "Escolha uma forma de pagamento válida." }, { status: 400 });
     }
 
+    const address = await lookupPostalCode(data.postalCode);
+    if (!address) return Response.json({error:"CEP não encontrado."},{status:422});
+    if (address.state !== data.state) return Response.json({error:"A UF deve corresponder ao CEP informado."},{status:400});
     const shippingOptions = calculateShipping(data.postalCode, kit.boxes);
     const shipping = shippingOptions?.find((item) => item.id === shippingType);
     if (!shipping) return Response.json({ error: "Não foi possível calcular o frete para esse CEP." }, { status: 422 });
@@ -80,12 +84,13 @@ export async function POST(request: Request) {
       dueDate: dueDate(),
     });
     if (!asaasPayment.id || !asaasPayment.invoiceUrl) throw new Error("O Asaas não retornou o link de pagamento.");
-    await db.update(purchases).set({ asaasCustomerId: customer.id, asaasPaymentId: asaasPayment.id, asaasInvoiceUrl: asaasPayment.invoiceUrl, updatedAt: new Date().toISOString() }).where(eq(purchases.id, purchaseId));
+    await db.update(purchases).set({ asaasCustomerId: customer.id, asaasPaymentId: asaasPayment.id, asaasInstallmentId: asaasPayment.installment || null, asaasInvoiceUrl: asaasPayment.invoiceUrl, updatedAt: new Date().toISOString() }).where(eq(purchases.id, purchaseId));
     return Response.json({ invoiceUrl: asaasPayment.invoiceUrl, orderNumber: number });
   } catch (error) {
     if (purchaseId) {
-      try { await getDb().update(purchases).set({ paymentStatus: "payment_error", updatedAt: new Date().toISOString() }).where(eq(purchases.id, purchaseId)); } catch { /* keep original error */ }
+      try { await getDb().update(purchases).set({ paymentStatus: "payment_error", updatedAt: new Date().toISOString() }).where(and(eq(purchases.id, purchaseId), eq(purchases.paymentStatus, "payment_pending"))); } catch { /* keep original error */ }
     }
+    if (error instanceof PostalLookupError) return Response.json({error:error.message},{status:503});
     if (error instanceof AsaasRequestError) return Response.json({ error: error.message }, { status: error.status });
     console.error("public_checkout_failed", error);
     return Response.json({ error: "Não foi possível iniciar o pagamento agora." }, { status: 500 });

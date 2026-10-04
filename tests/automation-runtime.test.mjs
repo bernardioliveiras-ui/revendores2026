@@ -30,7 +30,7 @@ test('boas-vindas da recompra permitem conta existente sem senha provisória',as
 });
 function webhook(initial, overrides={}){
  const s=memoryDb(schema,initial);let releases=0;
- const {POST}=load('app/api/billing/webhook/route.ts',{'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/auth':{safeHashEqual:(a,b)=>a===b},'@/lib/env':{getOptionalEnv:()=> 'secret'},'@/lib/mysql-errors':{isMysqlDuplicateKeyError:()=>false},'@/lib/access-provisioning':{provisionPaidPurchase:async()=>{releases++}},'@/lib/welcome-notification':{sendWelcome:async()=>({sent:true})},'@/lib/purchase-fields':{operationalPurchaseFields:{}},...overrides});
+ const {POST}=load('app/api/billing/webhook/route.ts',{'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/auth':{safeHashEqual:(a,b)=>a===b},'@/lib/env':{getOptionalEnv:()=> 'secret'},'@/lib/mysql-errors':{isMysqlDuplicateKeyError:()=>false},'@/lib/access-provisioning':{provisionPaidPurchase:async()=>{releases++}},'@/lib/welcome-notification':{sendWelcome:async()=>({sent:true})},'@/lib/purchase-fields':{operationalPurchaseFields:{}},'@/lib/asaas':{getPayment:async()=>({})},...overrides});
  const call=(body,token='secret')=>POST(new Request('https://example.test/api/billing/webhook',{method:'POST',headers:{'asaas-access-token':token,'content-type':'application/json'},body:typeof body==='string'?body:JSON.stringify(body)}));
  return {...s,call,get releases(){return releases}};
 }

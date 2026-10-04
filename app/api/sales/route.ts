@@ -11,9 +11,11 @@ export async function GET(request:Request){try{const user=await requireSession(r
 
 export async function POST(request:Request){
   try{
-    await ensureOperationalSchema();
     const user=await requireSession(request);if(user.role!=="reseller")return Response.json({error:"Área do revendedor."},{status:403});
-    const body=await request.json() as {boxes?:unknown;unitValue?:unknown;channel?:unknown;customerName?:unknown;notes?:unknown;soldAt?:unknown};
+    await ensureOperationalSchema();
+    const body=await request.json().catch(() => null) as {boxes?:unknown;unitValue?:unknown;channel?:unknown;customerName?:unknown;notes?:unknown;soldAt?:unknown};
+    if (!body || typeof body !== "object" || Array.isArray(body)) return Response.json({error:"Dados inválidos."},{status:400});
+    if (body.soldAt && (typeof body.soldAt !== "string" || !/^\d{4}-\d{2}-\d{2}(T.*)?$/.test(body.soldAt) || !Number.isFinite(Date.parse(body.soldAt)))) return Response.json({error:"Informe uma data válida para a venda."},{status:400});
     const boxes=Number(body.boxes);const unitValue=Number(body.unitValue);const unitValueCents=Math.round(unitValue*100);
     if(!Number.isSafeInteger(boxes)||boxes<=0||boxes>2147483647||!Number.isSafeInteger(unitValueCents)||unitValueCents<0||!Number.isSafeInteger(boxes*unitValueCents)||boxes*unitValueCents>2147483647)return Response.json({error:"Informe quantidade e valor válidos."},{status:400});
     await repairPaidPurchaseStockForUser(user.id);

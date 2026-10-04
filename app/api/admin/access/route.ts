@@ -10,8 +10,8 @@ import { generateTemporaryPassword, hashPassword } from "@/lib/passwords";
 import { ensureOperationalSchema } from "@/lib/runtime-schema";
 export async function POST(request: Request) {
   try {
-    await ensureOperationalSchema();
     await requireAdmin(request);
+    await ensureOperationalSchema();
     const body = await request.json() as { purchaseId?: unknown; action?: unknown };
     const purchaseId = typeof body.purchaseId === "string" ? body.purchaseId : "";
     const action = body.action === "reset-password" ? "reset-password" : "release";

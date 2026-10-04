@@ -25,7 +25,7 @@ const date = (v: string) => new Date(v).toLocaleString("pt-BR", { dateStyle: "sh
 
 async function portalFetch(url: string, init: RequestInit = {}) {
   try {
-    const response = await fetch(url, { ...init, signal: AbortSignal.timeout(25000) });
+    const response = await fetch(url, { ...init, signal: AbortSignal.timeout(url === "/api/replenishment" && init.method === "POST" ? 75000 : 25000) });
     const body = await response.json().catch(() => ({ error: "O servidor não respondeu corretamente. Tente novamente." }));
     return { ok: response.ok, status: response.status, json: async () => body };
   } catch {

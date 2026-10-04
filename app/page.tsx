@@ -35,7 +35,7 @@ const faqs = [
 export const metadata = { alternates: { canonical: "https://revendedores.mix10pro.com.br/" } };
 
 function MainCta({ hero = false }: { hero?: boolean }) {
-  return <a className={`lnr-button${hero ? " lnr-hero-cta" : ""}`} href="#simulador"><span>VER OS KITS E CALCULAR MEU CENÁRIO</span><span aria-hidden="true">↗</span></a>;
+  return <a className={`lnr-button${hero ? " lnr-hero-cta" : ""}`} href="#simulador"><span>VER OS KITS E CALCULAR MEU CENÁRIO</span></a>;
 }
 
 export default function Home() {
@@ -44,7 +44,7 @@ export default function Home() {
     <main className="lnr-page">
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify({
         "@context": "https://schema.org", "@type": "Organization", name: "LORD NUTRI", legalName: "LORD GROUP NETWORK EPP",
-        url: "https://revendedores.mix10pro.com.br/", logo: "https://revendedores.mix10pro.com.br/brand/lordnutri-logo.png",
+        url: "https://revendedores.mix10pro.com.br/", logo: "https://revendedores.mix10pro.com.br/brand/lordnutri-logo-gold-v3.png",
         sameAs: ["https://mix10pro.com.br/lp-v2", "https://www.google.com/maps/search/?api=1&query=LORD%20NUTRI&query_place_id=ChIJCZtZ98MDz5QRWv8YdIPkPic"],
         makesOffer: { "@type": "Offer", itemOffered: { "@type": "Product", name: "MIX10 PRO" } },
       }) }} />
@@ -57,7 +57,7 @@ export default function Home() {
           <nav aria-label="Navegação principal">
             <a href="#modelo">Como funciona</a><a href="#lord-nutri">Oportunidade</a><a href="#simulador">Simulador</a><a href="#kits">Kits</a>
           </nav>
-          <Link href="/entrar" className="lnr-login">Entrar no portal <span aria-hidden="true">↗</span></Link>
+          <Link href="/entrar" className="lnr-login">Entrar no portal </Link>
         </div>
       </header>
 
@@ -70,7 +70,7 @@ export default function Home() {
           <div className="lnr-hero-opportunity">
             <p className="lnr-income">Construa até <strong>R$ 10 mil</strong><span>de ganho bruto por mês em um cenário de vendas simulado.</span></p>
           </div>
-          <div className="lnr-hero-actions"><MainCta hero /><a href="#modelo" className="lnr-text-cta">Entender como funciona ↓</a></div>
+          <div className="lnr-hero-actions"><MainCta hero /><a href="#modelo" className="lnr-text-cta">Entender como funciona</a></div>
           <p className="lnr-micro">Entrada a partir de 20 caixas · Até 6x · Frete à parte.</p>
         </div>
         <div className="lnr-shell lnr-hero-metrics" aria-label="Resumo da oportunidade">
@@ -103,14 +103,14 @@ export default function Home() {
           <div className="lnr-scenarios">{[1, 2, 3].map((n) => <article className="lnr-scenario" key={n}><span className="lnr-scenario-rhythm"><b>{n}</b> {n === 1 ? "caixa por dia" : "caixas por dia"}</span><p>{n * 26} caixas no mês · 26 dias</p><dl><div><dt>Ganho bruto · KIT20</dt><dd>{(n * 910).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</dd></div><div><dt>Ganho bruto · KIT50</dt><dd>{(n * 1040).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</dd></div></dl></article>)}</div>
           <p className="lnr-note">Simulações com preço de referência de R$ 109,90 por caixa. Valores brutos, antes de frete, taxas, juros, impostos, descontos e outras despesas. Vendas e resultados dependem da atuação de cada revendedor.</p>
           <div id="simulador-calculo"><ProfitSimulator /></div>
-          <div className="lnr-inline-action"><a href="#kits" className="lnr-button"><span>VER QUAL KIT ATENDE MINHA META</span><span aria-hidden="true">↓</span></a></div>
+          <div className="lnr-inline-action"><a href="#kits" className="lnr-button"><span>VER QUAL KIT ATENDE MINHA META</span></a></div>
         </div>
       </section>
 
       <section id="mix10pro" className="lnr-section lnr-product">
         <div className="lnr-shell lnr-product-grid">
-          <div className="lnr-product-visual"><img src="/brand/mix10-box.png" alt="Embalagem real MIX10 PRO da LORD NUTRI" loading="lazy" width="1086" height="1448" /><span>SUPLEMENTO ALIMENTAR</span></div>
-          <div><span className="lnr-eyebrow">UM PRODUTO LORD NUTRI</span><h2>Por que escolher MIX10 PRO para começar sua revenda?</h2><p>Suplemento alimentar em cápsulas, com dez ativos e uma apresentação profissional para sua revenda.</p><div className="lnr-product-facts"><div><strong>10</strong><span>ativos</span></div><div><strong>30</strong><span>cápsulas</span></div></div><div className="lnr-product-pillars">{pillars.map(([title, text]) => <details className="lnr-disclosure" key={title}><summary><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p>{text}</p></details>)}</div><p className="lnr-anvisa"><span>Processo de Notificação</span><strong>ANVISA nº 2535115572620267</strong></p><p className="lnr-note">MIX10 PRO é suplemento alimentar, não medicamento.</p><a className="lnr-manual-link" href="/manual/MANUAL-DO-REVENDEDOR-LORDNUTRI-MIX10PRO.pdf" target="_blank" rel="noopener noreferrer">Conhecer o Manual do Revendedor ↗</a></div>
+          <div className="lnr-product-visual"><img src="/brand/mix10-box-transparent-v3.png" alt="Embalagem real MIX10 PRO da LORD NUTRI" loading="lazy" width="1086" height="1448" /><span>SUPLEMENTO ALIMENTAR</span></div>
+          <div><span className="lnr-eyebrow">UM PRODUTO LORD NUTRI</span><h2>Por que escolher MIX10 PRO para começar sua revenda?</h2><p>Suplemento alimentar em cápsulas, com dez ativos e uma apresentação profissional para sua revenda.</p><div className="lnr-product-facts"><div><strong>10</strong><span>ativos</span></div><div><strong>30</strong><span>cápsulas</span></div></div><div className="lnr-product-pillars">{pillars.map(([title, text]) => <details className="lnr-disclosure" key={title}><summary><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p>{text}</p></details>)}</div><p className="lnr-anvisa"><span>Processo de Notificação</span><strong>ANVISA nº 2535115572620267</strong></p><p className="lnr-note">MIX10 PRO é suplemento alimentar, não medicamento.</p><a className="lnr-manual-link" href="/manual/MANUAL-DO-REVENDEDOR-LORDNUTRI-MIX10PRO.pdf" target="_blank" rel="noopener noreferrer">Conhecer o Manual do Revendedor</a></div>
         </div>
       </section>
 
@@ -118,8 +118,8 @@ export default function Home() {
         <div className="lnr-shell">
           <div className="lnr-section-head"><span className="lnr-eyebrow">OFERTA DOS KITS</span><h2>Escolha seu kit</h2></div>
           <div className="lnr-kit-grid">
-            <article className="lnr-kit"><span className="lnr-kit-badge">Menor investimento inicial</span><div className="lnr-kit-title"><h3>KIT20</h3><span>20 caixas</span></div><span className="lnr-price-label">Investimento em produtos</span><strong className="lnr-price">R$ 1.498,00</strong><dl><div><dt>Custo por caixa</dt><dd>R$ 74,90</dd></div><div><dt>Venda de referência</dt><dd>R$ 109,90</dd></div><div><dt>Diferença bruta por caixa</dt><dd>R$ 35,00</dd></div><div className="lnr-kit-total"><dt>Diferença bruta se vender todo o kit</dt><dd>R$ 700,00</dd></div></dl><a href="/?kit=kit20#checkout" className="lnr-button lnr-button-outline">QUERO COMEÇAR COM 20 CAIXAS <span aria-hidden="true">↗</span></a></article>
-            <article className="lnr-kit lnr-kit-featured"><span className="lnr-kit-badge">Melhor custo por unidade</span><div className="lnr-kit-title"><h3>KIT50</h3><span>50 caixas</span></div><span className="lnr-price-label">Investimento em produtos</span><strong className="lnr-price">R$ 3.495,00</strong><dl><div><dt>Custo por caixa</dt><dd>R$ 69,90</dd></div><div><dt>Venda de referência</dt><dd>R$ 109,90</dd></div><div><dt>Diferença bruta por caixa</dt><dd>R$ 40,00</dd></div><div className="lnr-kit-total"><dt>Diferença bruta se vender todo o kit</dt><dd>R$ 2.000,00</dd></div></dl><a href="/?kit=kit50#checkout" className="lnr-button">QUERO COMEÇAR COM 50 CAIXAS <span aria-hidden="true">↗</span></a></article>
+            <article className="lnr-kit"><span className="lnr-kit-badge">Menor investimento inicial</span><div className="lnr-kit-title"><h3>KIT20</h3><span>20 caixas</span></div><span className="lnr-price-label">Investimento em produtos</span><strong className="lnr-price">R$ 1.498,00</strong><dl><div><dt>Custo por caixa</dt><dd>R$ 74,90</dd></div><div><dt>Venda de referência</dt><dd>R$ 109,90</dd></div><div><dt>Diferença bruta por caixa</dt><dd>R$ 35,00</dd></div><div className="lnr-kit-total"><dt>Diferença bruta se vender todo o kit</dt><dd>R$ 700,00</dd></div></dl><a href="/?kit=kit20#checkout" className="lnr-button lnr-button-outline">QUERO COMEÇAR COM 20 CAIXAS </a></article>
+            <article className="lnr-kit lnr-kit-featured"><span className="lnr-kit-badge">Melhor custo por unidade</span><div className="lnr-kit-title"><h3>KIT50</h3><span>50 caixas</span></div><span className="lnr-price-label">Investimento em produtos</span><strong className="lnr-price">R$ 3.495,00</strong><dl><div><dt>Custo por caixa</dt><dd>R$ 69,90</dd></div><div><dt>Venda de referência</dt><dd>R$ 109,90</dd></div><div><dt>Diferença bruta por caixa</dt><dd>R$ 40,00</dd></div><div className="lnr-kit-total"><dt>Diferença bruta se vender todo o kit</dt><dd>R$ 2.000,00</dd></div></dl><a href="/?kit=kit50#checkout" className="lnr-button">QUERO COMEÇAR COM 50 CAIXAS </a></article>
           </div>
           <p className="lnr-kit-comparison">O KIT50 reduz R$ 5,00 do custo por caixa. Em 50 caixas, isso equivale a R$ 250,00 de economia em relação ao preço do KIT20.</p>
           <p className="lnr-note">Frete à parte nos kits de 20 e 50 caixas. Pagamento em até 6x, com juros e valor total exibidos antes do pagamento. Pedidos acima de 1.000 unidades têm frete grátis, conforme condição comercial.</p>
@@ -132,7 +132,7 @@ export default function Home() {
       <section id="checkout" className="lnr-section lnr-checkout">
         <div className="lnr-shell lnr-checkout-layout"><div><span className="lnr-eyebrow">COMECE SUA REVENDA</span><h2>Escolha seu kit</h2><p>Antes de pagar, você vê o valor dos produtos, o frete e as condições de parcelamento.</p></div><CheckoutForm /></div>
       </section>
-      <footer className="lnr-footer"><div className="lnr-shell"><div><BrandLogo compact /><p>MIX10 PRO</p><p>Programa de Revendedores</p></div><nav aria-label="Informações e acesso"><Link href="/termos-de-uso">Termos de Uso</Link><Link href="/politica-de-privacidade">Política de Privacidade</Link><Link href="/reembolso-e-devolucao">Reembolso e Devolução</Link><Link href="/entrar">Portal do Revendedor</Link><a className="lnr-google-check" href="https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F" target="_blank" rel="noopener noreferrer">Consultar segurança do site no Google <span aria-hidden="true">↗</span></a></nav></div></footer>
+      <footer className="lnr-footer"><div className="lnr-shell"><div><BrandLogo compact /><p>MIX10 PRO</p><p>Programa de Revendedores</p></div><nav aria-label="Informações e acesso"><Link href="/termos-de-uso">Termos de Uso</Link><Link href="/politica-de-privacidade">Política de Privacidade</Link><Link href="/reembolso-e-devolucao">Reembolso e Devolução</Link><Link href="/entrar">Portal do Revendedor</Link><a className="lnr-google-check" href="https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F" target="_blank" rel="noopener noreferrer">Consultar segurança do site no Google </a></nav></div></footer>
     </main>
   );
 }

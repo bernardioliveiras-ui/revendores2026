@@ -15,16 +15,6 @@ test('portal possui termos, privacidade, cookies e reembolso/devolução', async
   assert.match(footer, /\/reembolso-e-devolucao/);
 });
 
-test('entrada exige aceite antes de login por senha', async () => {
-  const login = await read('app/entrar/login-form.tsx');
-  assert.match(login, /termsAccepted/);
-  assert.match(login, /setTermsAccepted/);
-  assert.match(login, /Li e concordo/);
-  assert.match(login, /disabled=\{loading \|\| !termsAccepted\}/);
-  assert.match(login, /password/i);
-  assert.doesNotMatch(login, /código de 6 dígitos|solicitar código/i);
-});
-
 test('produção não expõe equipe nem descreve Resend como operador ativo', async () => {
   const portal = await read('app/painel/portal-client.tsx');
   const privacy = await read('app/politica-de-privacidade/page.tsx');

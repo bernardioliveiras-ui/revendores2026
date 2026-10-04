@@ -10,9 +10,11 @@ function clean(value: unknown, max = 120) { return typeof value === "string" ? v
 
 export async function POST(request: Request) {
   try {
-    await ensureOperationalSchema();
     await requireAdmin(request);
-    const body = await request.json() as { userId?: unknown; boxes?: unknown; unitValue?: unknown; channel?: unknown; customerName?: unknown; notes?: unknown; soldAt?: unknown };
+    await ensureOperationalSchema();
+    const body = await request.json().catch(() => null) as { userId?: unknown; boxes?: unknown; unitValue?: unknown; channel?: unknown; customerName?: unknown; notes?: unknown; soldAt?: unknown };
+    if (!body || typeof body !== "object" || Array.isArray(body)) return Response.json({error:"Dados inválidos."},{status:400});
+    if (body.soldAt && (typeof body.soldAt !== "string" || !/^\d{4}-\d{2}-\d{2}(T.*)?$/.test(body.soldAt) || !Number.isFinite(Date.parse(body.soldAt)))) return Response.json({error:"Informe uma data válida para a venda."},{status:400});
     const userId = clean(body.userId, 80);
     const boxes = Number(body.boxes);
     const unitValueCents = Math.round(Number(body.unitValue) * 100);

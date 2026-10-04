@@ -161,3 +161,6 @@
 .lnr-page .lnr-product .lnr-anvisa{color:#f0d783;background:#111f17;border-color:#d7a83f}.lnr-product .lnr-anvisa strong{color:#f4ecd9}.lnr-product .lnr-manual-link{color:#f0d783}
 .lnr-page :is(.lnr-model,.lnr-opportunity,.lnr-product) :where(a,button,summary,input):focus-visible{outline-color:#f0d783}
 @media(max-width:700px){.lnr-opportunity-intro{grid-template-columns:1fr;gap:24px}.lnr-people-visual{border-radius:15px}.lnr-people-visual img{max-height:none}.lnr-people-visual figcaption{font-size:12px;padding:12px 15px}.lnr-care-band{grid-template-columns:1fr;padding:0;gap:0}.lnr-care-band img{max-width:none;margin:0}.lnr-care-band>div{padding:21px}.lnr-care-band h3{font-size:27px}.lnr-product-visual{padding:22px 16px}}
+
+/* Recursos transparentes únicos no desktop e no celular. */
+.lnr-page .lnr-product-visual img{background:transparent!important;border:0;box-shadow:none;mix-blend-mode:normal}

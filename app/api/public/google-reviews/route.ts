@@ -22,7 +22,7 @@ export async function GET() {
       configured: true,
       rating: typeof body.rating === "number" ? body.rating : undefined,
       userRatingCount: typeof body.userRatingCount === "number" ? body.userRatingCount : undefined,
-      reviews: Array.isArray(body.reviews) ? body.reviews.map((review: any) => ({
+      reviews: Array.isArray(body.reviews) ? body.reviews.map((review: {authorAttribution?: {displayName?: string; uri?: string}; rating?: number; text?: {text?: string}; relativePublishTimeDescription?: string}) => ({
         author: review?.authorAttribution?.displayName || "Cliente Google",
         url: review?.authorAttribution?.uri || "",
         rating: Number(review?.rating || 0),

@@ -16,8 +16,8 @@ const purchaseFields = {
 
 export async function GET(request: Request) {
   try {
-    await ensureOperationalSchema();
     await requireAdmin(request);
+    await ensureOperationalSchema();
     await repairPaidPurchaseStockForAllResellers();
     const db = getDb();
     const [purchaseRows, userRows, saleRows, stockRows] = await Promise.all([
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       db.select().from(sales).orderBy(desc(sales.soldAt)),
       db.select().from(stockMovements),
     ]);
-    let referralRows: any[] = [];
+    let referralRows: Array<typeof affiliateReferrals.$inferSelect> = [];
     try { referralRows = await db.select().from(affiliateReferrals); } catch (error) { console.error("admin_referrals_optional_failed", error); referralRows = []; }
     const paid = purchaseRows.filter((p) => p.paymentStatus === "paid");
     const stockByUser = new Map<string, number>();

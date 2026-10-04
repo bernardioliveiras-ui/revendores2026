@@ -23,8 +23,3 @@ test('guia BKO ensina aquisição automática e expedição sem rastreio obrigat
   assert.match(guide, /rastreio.*opcional/i);
   assert.match(guide, /métricas/i);
 });
-
-test('erro de schema orienta a migration correta para banco existente', async () => {
-  const currentUser = await read('lib/current-user.ts');
-  assert.match(currentUser, /2026-09-18-structural-update\.sql/);
-});

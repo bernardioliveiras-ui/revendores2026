@@ -1,3 +1,4 @@
+import { lookupPostalCode } from "@/lib/postal-code";
 import { getKit } from "@/lib/kits";
 import { calculateShipping, getInstallmentOptions, normalizePostalCode } from "@/lib/checkout/pricing";
 
@@ -17,12 +18,18 @@ export async function POST(request: Request) {
     return Response.json({ error: "Informe um CEP válido para calcular o frete." }, { status: 400 });
   }
 
+  let address;
+  try { address = await lookupPostalCode(postalCode); }
+  catch { return Response.json({error:"A consulta de CEP está indisponível. Tente novamente."},{status:503}); }
+  if (!address) return Response.json({error:"CEP não encontrado. Confira os números informados."},{status:422});
+
   const shipping = calculateShipping(postalCode, kit.boxes);
   if (!shipping?.length) {
     return Response.json({ error: "Não encontramos uma tabela de frete para esse CEP." }, { status: 422 });
   }
 
   return Response.json({
+    postalCode, address,
     kit: {
       id: kit.id,
       label: kit.label,
