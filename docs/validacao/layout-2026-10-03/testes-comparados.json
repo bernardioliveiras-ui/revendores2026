@@ -1,0 +1,29 @@
+{
+  "original": {
+    "pass": 70,
+    "fail": 16
+  },
+  "atualizado": {
+    "pass": 70,
+    "fail": 16
+  },
+  "falhas_novas": [],
+  "falhas_preexistentes": [
+    "ADMIN_EMAILS é a fonte atual de permissão administrativa, sem admin residual no banco",
+    "novo login também remove papel admin armazenado quando e-mail não está mais em ADMIN_EMAILS",
+    "BKO exibe novos acessos, WhatsApp e permite resetar senha",
+    "admin pode despachar sem rastreio sem apagar os dados da expedição ao entregar",
+    "BKO pode gerar senha provisória para revendedores existentes após retirar Resend",
+    "pacote contém bootstrap MySQL e exemplo de ambiente Hostinger",
+    "schema SQL contém todas as tabelas funcionais do portal",
+    "entrada exige aceite antes de login por senha",
+    "erro de schema orienta a migration correta para banco existente",
+    "navegação para áreas de revenda sem organização abre o cadastro em vez de botão morto",
+    "ações de pedido, movimentação e indicação passam pelo guard de revenda",
+    "checkout público oferece KIT20 e KIT50 e cria compra initial com preço de servidor",
+    "Resend não participa mais de nenhum fluxo de produção",
+    "rotas antigas de código e convite não disparam envio de e-mail",
+    "conta administrativa sem revenda não é rotulada falsamente como revenda ativa",
+    "KIT20 permanece e KIT50 substitui KIT30 nas novas ofertas"
+  ]
+}
