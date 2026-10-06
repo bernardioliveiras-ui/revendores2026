@@ -1,16 +1,19 @@
 "use client";
 import { useEffect } from "react";
 
-function domPath(el: Element, root: Element) {
+function domPath(el: Element, root: Element): string {
   const parts: string[] = [];
   let node: Element | null = el;
   while (node && node !== root) {
-    const parent = node.parentElement;
-    if (!parent) break;
-    const siblings = Array.from(parent.children).filter((child) => child.tagName === node!.tagName);
-    const index = siblings.indexOf(node) + 1;
-    parts.unshift(`${node.tagName.toLowerCase()}:nth-of-type(${index})`);
-    node = parent;
+    const currentNode: Element = node;
+    const parentElement: HTMLElement | null = currentNode.parentElement;
+    if (!parentElement) break;
+    const siblings: Element[] = Array.from(parentElement.children).filter(
+      (child): child is Element => child.tagName === currentNode.tagName,
+    );
+    const index = siblings.indexOf(currentNode) + 1;
+    parts.unshift(`${currentNode.tagName.toLowerCase()}:nth-of-type(${index})`);
+    node = parentElement;
   }
   return parts.join(">");
 }
