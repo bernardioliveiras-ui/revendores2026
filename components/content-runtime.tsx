@@ -20,7 +20,7 @@ function domPath(el: Element, root: Element): string {
 
 export function ContentRuntime() {
   useEffect(() => {
-    const root = document.querySelector(".lnr-page");
+    const root = document.querySelector<HTMLElement>(".lnr-page");
     if (!root) return;
     const url = new URL(window.location.href);
     const preview = url.searchParams.get("cms_preview") === "draft";
@@ -77,14 +77,26 @@ export function ContentRuntime() {
       }
 
       if (editor) {
-        const handler = (event: MouseEvent) => {
-          const target = (event.target as HTMLElement | null)?.closest?.("[data-cms-key]") as HTMLElement | null;
+        const handler: EventListener = (event) => {
+          const mouseEvent = event as MouseEvent;
+          const target = (mouseEvent.target as HTMLElement | null)?.closest?.("[data-cms-key]") as HTMLElement | null;
           if (!target || !root.contains(target)) return;
-          event.preventDefault(); event.stopPropagation();
+          mouseEvent.preventDefault();
+          mouseEvent.stopPropagation();
           root.querySelectorAll(".cms-selected").forEach((x) => x.classList.remove("cms-selected"));
           target.classList.add("cms-selected");
           const isImage = target.tagName === "IMG";
-          window.parent.postMessage({ type:"lordnutri-cms-select", key:target.dataset.cmsKey, kind:isImage?"image":"text", value:isImage?(target as HTMLImageElement).src:target.textContent?.trim()||"" }, window.location.origin);
+          window.parent.postMessage(
+            {
+              type: "lordnutri-cms-select",
+              key: target.dataset.cmsKey,
+              kind: isImage ? "image" : "text",
+              value: isImage
+                ? (target as HTMLImageElement).src
+                : target.textContent?.trim() || "",
+            },
+            window.location.origin,
+          );
         };
         root.addEventListener("click", handler, true);
         cleanupClicks = () => root.removeEventListener("click", handler, true);
