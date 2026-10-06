@@ -432,3 +432,46 @@
  .lnr-page .ln-review-actions{flex-direction:column}
  .lnr-page .ln-review-actions .lnr-button{width:100%;min-width:0}
 }
+
+/* 0.3.4 — integração editorial das pessoas + hierarquia institucional revisada. */
+.lnr-page .lnr-brand-story-copy{position:relative;z-index:3;max-width:650px}
+.lnr-page .lnr-brand-story-copy h2{font-size:clamp(42px,5vw,68px);line-height:1.02;margin-bottom:18px}
+.lnr-page .lnr-brand-story-lead{font:400 clamp(20px,2.1vw,27px)/1.38 Georgia,"Times New Roman",serif;color:#f4ecd9!important;margin:0 0 18px}
+.lnr-page .lnr-brand-story-copy>p:not(.lnr-brand-story-lead){max-width:600px;margin-bottom:13px}
+
+/* A foto vira ambientação, não card nem protagonista. */
+.lnr-page .lnr-opportunity-intro{position:relative;display:block!important;min-height:430px;padding:38px 38% 38px 0;isolation:isolate}
+.lnr-page .lnr-people-visual{position:absolute!important;z-index:1;right:-8%;top:-48px;bottom:-48px;width:60%;min-height:0!important;margin:0!important;overflow:hidden!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;pointer-events:none;animation:none!important;transform:none!important}
+.lnr-page .lnr-people-visual::after{content:"";position:absolute;z-index:2;inset:-1px;pointer-events:none;background:linear-gradient(90deg,#081810 0%,rgba(8,24,16,.92) 8%,rgba(8,24,16,.34) 35%,transparent 62%),linear-gradient(180deg,#081810 0%,transparent 18%,transparent 80%,#081810 100%)}
+.lnr-page .lnr-people-visual img{position:absolute;inset:0;width:100%!important;height:100%!important;max-height:none!important;object-fit:cover!important;object-position:53% center;border:0!important;border-radius:0!important;opacity:.52;filter:saturate(.68) contrast(.94) brightness(.68)!important;-webkit-mask-image:radial-gradient(ellipse 82% 78% at 58% 50%,#000 42%,rgba(0,0,0,.88) 62%,transparent 100%)!important;mask-image:radial-gradient(ellipse 82% 78% at 58% 50%,#000 42%,rgba(0,0,0,.88) 62%,transparent 100%)!important}
+.lnr-page .lnr-people-visual figcaption{display:none!important}
+
+/* A segunda cena segue o mesmo padrão: presença discreta ao fundo do texto. */
+.lnr-page .lnr-care-band{position:relative;display:block!important;min-height:330px;margin-top:38px!important;padding:0!important;overflow:hidden!important;border:1px solid #66512855!important;border-radius:18px!important;background:linear-gradient(105deg,#081810,#0b1b12)!important;box-shadow:none!important;isolation:isolate;animation:none!important;transform:none!important}
+.lnr-page .lnr-care-band::after{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(8,24,16,.08) 0%,rgba(8,24,16,.2) 38%,#081810 69%,#081810 100%),linear-gradient(180deg,#081810 0%,transparent 15%,transparent 82%,#081810 100%)}
+.lnr-page .lnr-care-band img{position:absolute;z-index:0;left:-3%;top:-9%;width:70%!important;height:118%!important;max-width:none!important;object-fit:cover!important;object-position:center;border:0!important;border-radius:0!important;opacity:.46;filter:saturate(.66) contrast(.94) brightness(.64)!important;-webkit-mask-image:radial-gradient(ellipse 82% 80% at 43% 50%,#000 45%,rgba(0,0,0,.86) 65%,transparent 100%)!important;mask-image:radial-gradient(ellipse 82% 80% at 43% 50%,#000 45%,rgba(0,0,0,.86) 65%,transparent 100%)!important}
+.lnr-page .lnr-care-band>div{position:relative;z-index:2;width:48%;margin-left:auto;padding:64px 42px!important;align-self:auto!important}
+
+/* O editor marca somente campos protegidos e não recebe estrutura/HTML. */
+.lnr-page [data-cms-layout-safe="1"]{cursor:text}
+.lnr-page img[data-cms-layout-safe="1"]{cursor:pointer}
+.lnr-page [data-cms-layout-safe="1"].cms-selected{outline:3px solid #d8b35f!important;outline-offset:4px!important}
+
+@media(max-width:900px){
+ .lnr-page .lnr-opportunity-intro{padding-right:34%}
+ .lnr-page .lnr-people-visual{right:-15%;width:62%;opacity:.9}
+ .lnr-page .lnr-care-band>div{width:52%;padding-inline:28px!important}
+}
+@media(max-width:700px){
+ .lnr-page .lnr-opportunity-intro{min-height:0;padding:0 0 225px!important}
+ .lnr-page .lnr-brand-story-copy{max-width:none}
+ .lnr-page .lnr-brand-story-copy h2{font-size:43px}
+ .lnr-page .lnr-brand-story-lead{font-size:21px}
+ .lnr-page .lnr-people-visual{left:-22px;right:-22px;top:auto;bottom:-18px;width:auto;height:245px;opacity:.82}
+ .lnr-page .lnr-people-visual::after{background:linear-gradient(180deg,#081810 0%,rgba(8,24,16,.38) 25%,transparent 52%,#081810 100%)}
+ .lnr-page .lnr-people-visual img{opacity:.42;object-position:center 43%;-webkit-mask-image:radial-gradient(ellipse 85% 78% at 50% 48%,#000 40%,rgba(0,0,0,.82) 65%,transparent 100%)!important;mask-image:radial-gradient(ellipse 85% 78% at 50% 48%,#000 40%,rgba(0,0,0,.82) 65%,transparent 100%)!important}
+ .lnr-page .lnr-care-band{min-height:500px}
+ .lnr-page .lnr-care-band::after{background:linear-gradient(180deg,rgba(8,24,16,.05) 0%,rgba(8,24,16,.18) 35%,#081810 65%,#081810 100%)}
+ .lnr-page .lnr-care-band img{left:-16px;top:-12px;width:calc(100% + 32px)!important;height:62%!important;opacity:.38;object-position:center 38%}
+ .lnr-page .lnr-care-band>div{position:absolute;left:0;right:0;bottom:0;width:100%;margin:0;padding:24px 22px 30px!important}
+}

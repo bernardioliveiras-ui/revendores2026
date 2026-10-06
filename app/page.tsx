@@ -89,15 +89,15 @@ export default function Home() {
       <section id="lord-nutri" className="lnr-section lnr-opportunity">
         <div className="lnr-shell">
           <div className="lnr-opportunity-intro">
-            <div>
-              <span className="lnr-eyebrow">CONFIANÇA PARA COMEÇAR</span>
-              <h2><BrandText text="Por que vender com a LORD NUTRI?" /></h2>
-              <p>Uma oportunidade em um mercado que acompanha uma necessidade real.</p>
-              <p>Bem-estar, cuidado diário e relações de confiança. Construa sua revenda com uma marca identificada, condições claras e contato oficial.</p>
+            <div className="lnr-brand-story-copy">
+              <span className="lnr-eyebrow">E QUEM ESTÁ POR TRÁS DE TUDO ISSO?</span>
+              <h2><BrandText text="LORD NUTRI" /></h2>
+              <p className="lnr-brand-story-lead"><BrandText text="A marca por trás do programa de revendedores MIX10 PRO." /></p>
+              <p><BrandText text="A LORD NUTRI conecta produto, operação e suporte para tornar a revenda mais simples, organizada e segura." /></p>
+              <p><BrandText text="O MIX10 PRO é o produto central dessa jornada: uma proposta diferenciada para um consumidor que valoriza cuidados, bem-estar, mobilidade e qualidade de vida." /></p>
             </div>
-            <figure className="lnr-people-visual">
-              <img src="/brand/conversa-revenda-1280-v4.webp" srcSet="/brand/conversa-revenda-640-v4.webp 640w, /brand/conversa-revenda-1280-v4.webp 1280w" sizes="(max-width: 700px) calc(100vw - 32px), (max-width: 1199px) 56vw, 700px" alt="Pessoas conversando em um ambiente acolhedor" width="1280" height="853" loading="lazy" decoding="async" />
-              <figcaption>Escute. Apresente. Construa confiança.</figcaption>
+            <figure className="lnr-people-visual" aria-label="Pessoas conversando em um ambiente acolhedor">
+              <img src="/brand/conversa-revenda-1280-v4.webp" srcSet="/brand/conversa-revenda-640-v4.webp 640w, /brand/conversa-revenda-1280-v4.webp 1280w" sizes="(max-width: 700px) 100vw, 58vw" alt="" width="1280" height="853" loading="lazy" decoding="async" />
             </figure>
           </div>
           <div className="lnr-trust-grid">

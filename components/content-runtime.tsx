@@ -1,6 +1,8 @@
 "use client";
 import { useEffect } from "react";
 
+type EditableMode = "text" | "brand" | "lines";
+
 function domPath(el: Element, root: Element): string {
   const parts: string[] = [];
   let node: Element | null = el;
@@ -18,6 +20,27 @@ function domPath(el: Element, root: Element): string {
   return parts.join(">");
 }
 
+function editableScope(element: HTMLElement, root: HTMLElement): HTMLElement {
+  const section = element.closest<HTMLElement>("section[id]");
+  if (section && root.contains(section)) return section;
+  const identified = element.closest<HTMLElement>("[id]");
+  if (identified && identified !== root && root.contains(identified)) return identified;
+  return root;
+}
+
+function scopeName(scope: HTMLElement, root: HTMLElement) {
+  return scope === root ? "root" : scope.id || "root";
+}
+
+function stableKey(kind: "text" | "rich" | "image", element: HTMLElement, root: HTMLElement) {
+  const scope = editableScope(element, root);
+  return `${kind}:${scopeName(scope, root)}:${domPath(element, scope)}`;
+}
+
+function legacyKey(kind: "text" | "rich" | "image", element: HTMLElement, root: HTMLElement) {
+  return `${kind}:${domPath(element, root)}`;
+}
+
 function isTextLeaf(element: HTMLElement) {
   if (element.childElementCount > 0) return false;
   return Boolean(element.textContent?.trim());
@@ -28,6 +51,12 @@ function isBrandRichText(element: HTMLElement) {
   return Array.from(element.children).every((child) =>
     child.classList.contains("lnr-lord-name") || child.classList.contains("lnr-mix-name"),
   );
+}
+
+function isLineBreakRichText(element: HTMLElement) {
+  if (!element.childElementCount) return false;
+  if (!element.textContent?.trim()) return false;
+  return Array.from(element.children).every((child) => child.tagName === "BR");
 }
 
 function renderBrandRichText(element: HTMLElement, value: string) {
@@ -58,6 +87,20 @@ function renderBrandRichText(element: HTMLElement, value: string) {
   element.replaceChildren(fragment);
 }
 
+function renderLineBreakText(element: HTMLElement, value: string) {
+  const fragment = document.createDocumentFragment();
+  value.split(/\r?\n/).forEach((line, index) => {
+    if (index) fragment.append(document.createElement("br"));
+    fragment.append(document.createTextNode(line));
+  });
+  element.replaceChildren(fragment);
+}
+
+function selectedValue(element: HTMLElement, mode: EditableMode) {
+  if (mode === "lines") return element.innerText.trim();
+  return element.textContent?.trim() || "";
+}
+
 export function ContentRuntime() {
   useEffect(() => {
     const root = document.querySelector<HTMLElement>(".lnr-page");
@@ -82,39 +125,61 @@ export function ContentRuntime() {
       const elements = Array.from(root.querySelectorAll<HTMLElement>("*"));
       for (const html of elements) {
         if (["SCRIPT", "STYLE", "SVG", "PATH", "INPUT", "TEXTAREA", "SELECT", "OPTION"].includes(html.tagName)) continue;
-        const ownTextNodes = Array.from(html.childNodes).filter(
-          (node): node is Text => node.nodeType === Node.TEXT_NODE && Boolean(node.textContent?.trim()),
-        );
-        if (!ownTextNodes.length) continue;
-        const path = domPath(html, root);
-        const key = `text:${path}`;
-        const richKey = `rich:${path}`;
+        // A identidade tipográfica é editada pelo elemento externo como um único campo.
+        // Não exponha os spans internos (LORD / MIX10 / PRO) como campos separados.
+        if (html.matches(".lnr-lord-name, .lnr-mix-name, .lnr-mix-name *")) continue;
+
+        const textLeaf = isTextLeaf(html);
         const brandRichText = isBrandRichText(html);
+        const lineBreakRichText = isLineBreakRichText(html);
 
-        // Compatibilidade com tudo o que já foi salvo no CMS 0.3.x.
-        if (typeof overrides[key] === "string") ownTextNodes[0].textContent = overrides[key];
+        // REGRA DE SEGURANÇA DO LAYOUT:
+        // somente folhas de texto e dois formatos ricos conhecidos são editáveis.
+        // Elementos compostos (strong/span/cards/grids) nunca recebem textContent do CMS.
+        if (!textLeaf && !brandRichText && !lineBreakRichText) continue;
 
-        // Para blocos compostos apenas pela identidade LORD NUTRI/MIX10 PRO, o novo
-        // campo rico permite editar a frase inteira e recria somente os spans de marca.
-        // O elemento externo, classes e grid permanecem intactos.
-        if (brandRichText && typeof overrides[richKey] === "string") {
-          renderBrandRichText(html, overrides[richKey]);
+        const mode: EditableMode = brandRichText ? "brand" : lineBreakRichText ? "lines" : "text";
+        const kind = mode === "text" ? "text" : "rich";
+        const key = stableKey(kind, html, root);
+        const scope = editableScope(html, root);
+        const blockLegacy = scopeName(scope, root) === "lord-nutri";
+        const oldTextKey = legacyKey("text", html, root);
+        const oldRichKey = legacyKey("rich", html, root);
+
+        let value: unknown = overrides[key];
+        // Mantém as edições 0.3.x onde a posição antiga ainda é confiável. No bloco
+        // institucional LORD NUTRI, os overrides antigos são ignorados de propósito
+        // para eliminar a frase incorreta já publicada e partir da copy revisada.
+        if (typeof value !== "string" && !blockLegacy) {
+          value = mode === "text"
+            ? overrides[oldTextKey]
+            : overrides[oldRichKey] ?? overrides[oldTextKey];
         }
 
-        if (editor && brandRichText) {
-          html.dataset.cmsKey = richKey;
-          html.dataset.cmsLayoutSafe = "1";
-        } else if (editor && isTextLeaf(html)) {
+        if (typeof value === "string") {
+          if (mode === "brand") renderBrandRichText(html, value);
+          else if (mode === "lines") renderLineBreakText(html, value);
+          else html.textContent = value;
+        }
+
+        if (editor) {
           html.dataset.cmsKey = key;
           html.dataset.cmsLayoutSafe = "1";
+          html.dataset.cmsMode = mode;
         }
       }
 
       for (const img of Array.from(root.querySelectorAll<HTMLImageElement>("img"))) {
-        const key = `image:${domPath(img, root)}`;
-        if (editor) img.dataset.cmsKey = key;
-        if (typeof imageOverrides[key] === "string" && imageOverrides[key]) {
-          img.setAttribute("src", imageOverrides[key]);
+        const key = stableKey("image", img, root);
+        const oldKey = legacyKey("image", img, root);
+        if (editor) {
+          img.dataset.cmsKey = key;
+          img.dataset.cmsLayoutSafe = "1";
+          img.dataset.cmsMode = "image";
+        }
+        const imageValue = imageOverrides[key] ?? imageOverrides[oldKey];
+        if (typeof imageValue === "string" && imageValue) {
+          img.setAttribute("src", imageValue);
           img.removeAttribute("srcset");
         }
       }
@@ -150,12 +215,13 @@ export function ContentRuntime() {
           root.querySelectorAll(".cms-selected").forEach((item) => item.classList.remove("cms-selected"));
           target.classList.add("cms-selected");
           const isImage = target instanceof HTMLImageElement;
+          const mode = (target.dataset.cmsMode || "text") as EditableMode;
           window.parent.postMessage(
             {
               type: "lordnutri-cms-select",
               key: target.dataset.cmsKey,
               kind: isImage ? "image" : "text",
-              value: isImage ? target.currentSrc || target.src : target.textContent?.trim() || "",
+              value: isImage ? target.currentSrc || target.src : selectedValue(target, mode),
             },
             window.location.origin,
           );

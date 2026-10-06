@@ -48,6 +48,28 @@ function parse(value: string | null | undefined, fallback: unknown) {
   try { return JSON.parse(value || ""); } catch { return fallback; }
 }
 
+function sanitizeStringMap(value: unknown, maxLength: number) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const output: Record<string, string> = {};
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof entry !== "string") continue;
+    if (!/^(text|rich|image):/.test(key)) continue;
+    output[key.slice(0, 500)] = entry.slice(0, maxLength);
+  }
+  return output;
+}
+
+function sanitizeLandingDraft(value: unknown) {
+  const source = value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+  return {
+    // O CMS nunca persiste classes, HTML, estilos ou estrutura. Somente valores.
+    overrides: sanitizeStringMap(source.overrides, 5000),
+    imageOverrides: sanitizeStringMap(source.imageOverrides, 1500),
+  };
+}
+
 export async function getStudioDoc(type: StudioDocType) {
   await ensureContentStudioSchema();
   const [rows] = await getMysqlPool().execute("SELECT * FROM content_studio WHERE doc_type=? LIMIT 1", [type]);
@@ -64,7 +86,8 @@ export async function getStudioDoc(type: StudioDocType) {
 export async function saveStudioDraft(type: StudioDocType, value: unknown) {
   await ensureContentStudioSchema();
   const now = new Date().toISOString();
-  await getMysqlPool().execute("UPDATE content_studio SET draft_json=?,updated_at=? WHERE doc_type=?", [JSON.stringify(value), now, type]);
+  const safeValue = type === "landing" ? sanitizeLandingDraft(value) : value;
+  await getMysqlPool().execute("UPDATE content_studio SET draft_json=?,updated_at=? WHERE doc_type=?", [JSON.stringify(safeValue), now, type]);
   return getStudioDoc(type);
 }
 

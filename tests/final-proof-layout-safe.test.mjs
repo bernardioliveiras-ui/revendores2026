@@ -26,10 +26,10 @@ test('CMS exposes only layout-safe text leaves while keeping saved overrides com
   const runtime=await read('components/content-runtime.tsx');
   const studio=await read('components/content-studio-admin.tsx');
   assert.match(runtime,/isTextLeaf/);
-  assert.match(runtime,/ownTextNodes\[0\]\.textContent = overrides\[key\]/);
+  assert.match(runtime,/if \(!textLeaf && !brandRichText && !lineBreakRichText\) continue;/);
   assert.match(runtime,/cmsLayoutSafe/);
   assert.match(runtime,/renderBrandRichText/);
-  assert.match(runtime,/rich:/);
-  assert.match(studio,/preserva classes, ícones, cores, espaçamentos/);
+  assert.match(runtime,/\"text\" \| \"rich\" \| \"image\"/);
+  assert.match(studio,/Layout travado:/);
   assert.match(studio,/previewVersion/);
 });
