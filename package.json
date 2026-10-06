@@ -1,6 +1,6 @@
 {
   "name": "mix10-pro-revendedores",
-  "version": "0.3.2-lordnutri-content-studio-buildfix",
+  "version": "0.3.3-lordnutri-proof-layout-safe-cms",
   "private": true,
   "engines": {
     "node": "22.x"

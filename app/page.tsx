@@ -8,6 +8,7 @@ import { WelcomeVideo } from "@/components/welcome-video";
 import { CheckoutForm } from "@/components/checkout-form";
 import { ProfitSimulator } from "@/components/profit-simulator";
 import { ContentRuntime } from "@/components/content-runtime";
+import { GoogleReviews } from "@/components/google-reviews";
 import "./landing.css";
 
 const steps = [
@@ -65,7 +66,7 @@ export default function Home() {
         <div className="lnr-shell lnr-header-inner">
           <a href="#inicio" className="lnr-brand" aria-label="LORD NUTRI — início"><BrandLogo compact /></a>
           <nav aria-label="Navegação principal">
-            <a href="#lord-nutri">A marca</a><a href="#beneficios">Benefícios</a><a href="#modelo">Como começar</a><a href="#kits">Kits</a>
+            <a href="#lord-nutri">A marca</a><a href="#beneficios">Benefícios</a><a href="#avaliacoes">Avaliações</a><a href="#modelo">Como começar</a><a href="#kits">Kits</a>
           </nav>
           <Link href="/entrar" className="lnr-login">Entrar no portal </Link>
         </div>
@@ -95,7 +96,7 @@ export default function Home() {
               <p>Bem-estar, cuidado diário e relações de confiança. Construa sua revenda com uma marca identificada, condições claras e contato oficial.</p>
             </div>
             <figure className="lnr-people-visual">
-              <img src="/brand/conversa-revenda-1280-v4.webp" srcSet="/brand/conversa-revenda-640-v4.webp 640w, /brand/conversa-revenda-1280-v4.webp 1280w" sizes="(max-width: 700px) calc(100vw - 32px), (max-width: 1199px) calc((100vw - 48px) / 2), 600px" alt="Pessoas conversando em um ambiente acolhedor" width="1280" height="853" loading="lazy" decoding="async" />
+              <img src="/brand/conversa-revenda-1280-v4.webp" srcSet="/brand/conversa-revenda-640-v4.webp 640w, /brand/conversa-revenda-1280-v4.webp 1280w" sizes="(max-width: 700px) calc(100vw - 32px), (max-width: 1199px) 56vw, 700px" alt="Pessoas conversando em um ambiente acolhedor" width="1280" height="853" loading="lazy" decoding="async" />
               <figcaption>Escute. Apresente. Construa confiança.</figcaption>
             </figure>
           </div>
@@ -135,6 +136,10 @@ export default function Home() {
           <div className="lnr-inline-action"><MainCta href="#modelo" label="ENTENDER COMO COMEÇAR" /></div>
         </div>
       </section>
+
+      <div className="lnr-proof-section">
+        <GoogleReviews />
+      </div>
 
       <section id="modelo" className="lnr-section lnr-model">
         <div className="lnr-shell">
