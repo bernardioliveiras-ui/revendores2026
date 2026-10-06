@@ -7,6 +7,7 @@ import { BrandText } from "@/components/brand-text";
 import { WelcomeVideo } from "@/components/welcome-video";
 import { CheckoutForm } from "@/components/checkout-form";
 import { ProfitSimulator } from "@/components/profit-simulator";
+import { ContentRuntime } from "@/components/content-runtime";
 import "./landing.css";
 
 const steps = [
@@ -50,6 +51,7 @@ export default function Home() {
   const hasVideo = Boolean(process.env.VSL_EMBED_URL || process.env.VSL_VIDEO_URL);
   return (
     <main className="lnr-page">
+      <ContentRuntime />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify({
         "@context": "https://schema.org", "@type": "Organization", name: "LORD NUTRI", legalName: "LORD GROUP NETWORK EPP",
         url: "https://revendedores.mix10pro.com.br/", logo: "https://revendedores.mix10pro.com.br/brand/lordnutri-logo-gold-v3.png",
