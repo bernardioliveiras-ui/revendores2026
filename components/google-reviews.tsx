@@ -6,7 +6,6 @@ type GoogleReview = { author: string; rating: number; text: string; relativeTime
 type ReviewsPayload = { configured: boolean; rating?: number; userRatingCount?: number; reviews?: GoogleReview[] };
 
 const VIEW_URL = "https://share.google/TfuQVPuf9zfS1dzj7";
-const PRODUCT_URL = "https://mix10pro.com.br/lp-v2";
 
 const FALLBACK_REVIEWS: GoogleReview[] = [
   {
@@ -23,9 +22,8 @@ const FALLBACK_REVIEWS: GoogleReview[] = [
   },
 ];
 
-export function GoogleReviews() {
+function useReviewsData() {
   const [data, setData] = useState<ReviewsPayload | null>(null);
-
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/public/google-reviews", { cache: "no-store", signal: controller.signal })
@@ -34,19 +32,17 @@ export function GoogleReviews() {
       .catch(() => setData({ configured: false }));
     return () => controller.abort();
   }, []);
+  return data;
+}
 
+export function GoogleReviewsDynamic() {
+  const data = useReviewsData();
   const liveReviews = data?.reviews?.filter((review) => review.text)?.slice(0, 3) || [];
   const reviews = liveReviews.length ? liveReviews : FALLBACK_REVIEWS;
   const hasLiveScore = Boolean(data?.configured && typeof data.rating === "number");
 
   return (
-    <section className="ln-reviews lnr-shell" id="avaliacoes">
-      <div className="lnr-review-heading">
-        <span className="lnr-eyebrow" data-cms-explicit-key="text:avaliacoes:eyebrow">AVALIAÇÕES NO GOOGLE</span>
-        <h2><span data-cms-explicit-key="text:avaliacoes:title">Confiança também se constrói com quem já comprou.</span></h2>
-        <p><span data-cms-explicit-key="text:avaliacoes:intro">Veja experiências publicadas por clientes e, se ainda quiser conhecer o produto antes de começar a revender, visite o site institucional e compre uma unidade.</span></p>
-      </div>
-
+    <>
       <div data-cms-text-protected="1" className={`ln-google-score${hasLiveScore ? "" : " neutral"}`} aria-label={hasLiveScore ? `Nota ${data?.rating} de 5 no Google` : "Avaliações da LORD NUTRI no Google"}>
         <span className="ln-google-g" aria-hidden="true">G</span>
         <div>
@@ -54,7 +50,6 @@ export function GoogleReviews() {
           <small>{hasLiveScore && data?.userRatingCount ? `${data.userRatingCount} avaliações no Google` : "Confira as avaliações no perfil oficial"}</small>
         </div>
       </div>
-
       <div className="ln-review-grid" data-cms-text-protected="1">
         {reviews.map((review, index) => (
           <article className="ln-review-card" key={`${review.author}-${index}`}>
@@ -64,14 +59,23 @@ export function GoogleReviews() {
           </article>
         ))}
       </div>
+    </>
+  );
+}
 
-      <p className="lnr-review-disclaimer"><span data-cms-explicit-key="text:avaliacoes:disclaimer">Relatos representam experiências individuais de clientes. Resultados podem variar e não substituem orientação profissional.</span></p>
-
+export function GoogleReviews() {
+  return (
+    <section className="ln-reviews lnr-shell" id="avaliacoes">
+      <div className="lnr-review-heading">
+        <span className="lnr-eyebrow" data-cms-explicit-key="text:avaliacoes:eyebrow">AVALIAÇÕES NO GOOGLE</span>
+        <h2><span data-cms-explicit-key="text:avaliacoes:title">A confiança também aparece na experiência de quem já comprou.</span></h2>
+        <p><span data-cms-explicit-key="text:avaliacoes:intro">Confira avaliações reais publicadas por clientes no Google e veja como o MIX10 PRO vem fazendo parte da rotina de diferentes consumidores.</span></p>
+      </div>
+      <GoogleReviewsDynamic />
+      <p className="lnr-review-disclaimer"><span data-cms-explicit-key="text:avaliacoes:disclaimer">Os relatos representam experiências individuais de clientes. Os resultados podem variar de pessoa para pessoa.</span></p>
       <div className="ln-review-actions">
         <a className="lnr-button" href={VIEW_URL} target="_blank" rel="noopener noreferrer"><span data-cms-explicit-key="text:avaliacoes:cta-google">VER AVALIAÇÕES NO GOOGLE</span></a>
-        <a className="lnr-button lnr-button-outline lnr-institutional-button" href={PRODUCT_URL} target="_blank" rel="noopener noreferrer"><span data-cms-explicit-key="text:avaliacoes:cta-product">QUERO CONHECER 1 UNIDADE PRIMEIRO</span></a>
       </div>
-      <p className="lnr-product-trial-copy"><span data-cms-explicit-key="rich:avaliacoes:trial-copy">Ainda inseguro sobre entrar no programa? Conheça o MIX10 PRO no site institucional antes de escolher seu kit de revenda.</span></p>
     </section>
   );
 }

@@ -81,7 +81,7 @@ function placementsFromRect(rect:EditorSelection["rect"],kind:"text"|"image"){
 }
 
 export function ContentStudioAdmin() {
-  const [tab,setTab]=useState<DocType>("landing");
+  const [tab,setTab]=useState<DocType>("manual");
   const [doc,setDoc]=useState<StudioDoc|null>(null);
   const [busy,setBusy]=useState(false);
   const [notice,setNotice]=useState("");
@@ -506,8 +506,8 @@ export function ContentStudioAdmin() {
   const selectedPlacement=selectedFree?(selectedFree.placements?.[previewDevice]||defaultPlacements(selectedFree.kind)[previewDevice]):null;
 
   return <section className="portal-card cms-studio">
-    <div className="card-title"><div><span className="section-kicker">EDITOR DE CONTEÚDO</span><h2>Landing, manual, produtos e mídia</h2></div><div className="cms-actions">{tab==="landing"?<><button className="secondary-button compact" disabled={!undoStack.current.length||busy} onClick={undo} title="Ctrl/Cmd + Z">↶ Desfazer</button><button className="secondary-button compact" disabled={!redoStack.current.length||busy} onClick={redo} title="Ctrl/Cmd + Shift + Z">↷ Refazer</button></>:null}<button className="secondary-button compact" disabled={busy||!doc} onClick={()=>void save()}>Salvar rascunho</button><button className="primary-button compact" disabled={busy||!doc} onClick={()=>void publish()}>Publicar</button></div></div>
-    <div className="cms-tabs">{([['landing','Landing Page'],['manual','Manual'],['products','Produtos'],['media','Mídia']] as Array<[DocType,string]>).map(([id,label])=><button className={tab===id?"active":""} onClick={()=>setTab(id)} key={id}>{label}</button>)}</div>
+    <div className="card-title"><div><span className="section-kicker">CONTEÚDO AUXILIAR</span><h2>Manual, produtos e mídia</h2></div><div className="cms-actions">{tab==="landing"?<><button className="secondary-button compact" disabled={!undoStack.current.length||busy} onClick={undo} title="Ctrl/Cmd + Z">↶ Desfazer</button><button className="secondary-button compact" disabled={!redoStack.current.length||busy} onClick={redo} title="Ctrl/Cmd + Shift + Z">↷ Refazer</button></>:null}<button className="secondary-button compact" disabled={busy||!doc} onClick={()=>void save()}>Salvar rascunho</button><button className="primary-button compact" disabled={busy||!doc} onClick={()=>void publish()}>Publicar</button></div></div>
+    <div className="cms-tabs">{([['manual','Manual'],['products','Produtos'],['media','Mídia']] as Array<[DocType,string]>).map(([id,label])=><button className={tab===id?"active":""} onClick={()=>setTab(id)} key={id}>{label}</button>)}</div>
     {notice?<p className="cms-notice">{notice}</p>:null}
     {busy&&!doc?<p>Carregando…</p>:null}
 

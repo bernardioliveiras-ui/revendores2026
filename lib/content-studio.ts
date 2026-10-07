@@ -347,6 +347,65 @@ function sanitizeFreeElements(value: unknown) {
   return output;
 }
 
+
+const allowedStudioStyleKeys = new Set([
+  "fontFamily", "fontSize", "fontWeight", "fontStyle", "color", "textAlign", "letterSpacing", "lineHeight", "textTransform", "textDecoration",
+  "backgroundColor", "opacity", "display", "flexDirection", "flexWrap", "justifyContent", "alignItems", "alignContent", "gap", "columnGap", "rowGap",
+  "gridTemplateColumns", "gridTemplateRows", "gridColumn", "gridRow", "width", "minWidth", "maxWidth", "height", "minHeight", "maxHeight",
+  "marginTop", "marginRight", "marginBottom", "marginLeft", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft",
+  "borderWidth", "borderStyle", "borderColor", "borderRadius", "boxShadow", "position", "top", "right", "bottom", "left", "zIndex",
+  "objectFit", "objectPosition", "overflow", "order", "alignSelf", "justifySelf", "cursor",
+]);
+
+function sanitizeStudioHtml(value: unknown) {
+  if (typeof value !== "string") return "";
+  let html = value.slice(0, 900_000);
+  html = html
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<\s*(script|iframe|object|embed|base|meta|link|style)\b[\s\S]*?<\/\s*\1\s*>/gi, "")
+    .replace(/<\s*(script|iframe|object|embed|base|meta|link)\b[^>]*\/?>/gi, "")
+    .replace(/\s(?:on[a-z]+|srcdoc|nonce)\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/\s(href|src)\s*=\s*(["'])\s*javascript:[\s\S]*?\2/gi, ' $1="#"')
+    .replace(/\sstyle\s*=\s*(?:"[^"]*"|'[^']*')/gi, "");
+  return html;
+}
+
+function sanitizeStudioStyles(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const output: Record<string, Record<string, Record<string, string>>> = {};
+  for (const [id, rawDevices] of Object.entries(value as Record<string, unknown>)) {
+    if (!/^[a-zA-Z0-9_-]{1,100}$/.test(id) || !rawDevices || typeof rawDevices !== "object" || Array.isArray(rawDevices)) continue;
+    const cleanDevices: Record<string, Record<string, string>> = {};
+    for (const device of ["desktop", "tablet", "mobile"] as const) {
+      const rawStyles = (rawDevices as Record<string, unknown>)[device];
+      if (!rawStyles || typeof rawStyles !== "object" || Array.isArray(rawStyles)) continue;
+      const clean: Record<string, string> = {};
+      for (const [property, rawValue] of Object.entries(rawStyles as Record<string, unknown>)) {
+        if (!allowedStudioStyleKeys.has(property) || typeof rawValue !== "string") continue;
+        const value = safeCssValue(rawValue);
+        if (value) clean[property] = value;
+      }
+      if (Object.keys(clean).length) cleanDevices[device] = clean;
+    }
+    if (Object.keys(cleanDevices).length) output[id] = cleanDevices;
+    if (Object.keys(output).length >= 1200) break;
+  }
+  return output;
+}
+
+function sanitizeStudioConfig(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const source = value as Record<string, unknown>;
+  const html = sanitizeStudioHtml(source.html);
+  if (!html) return null;
+  return {
+    enabled: source.enabled === true,
+    version: "1.0",
+    html,
+    styles: sanitizeStudioStyles(source.styles),
+  };
+}
+
 function sanitizeLandingDraft(value: unknown) {
   const source = value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -367,10 +426,13 @@ function sanitizeLandingDraft(value: unknown) {
     const safe = Math.min(1.4, Math.max(.8, Math.round(numeric * 20) / 20));
     if (Math.abs(safe - 1) > .001) fontScales[key.slice(0, 500)] = safe;
   }
-  // FREE CANVAS 0.7.0: the original LP remains structurally immutable.
-  // Visual freedom lives in isolated overlay elements with bounded, device-specific placement.
-  // This prevents a drag/duplicate action from rewriting React markup, grids or checkout logic.
-  return { overrides, fontScales, freeElements: sanitizeFreeElements(source.freeElements) };
+  const studio = sanitizeStudioConfig(source.studio);
+  return {
+    overrides,
+    fontScales,
+    freeElements: sanitizeFreeElements(source.freeElements),
+    ...(studio ? { studio } : {}),
+  };
 }
 
 export async function getStudioDoc(type: StudioDocType) {

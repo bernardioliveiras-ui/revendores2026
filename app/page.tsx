@@ -9,6 +9,8 @@ import { CheckoutForm } from "@/components/checkout-form";
 import { ProfitSimulator } from "@/components/profit-simulator";
 import { ContentRuntime } from "@/components/content-runtime";
 import { GoogleReviews } from "@/components/google-reviews";
+import { StudioPublishedLanding } from "@/components/studio-published-landing";
+import { getStudioDoc } from "@/lib/content-studio";
 import "./landing.css";
 
 const steps = [
@@ -43,12 +45,13 @@ const faqs = [
 ];
 
 export const metadata = { alternates: { canonical: "https://revendedores.mix10pro.com.br/" } };
+export const dynamic = "force-dynamic";
 
 function MainCta({ href, label, hero = false }: { href: string; label: string; hero?: boolean }) {
   return <a className={`lnr-button${hero ? " lnr-hero-cta" : ""}`} href={href}><span>{label}</span></a>;
 }
 
-export default function Home() {
+function OriginalLanding() {
   const hasVideo = Boolean(process.env.VSL_EMBED_URL || process.env.VSL_VIDEO_URL);
   return (
     <main className="lnr-page">
@@ -179,3 +182,33 @@ export default function Home() {
     </main>
   );
 }
+
+type LandingStudioData = {
+  studio?: { enabled?: boolean; html?: string; styles?: Record<string, Partial<Record<"desktop" | "tablet" | "mobile", Record<string, string>>>> };
+};
+
+export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
+  if (params?.studio_source === "base") return <OriginalLanding />;
+  try {
+    const doc = await getStudioDoc("landing");
+    const published = doc.published as LandingStudioData;
+    if (published?.studio?.enabled && published.studio.html) {
+      return (
+        <>
+          <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            "@context": "https://schema.org", "@type": "Organization", name: "LORD NUTRI", legalName: "LORD GROUP NETWORK EPP",
+            url: "https://revendedores.mix10pro.com.br/", logo: "https://revendedores.mix10pro.com.br/brand/lordnutri-logo-gold-v3.png",
+            sameAs: ["https://www.google.com/maps/search/?api=1&query=LORD%20NUTRI&query_place_id=ChIJCZtZ98MDz5QRWv8YdIPkPic"],
+            makesOffer: { "@type": "Offer", itemOffered: { "@type": "Product", name: "MIX10 PRO" } },
+          }) }} />
+          <StudioPublishedLanding html={published.studio.html} styles={published.studio.styles} />
+        </>
+      );
+    }
+  } catch {
+    // Se o banco estiver indisponível, a landing-base continua sendo servida.
+  }
+  return <OriginalLanding />;
+}
+
