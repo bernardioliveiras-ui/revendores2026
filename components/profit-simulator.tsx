@@ -18,7 +18,7 @@ export function ProfitSimulator() {
   const kit50 = useMemo(() => scenario(target, expenses, days, salePrice, 69.9), [target, expenses, days, salePrice]);
 
   return (
-    <div className="simulator-grid">
+    <div className="simulator-grid" data-cms-text-protected="1">
       <div className="lnr-sim-fields"><label>Meta mensal de resultado (R$)<input type="number" min="0" step="100" value={target} onChange={(e) => setTarget(Number(e.target.value) || 0)} /></label>
       <label>Dias de venda no mês<input type="number" min="1" max="31" value={days} onChange={(e) => setDays(Math.max(1, Number(e.target.value) || 1))} /></label>
       <label>Preço médio por caixa<input type="number" min="0" step="0.01" value={salePrice} onChange={(e) => setSalePrice(Number(e.target.value) || 0)} /></label>

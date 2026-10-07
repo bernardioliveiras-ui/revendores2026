@@ -172,7 +172,7 @@ export function CheckoutForm() {
   }
 
   return (
-    <form className="checkout-card" onSubmit={submit}>
+    <form className="checkout-card" data-cms-text-protected="1" onSubmit={submit}>
       <div className="section-kicker">Comece sua revenda</div>
       <h3>Escolha o kit, o frete e o pagamento</h3>
 

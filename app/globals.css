@@ -899,3 +899,25 @@ body { overflow-x: clip; }
 .cms-group-help strong{display:block;font-size:12px;margin-bottom:4px}.cms-group-help p{margin:0;font-size:11px;line-height:1.5}
 .cms-block-library{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.cms-block-library button{border:1px solid #d8d1c5;background:#fff;border-radius:9px;padding:10px 5px;cursor:pointer;font-weight:900}.cms-block-library small{font-size:9px;color:#766f64}
 @media(max-width:620px){.cms-layout-grid{grid-template-columns:1fr}.cms-block-library{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* TEXT-SAFE 0.6.0 --------------------------------------------------------- */
+.cms-text-safe-shell{grid-template-columns:minmax(0,1fr) 410px}
+.cms-text-safe-panel{display:grid;gap:14px;align-content:start}
+.cms-safe-lock{background:#f8fbf7;border-color:#c9d8c7}
+.cms-safe-lock p{margin:0;color:#34413a;line-height:1.55}
+.cms-safe-lock small{color:#607066;line-height:1.5}
+.cms-copy-meter{display:flex;justify-content:space-between;gap:12px;font-size:10px;font-weight:800;color:#6d756f;text-transform:uppercase;letter-spacing:.04em}
+.cms-copy-meter.is-warning{color:#9a5c12}
+.cms-copy-warning{display:block;padding:8px 10px;border-radius:8px;background:#fff7e8;color:#805016;line-height:1.45}
+.cms-text-index{min-height:0}
+.cms-text-groups{display:grid;gap:7px;max-height:47vh;overflow:auto;padding-right:3px}
+.cms-text-groups details{border:1px solid #e2ddd3;border-radius:9px;background:#fbfaf7;overflow:hidden}
+.cms-text-groups summary{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;padding:9px 10px;font-size:11px;font-weight:900;color:#29342e;text-transform:uppercase;letter-spacing:.04em}
+.cms-text-groups summary span{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 6px;border-radius:999px;background:#ece8de;color:#786f62;font-size:10px}
+.cms-text-groups details>div{display:grid;gap:4px;padding:0 6px 7px}
+.cms-text-groups button{width:100%;border:1px solid transparent;border-radius:7px;background:#fff;text-align:left;padding:8px 9px;color:#354139;cursor:pointer}
+.cms-text-groups button:hover{border-color:#d8b35f;background:#fffdf6}
+.cms-text-groups button.active{border-color:#d8b35f;background:#fff8e6;box-shadow:inset 3px 0 0 #d8b35f}
+.cms-text-groups button span{display:block;font-size:11px;line-height:1.35}
+.cms-text-safe-panel textarea{resize:vertical;min-height:86px;line-height:1.45}
+@media(max-width:1100px){.cms-text-safe-shell{grid-template-columns:1fr}.cms-text-groups{max-height:360px}}

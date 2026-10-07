@@ -19,7 +19,7 @@ const mediaDefaults = { assets: [
   { id:"people-wellbeing", label:"Foto bem-estar", url:"/brand/caminhada-bem-estar-1280-v4.webp", kind:"image" },
 ]};
 const defaults: Record<StudioDocType, unknown> = {
-  landing: { overrides: {}, imageOverrides: {}, styleOverrides: {}, layoutOverrides: {}, responsiveLayoutOverrides: {}, sectionOrder: [], sectionInstances: [], elementClones: [], groupClones: [], elementPlacements: [], customBlocks: [], hiddenElements: [] },
+  landing: { overrides: {} },
   manual: manualFields,
   products: productDefaults,
   media: mediaDefaults,
@@ -273,32 +273,27 @@ function sanitizeLandingDraft(value: unknown) {
   const source = value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
-  return {
-    // O editor visual nunca persiste HTML, classes arbitrárias ou scripts.
-    // Conteúdo, estilos tipográficos permitidos e ordem das seções são dados separados.
-    overrides: sanitizeStringMap(source.overrides, 5000),
-    imageOverrides: sanitizeStringMap(source.imageOverrides, 1500),
-    styleOverrides: sanitizeStyleOverrides(source.styleOverrides),
-    layoutOverrides: sanitizeLayoutOverrides(source.layoutOverrides),
-    responsiveLayoutOverrides: sanitizeResponsiveLayoutOverrides(source.responsiveLayoutOverrides),
-    sectionOrder: sanitizeSectionOrder(source.sectionOrder),
-    sectionInstances: sanitizeSectionInstances(source.sectionInstances),
-    elementClones: sanitizeElementClones(source.elementClones),
-    groupClones: sanitizeGroupClones(source.groupClones),
-    elementPlacements: sanitizeElementPlacements(source.elementPlacements),
-    customBlocks: sanitizeCustomBlocks(source.customBlocks),
-    hiddenElements: sanitizeStringList(source.hiddenElements),
-  };
+  const raw = sanitizeStringMap(source.overrides, 5000);
+  const overrides: Record<string, string> = {};
+  for (const [key, entry] of Object.entries(raw)) {
+    if (/^(text|rich):/.test(key)) overrides[key] = entry;
+  }
+  // TEXT-SAFE 0.6.0: landing content persists text only.
+  // Legacy image/style/layout/clone/order fields are intentionally discarded so
+  // an old visual-builder draft cannot move, resize, hide or restyle the LP.
+  return { overrides };
 }
 
 export async function getStudioDoc(type: StudioDocType) {
   await ensureContentStudioSchema();
   const [rows] = await getMysqlPool().execute("SELECT * FROM content_studio WHERE doc_type=? LIMIT 1", [type]);
   const row = (rows as StudioRow[])[0];
+  const rawDraft = parse(row?.draft_json, defaults[type]);
+  const rawPublished = parse(row?.published_json, defaults[type]);
   return {
     type,
-    draft: parse(row?.draft_json, defaults[type]),
-    published: parse(row?.published_json, defaults[type]),
+    draft: type === "landing" ? sanitizeLandingDraft(rawDraft) : rawDraft,
+    published: type === "landing" ? sanitizeLandingDraft(rawPublished) : rawPublished,
     updatedAt: row?.updated_at || null,
     publishedAt: row?.published_at || null,
   };

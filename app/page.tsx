@@ -59,9 +59,6 @@ export default function Home() {
         sameAs: ["https://mix10pro.com.br/lp-v2", "https://www.google.com/maps/search/?api=1&query=LORD%20NUTRI&query_place_id=ChIJCZtZ98MDz5QRWv8YdIPkPic"],
         makesOffer: { "@type": "Offer", itemOffered: { "@type": "Product", name: "MIX10 PRO" } },
       }) }} />
-      <div className="lnr-announce" role="note" data-cms-structural-block="announce">
-        <div className="lnr-shell"><span>LORD NUTRI</span><i aria-hidden="true" /> <span>REVENDA DIRETA</span><i aria-hidden="true" /> <span>COMECE SUA NOVA ETAPA</span></div>
-      </div>
       <header className="lnr-header" data-cms-structural-block="header">
         <div className="lnr-shell lnr-header-inner">
           <a href="#inicio" className="lnr-brand" aria-label="LORD NUTRI — início"><BrandLogo compact /></a>
