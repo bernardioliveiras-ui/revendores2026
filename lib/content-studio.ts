@@ -19,7 +19,7 @@ const mediaDefaults = { assets: [
   { id:"people-wellbeing", label:"Foto bem-estar", url:"/brand/caminhada-bem-estar-1280-v4.webp", kind:"image" },
 ]};
 const defaults: Record<StudioDocType, unknown> = {
-  landing: { overrides: {}, imageOverrides: {}, styleOverrides: {}, layoutOverrides: {}, sectionOrder: [], sectionInstances: [], elementClones: [], elementPlacements: [], customBlocks: [], hiddenElements: [] },
+  landing: { overrides: {}, imageOverrides: {}, styleOverrides: {}, layoutOverrides: {}, responsiveLayoutOverrides: {}, sectionOrder: [], sectionInstances: [], elementClones: [], groupClones: [], elementPlacements: [], customBlocks: [], hiddenElements: [] },
   manual: manualFields,
   products: productDefaults,
   media: mediaDefaults,
@@ -85,7 +85,8 @@ function sanitizeStyleOverrides(value: unknown) {
 const allowedLayoutKeys = new Set([
   "width", "maxWidth", "minWidth", "height", "maxHeight", "marginTop", "marginRight", "marginBottom", "marginLeft",
   "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "borderRadius", "opacity", "objectFit", "objectPosition",
-  "backgroundColor", "borderColor", "borderWidth", "borderStyle",
+  "backgroundColor", "borderColor", "borderWidth", "borderStyle", "position", "left", "top", "right", "bottom",
+  "zIndex", "order", "flexBasis", "gridColumn", "gridRow", "alignSelf", "justifySelf",
 ]);
 
 function safeCssValue(value: string) {
@@ -98,7 +99,7 @@ function sanitizeLayoutOverrides(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const output: Record<string, Record<string, string>> = {};
   for (const [key, rawLayout] of Object.entries(value as Record<string, unknown>)) {
-    if (!/^(text|rich|image):/.test(key)) continue;
+    if (!/^(text|rich|image|group):/.test(key)) continue;
     if (!rawLayout || typeof rawLayout !== "object" || Array.isArray(rawLayout)) continue;
     const clean: Record<string, string> = {};
     for (const [layoutKey, rawValue] of Object.entries(rawLayout as Record<string, unknown>)) {
@@ -107,6 +108,45 @@ function sanitizeLayoutOverrides(value: unknown) {
       if (normalized) clean[layoutKey] = normalized;
     }
     if (Object.keys(clean).length) output[key.slice(0, 500)] = clean;
+  }
+  return output;
+}
+
+function sanitizeResponsiveLayoutOverrides(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const output: Record<string, Record<string, Record<string, string>>> = {};
+  for (const [key, rawByDevice] of Object.entries(value as Record<string, unknown>)) {
+    if (!/^(text|rich|image|group):/.test(key) || !rawByDevice || typeof rawByDevice !== "object" || Array.isArray(rawByDevice)) continue;
+    const cleanByDevice: Record<string, Record<string, string>> = {};
+    for (const device of ["desktop","tablet","mobile"] as const) {
+      const rawLayout = (rawByDevice as Record<string, unknown>)[device];
+      if (!rawLayout || typeof rawLayout !== "object" || Array.isArray(rawLayout)) continue;
+      const clean: Record<string, string> = {};
+      for (const [layoutKey, rawValue] of Object.entries(rawLayout as Record<string, unknown>)) {
+        if (!allowedLayoutKeys.has(layoutKey) || typeof rawValue !== "string") continue;
+        const normalized = safeCssValue(rawValue);
+        if (normalized) clean[layoutKey] = normalized;
+      }
+      if (Object.keys(clean).length) cleanByDevice[device] = clean;
+    }
+    if (Object.keys(cleanByDevice).length) output[key.slice(0,500)] = cleanByDevice;
+  }
+  return output;
+}
+
+function sanitizeGroupClones(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const output: Array<{ id: string; sourceGroupKey: string; sectionId: string }> = [];
+  for (const raw of value) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+    const item = raw as Record<string, unknown>;
+    const id = typeof item.id === "string" ? item.id.trim().slice(0,100) : "";
+    const sourceGroupKey = typeof item.sourceGroupKey === "string" ? item.sourceGroupKey.trim().slice(0,500) : "";
+    const sectionId = typeof item.sectionId === "string" ? item.sectionId.trim().slice(0,100) : "";
+    if (!/^[a-z0-9][a-z0-9-]*$/i.test(id) || !/^group:/.test(sourceGroupKey) || !/^[a-z0-9][a-z0-9-]*$/i.test(sectionId) || seen.has(id)) continue;
+    seen.add(id); output.push({id,sourceGroupKey,sectionId});
+    if (output.length >= 120) break;
   }
   return output;
 }
@@ -170,17 +210,23 @@ function sanitizeElementClones(value: unknown) {
 
 function sanitizeElementPlacements(value: unknown) {
   if (!Array.isArray(value)) return [];
-  const output: Array<{ key: string; targetKey: string; position: "before" | "after" }> = [];
+  const output: Array<{ key: string; targetKey?: string; targetSectionId?: string; position: "before" | "after" | "append" | "prepend" }> = [];
   const seen = new Set<string>();
   for (const raw of value) {
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
     const item = raw as Record<string, unknown>;
-    const key = typeof item.key === "string" ? item.key.trim().slice(0, 500) : "";
-    const targetKey = typeof item.targetKey === "string" ? item.targetKey.trim().slice(0, 500) : "";
-    const position = item.position === "before" ? "before" : item.position === "after" ? "after" : null;
-    if (!position || !/^(text|rich|image):/.test(key) || !/^(text|rich|image):/.test(targetKey) || key === targetKey || seen.has(key)) continue;
+    const key = typeof item.key === "string" ? item.key.trim().slice(0,500) : "";
+    const targetKey = typeof item.targetKey === "string" ? item.targetKey.trim().slice(0,500) : "";
+    const targetSectionId = typeof item.targetSectionId === "string" ? item.targetSectionId.trim().slice(0,100) : "";
+    const position = ["before","after","append","prepend"].includes(String(item.position)) ? item.position as "before"|"after"|"append"|"prepend" : null;
+    if (!position || !/^(text|rich|image|group):/.test(key) || seen.has(key)) continue;
+    if ((position === "before" || position === "after") && (!/^(text|rich|image|group):/.test(targetKey) || key === targetKey)) continue;
+    if ((position === "append" || position === "prepend") && !/^[a-z0-9][a-z0-9-]*$/i.test(targetSectionId)) continue;
     seen.add(key);
-    output.push({ key, targetKey, position });
+    const next: { key:string;targetKey?:string;targetSectionId?:string;position:"before"|"after"|"append"|"prepend" }={key,position};
+    if (targetKey) next.targetKey=targetKey;
+    if (targetSectionId) next.targetSectionId=targetSectionId;
+    output.push(next);
     if (output.length >= 180) break;
   }
   return output;
@@ -215,7 +261,7 @@ function sanitizeStringList(value: unknown, max = 160) {
   for (const raw of value) {
     if (typeof raw !== "string") continue;
     const entry = raw.trim().slice(0, 500);
-    if (!entry || seen.has(entry) || !/^(text|rich|image):/.test(entry)) continue;
+    if (!entry || seen.has(entry) || !/^(text|rich|image|group):/.test(entry)) continue;
     seen.add(entry);
     output.push(entry);
     if (output.length >= max) break;
@@ -234,9 +280,11 @@ function sanitizeLandingDraft(value: unknown) {
     imageOverrides: sanitizeStringMap(source.imageOverrides, 1500),
     styleOverrides: sanitizeStyleOverrides(source.styleOverrides),
     layoutOverrides: sanitizeLayoutOverrides(source.layoutOverrides),
+    responsiveLayoutOverrides: sanitizeResponsiveLayoutOverrides(source.responsiveLayoutOverrides),
     sectionOrder: sanitizeSectionOrder(source.sectionOrder),
     sectionInstances: sanitizeSectionInstances(source.sectionInstances),
     elementClones: sanitizeElementClones(source.elementClones),
+    groupClones: sanitizeGroupClones(source.groupClones),
     elementPlacements: sanitizeElementPlacements(source.elementPlacements),
     customBlocks: sanitizeCustomBlocks(source.customBlocks),
     hiddenElements: sanitizeStringList(source.hiddenElements),

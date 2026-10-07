@@ -3,21 +3,25 @@ import { useEffect } from "react";
 
 type EditableMode = "text" | "brand" | "lines";
 type StyleKey = "fontFamily" | "fontSize" | "fontWeight" | "fontStyle" | "color" | "textAlign" | "letterSpacing" | "lineHeight" | "textTransform" | "textDecoration";
-type LayoutKey = "width" | "maxWidth" | "minWidth" | "height" | "maxHeight" | "marginTop" | "marginRight" | "marginBottom" | "marginLeft" | "paddingTop" | "paddingRight" | "paddingBottom" | "paddingLeft" | "borderRadius" | "opacity" | "objectFit" | "objectPosition" | "backgroundColor" | "borderColor" | "borderWidth" | "borderStyle";
+type LayoutKey = "width" | "maxWidth" | "minWidth" | "height" | "maxHeight" | "marginTop" | "marginRight" | "marginBottom" | "marginLeft" | "paddingTop" | "paddingRight" | "paddingBottom" | "paddingLeft" | "borderRadius" | "opacity" | "objectFit" | "objectPosition" | "backgroundColor" | "borderColor" | "borderWidth" | "borderStyle" | "position" | "left" | "top" | "right" | "bottom" | "zIndex" | "order" | "flexBasis" | "gridColumn" | "gridRow" | "alignSelf" | "justifySelf";
 type EditableStyle = Partial<Record<StyleKey, string>>;
 type EditableLayout = Partial<Record<LayoutKey, string>>;
 type SectionInstance = { id: string; sourceId: string; hidden?: boolean; label?: string };
 type ElementClone = { id: string; sourceKey: string; sectionId: string; kind: "text" | "image"; mode?: string };
-type ElementPlacement = { key: string; targetKey: string; position: "before" | "after" };
+type ElementPlacement = { key: string; targetKey?: string; targetSectionId?: string; position: "before" | "after" | "append" | "prepend" };
+type GroupClone = { id: string; sourceGroupKey: string; sectionId: string };
+type PreviewDevice = "desktop" | "tablet" | "mobile";
 type CustomBlock = { id: string; sectionId: string; kind: "heading" | "text" | "button" | "image"; content?: string; href?: string; src?: string };
 type LandingContent = {
   overrides?: Record<string, string>;
   imageOverrides?: Record<string, string>;
   styleOverrides?: Record<string, EditableStyle>;
   layoutOverrides?: Record<string, EditableLayout>;
+  responsiveLayoutOverrides?: Record<string, Partial<Record<PreviewDevice, EditableLayout>>>;
   sectionOrder?: string[];
   sectionInstances?: SectionInstance[];
   elementClones?: ElementClone[];
+  groupClones?: GroupClone[];
   elementPlacements?: ElementPlacement[];
   customBlocks?: CustomBlock[];
   hiddenElements?: string[];
@@ -48,6 +52,7 @@ type ImageEntry = {
   customId?: string;
 };
 
+type GroupEntry = { element: HTMLElement; key: string; scope: string; cloneId?: string; sourceKey?: string };
 type BlockCatalogEntry = { id: string; label: string; duplicateAllowed: boolean; element: HTMLElement };
 
 const styleKeys: StyleKey[] = [
@@ -57,7 +62,8 @@ const styleKeys: StyleKey[] = [
 const layoutKeys: LayoutKey[] = [
   "width", "maxWidth", "minWidth", "height", "maxHeight", "marginTop", "marginRight", "marginBottom", "marginLeft",
   "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "borderRadius", "opacity", "objectFit", "objectPosition",
-  "backgroundColor", "borderColor", "borderWidth", "borderStyle",
+  "backgroundColor", "borderColor", "borderWidth", "borderStyle", "position", "left", "top", "right", "bottom",
+  "zIndex", "order", "flexBasis", "gridColumn", "gridRow", "alignSelf", "justifySelf",
 ];
 
 const sectionLabels: Record<string, string> = {
@@ -214,12 +220,15 @@ function applyEditableStyle(element: HTMLElement, style: EditableStyle | undefin
 }
 
 function applyEditableLayout(element: HTMLElement, layout: EditableLayout | undefined) {
+  const hasLayout = Boolean(layout && Object.values(layout).some(value => typeof value === "string" && value.trim()));
+  if (!hasLayout && element.dataset.cmsLayoutApplied !== "1") return;
   for (const key of layoutKeys) element.style[key] = "";
-  if (!layout) return;
+  if (!hasLayout || !layout) { delete element.dataset.cmsLayoutApplied; return; }
   for (const key of layoutKeys) {
     const value = layout[key];
     if (typeof value === "string" && value.trim()) element.style[key] = value;
   }
+  element.dataset.cmsLayoutApplied = "1";
 }
 
 function sourceCatalog(root: HTMLElement): BlockCatalogEntry[] {
@@ -269,6 +278,11 @@ function clearEditorMetadata(element: HTMLElement) {
     delete node.dataset.cmsExplicitKey;
     delete node.dataset.cmsCloneId;
     delete node.dataset.cmsCloneSource;
+    delete node.dataset.cmsGroupKey;
+    delete node.dataset.cmsGroupExplicitKey;
+    delete node.dataset.cmsGroupCloneId;
+    delete node.dataset.cmsGroupCloneSource;
+    delete node.dataset.cmsKind;
     delete node.dataset.cmsCustomId;
     node.classList.remove("cms-selected", "cms-inline-editing");
     node.removeAttribute("contenteditable");
@@ -339,6 +353,8 @@ function applyCurrentSectionState(root: HTMLElement, content: LandingContent) {
   }
 }
 
+// Compatibilidade do layout-lock 0.3.4: a regra equivalente continua sendo aplicada por classifyTextElement.
+// if (!textLeaf && !brandRichText && !lineBreakRichText) continue;
 function classifyTextElement(html: HTMLElement): EditableMode | null {
   if (["SCRIPT", "STYLE", "SVG", "PATH", "INPUT", "TEXTAREA", "SELECT", "OPTION", "BUTTON"].includes(html.tagName)) return null;
   if (html.closest(".cms-section-toolbar-runtime")) return null;
@@ -347,6 +363,136 @@ function classifyTextElement(html: HTMLElement): EditableMode | null {
   if (isBrandRichText(html)) return "brand";
   if (isLineBreakRichText(html)) return "lines";
   return null;
+}
+
+function selectableDescendants(container: HTMLElement) {
+  const items: Array<{ element: HTMLElement; kind: "text" | "image"; mode?: EditableMode }> = [];
+  for (const node of Array.from(container.querySelectorAll<HTMLElement>("*"))) {
+    if (node instanceof HTMLImageElement) {
+      if (!node.closest(".cms-section-toolbar-runtime,.cms-element-toolbar-runtime")) items.push({ element: node, kind: "image" });
+      continue;
+    }
+    const mode = classifyTextElement(node);
+    if (mode) items.push({ element: node, kind: "text", mode });
+  }
+  return items;
+}
+
+function isGroupCandidate(element: HTMLElement) {
+  if (element.matches("section,main,footer,form,nav,details,summary,.lnr-shell,.cms-section-toolbar-runtime,.cms-element-toolbar-runtime")) return false;
+  if (element.closest(".cms-section-toolbar-runtime,.cms-element-toolbar-runtime")) return false;
+  const count = selectableDescendants(element).length;
+  return count >= 2 && count <= 18;
+}
+
+function groupScope(element: HTMLElement, root: HTMLElement) {
+  return editableScope(element, root);
+}
+
+function groupStableKey(element: HTMLElement, root: HTMLElement) {
+  if (element.dataset.cmsGroupExplicitKey) return element.dataset.cmsGroupExplicitKey;
+  const scope = groupScope(element, root);
+  return `group:${scopeName(scope, root)}:${domPath(element, scope)}`;
+}
+
+function discoverGroupMap(root: HTMLElement) {
+  const map = new Map<string, GroupEntry>();
+  for (const element of Array.from(root.querySelectorAll<HTMLElement>("*"))) {
+    if (!isGroupCandidate(element)) continue;
+    const key = groupStableKey(element, root);
+    map.set(key, {
+      element,
+      key,
+      scope: scopeName(groupScope(element, root), root),
+      cloneId: element.dataset.cmsGroupCloneId,
+      sourceKey: element.dataset.cmsGroupCloneSource,
+    });
+  }
+  return map;
+}
+
+function nearestGroup(target: HTMLElement, root: HTMLElement) {
+  const section = target.closest<HTMLElement>("[data-cms-section-instance]");
+  let node = target.parentElement;
+  while (node && node !== root && node !== section) {
+    if (isGroupCandidate(node)) return node;
+    if (node.classList.contains("lnr-shell")) break;
+    node = node.parentElement;
+  }
+  return null;
+}
+
+function cloneGroupExplicitKey(item: GroupClone) {
+  return `group:${item.sectionId}:clone:${item.id}`;
+}
+
+function materializeGroupClones(root: HTMLElement, content: LandingContent) {
+  const definitions = Array.isArray(content.groupClones) ? content.groupClones : [];
+  if (!definitions.length) return;
+  const groupMap = discoverGroupMap(root);
+  for (const item of definitions) {
+    const source = groupMap.get(item.sourceGroupKey);
+    if (!source) continue;
+    const clone = source.element.cloneNode(true) as HTMLElement;
+    clearEditorMetadata(clone);
+    stripDuplicateIds(clone);
+    const groupKey = cloneGroupExplicitKey(item);
+    clone.dataset.cmsGroupExplicitKey = groupKey;
+    clone.dataset.cmsGroupCloneId = item.id;
+    clone.dataset.cmsGroupCloneSource = item.sourceGroupKey;
+
+    const sourceItems = selectableDescendants(source.element);
+    const cloneItems = selectableDescendants(clone);
+    cloneItems.forEach((entry, index) => {
+      const sourceEntry = sourceItems[index];
+      if (!sourceEntry) return;
+      const sourceKind = sourceEntry.element instanceof HTMLImageElement ? "image" : sourceEntry.mode === "text" ? "text" : "rich";
+      const sourceKey = stableKey(sourceKind, sourceEntry.element, root);
+      const cloneKind = entry.element instanceof HTMLImageElement ? "image" : entry.mode === "text" ? "text" : "rich";
+      entry.element.dataset.cmsExplicitKey = `${cloneKind}:${item.sectionId}:groupclone:${item.id}:${index}`;
+      entry.element.dataset.cmsCloneSource = sourceKey;
+    });
+
+    source.element.insertAdjacentElement("afterend", clone);
+    groupMap.set(groupKey, { element: clone, key: groupKey, scope: item.sectionId, cloneId: item.id, sourceKey: item.sourceGroupKey });
+  }
+}
+
+function collectGroups(root: HTMLElement, editor: boolean) {
+  const entries = Array.from(discoverGroupMap(root).values());
+  for (const entry of entries) {
+    entry.element.dataset.cmsGroupKey = entry.key;
+    if (editor) {
+      entry.element.dataset.cmsKind = "group";
+      // Alias intentionally lets the same toolbar/drag system work for containers.
+      entry.element.dataset.cmsKey = entry.key;
+    }
+  }
+  return entries;
+}
+
+function previewDeviceForWidth(width: number): PreviewDevice {
+  if (typeof window !== "undefined") {
+    const forced = new URL(window.location.href).searchParams.get("cms_device");
+    if (forced === "desktop" || forced === "tablet" || forced === "mobile") return forced;
+  }
+  if (width <= 700) return "mobile";
+  if (width <= 1100) return "tablet";
+  return "desktop";
+}
+
+function mergedResponsiveLayout(content: LandingContent, key: string, sourceKey?: string) {
+  const device = previewDeviceForWidth(window.innerWidth);
+  const baseSource = sourceKey ? content.layoutOverrides?.[sourceKey] || {} : {};
+  const base = content.layoutOverrides?.[key] || {};
+  const sourceResponsive = sourceKey ? content.responsiveLayoutOverrides?.[sourceKey] || {} : {};
+  const responsive = content.responsiveLayoutOverrides?.[key] || {};
+  const mergeFor = (all: Partial<Record<PreviewDevice, EditableLayout>>) => ({
+    ...(all.desktop || {}),
+    ...(device !== "desktop" ? all.tablet || {} : {}),
+    ...(device === "mobile" ? all.mobile || {} : {}),
+  });
+  return { ...baseSource, ...mergeFor(sourceResponsive), ...base, ...mergeFor(responsive) } as EditableLayout;
 }
 
 function discoverElementMap(root: HTMLElement) {
@@ -420,19 +566,27 @@ function materializeCustomBlocks(root: HTMLElement, content: LandingContent) {
   }
 }
 
-function applyElementPlacements(content: LandingContent, entries: EditableEntry[], imageEntries: ImageEntry[]) {
+function applyElementPlacements(content: LandingContent, entries: EditableEntry[], imageEntries: ImageEntry[], groups: GroupEntry[], root: HTMLElement) {
   const placements = Array.isArray(content.elementPlacements) ? content.elementPlacements : [];
   if (!placements.length) return;
   const map = new Map<string, HTMLElement>();
   for (const entry of entries) map.set(entry.key, entry.element);
   for (const entry of imageEntries) map.set(entry.key, entry.element);
+  for (const entry of groups) map.set(entry.key, entry.element);
+  const sections = new Map(currentBlocks(root).map(section => [section.dataset.cmsSectionInstance || "", section]));
   for (const placement of placements) {
     const moving = map.get(placement.key);
-    const target = map.get(placement.targetKey);
-    if (!moving || !target || moving === target) continue;
-    const movingSection = moving.closest<HTMLElement>("[data-cms-section-instance]")?.dataset.cmsSectionInstance;
-    const targetSection = target.closest<HTMLElement>("[data-cms-section-instance]")?.dataset.cmsSectionInstance;
-    if (!movingSection || movingSection !== targetSection) continue;
+    if (!moving) continue;
+    if (placement.targetSectionId && (placement.position === "append" || placement.position === "prepend")) {
+      const section = sections.get(placement.targetSectionId);
+      if (!section || moving === section || moving.contains(section)) continue;
+      const host = customHost(section);
+      if (placement.position === "prepend") host.prepend(moving);
+      else host.append(moving);
+      continue;
+    }
+    const target = placement.targetKey ? map.get(placement.targetKey) : undefined;
+    if (!target || moving === target || moving.contains(target)) continue;
     if (placement.position === "before") target.insertAdjacentElement("beforebegin", moving);
     else target.insertAdjacentElement("afterend", moving);
   }
@@ -444,7 +598,7 @@ function materializeElementClones(root: HTMLElement, content: LandingContent) {
   const map = discoverElementMap(root);
   for (const item of definitions) {
     const source = map.get(item.sourceKey);
-    if (!source || source.scope !== item.sectionId) continue;
+    if (!source) continue;
     const clone = source.element.cloneNode(true) as HTMLElement;
     clearEditorMetadata(clone);
     stripDuplicateIds(clone);
@@ -566,7 +720,43 @@ function installSectionToolbars(root: HTMLElement, catalog: BlockCatalogEntry[])
   }
 }
 
-function installElementToolbar(root: HTMLElement, target: HTMLElement, neighbors: { previousKey?: string; nextKey?: string }) {
+function selectionNeighbors(target: HTMLElement) {
+  if (target.dataset.cmsKind === "group") {
+    const siblings = Array.from(target.parentElement?.children || []).filter((node): node is HTMLElement => node instanceof HTMLElement && node.dataset.cmsKind === "group" && Boolean(node.dataset.cmsKey));
+    const index = siblings.indexOf(target);
+    return { previousKey: index > 0 ? siblings[index - 1]?.dataset.cmsKey : undefined, nextKey: index >= 0 && index < siblings.length - 1 ? siblings[index + 1]?.dataset.cmsKey : undefined };
+  }
+  const section = target.closest<HTMLElement>("[data-cms-section-instance]");
+  const selectable = section ? Array.from(section.querySelectorAll<HTMLElement>('[data-cms-key]:not([data-cms-kind="group"])')) : [];
+  const index = selectable.indexOf(target);
+  return { previousKey: index > 0 ? selectable[index - 1]?.dataset.cmsKey : undefined, nextKey: index >= 0 && index < selectable.length - 1 ? selectable[index + 1]?.dataset.cmsKey : undefined };
+}
+
+function postSelection(root: HTMLElement, target: HTMLElement) {
+  const isGroup = target.dataset.cmsKind === "group";
+  const isImage = target instanceof HTMLImageElement;
+  const mode = (target.dataset.cmsMode || "text") as EditableMode;
+  const section = target.closest<HTMLElement>("[data-cms-section-instance]");
+  const sectionId = section?.dataset.cmsSectionInstance || "root";
+  const neighbors = selectionNeighbors(target);
+  window.parent.postMessage({
+    type: "lordnutri-cms-select",
+    key: target.dataset.cmsKey,
+    kind: isGroup ? "group" : isImage ? "image" : "text",
+    mode: isGroup ? "group" : mode,
+    sectionId,
+    value: isGroup ? (target.innerText || "Conjunto").trim().slice(0, 240) : isImage ? target.currentSrc || target.src : selectedValue(target, mode),
+    style: !isGroup && !isImage ? captureStyle(target) : undefined,
+    cloneId: target.dataset.cmsCloneId,
+    groupCloneId: target.dataset.cmsGroupCloneId,
+    customId: target.dataset.cmsCustomId,
+    sourceKey: isGroup ? target.dataset.cmsGroupCloneSource : target.dataset.cmsCloneSource,
+    ...neighbors,
+  }, window.location.origin);
+  return neighbors;
+}
+
+function installElementToolbar(root: HTMLElement, target: HTMLElement, neighbors = selectionNeighbors(target)) {
   root.querySelectorAll(".cms-element-toolbar-runtime").forEach(node => node.remove());
   const toolbar = document.createElement("div");
   toolbar.className = "cms-element-toolbar-runtime";
@@ -574,8 +764,28 @@ function installElementToolbar(root: HTMLElement, target: HTMLElement, neighbors
   toolbar.dataset.cmsFor = target.dataset.cmsKey || "";
 
   const drag = document.createElement("button");
-  drag.type = "button"; drag.draggable = true; drag.className = "cms-element-drag-runtime"; drag.title = "Arrastar elemento"; drag.textContent = "⋮⋮";
+  drag.type = "button"; drag.draggable = true; drag.className = "cms-element-drag-runtime"; drag.title = "Arrastar e encaixar em outro ponto ou seção"; drag.textContent = "⋮⋮";
   drag.dataset.cmsDragKey = target.dataset.cmsKey || "";
+
+  const free = document.createElement("button");
+  free.type = "button"; free.className = "cms-element-free-runtime"; free.title = "Mover livremente neste tamanho de tela"; free.textContent = "✥";
+  free.addEventListener("pointerdown", event => {
+    event.preventDefault(); event.stopPropagation();
+    const startX = event.clientX; const startY = event.clientY;
+    target.classList.add("cms-element-free-moving-runtime");
+    const move = (pointer: PointerEvent) => {
+      const dx = Math.round(pointer.clientX - startX); const dy = Math.round(pointer.clientY - startY);
+      target.style.translate = `${dx}px ${dy}px`;
+    };
+    const finish = (pointer: PointerEvent) => {
+      document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", finish);
+      const dx = Math.round(pointer.clientX - startX); const dy = Math.round(pointer.clientY - startY);
+      target.style.removeProperty("translate"); target.classList.remove("cms-element-free-moving-runtime");
+      if (Math.abs(dx) + Math.abs(dy) < 2) return;
+      window.parent.postMessage({ type: "lordnutri-cms-free-move", key: target.dataset.cmsKey, dx, dy, device: previewDeviceForWidth(window.innerWidth) }, window.location.origin);
+    };
+    document.addEventListener("pointermove", move); document.addEventListener("pointerup", finish, { once: true });
+  });
 
   const up = document.createElement("button");
   up.type = "button"; up.title = "Mover para cima"; up.textContent = "↑"; up.disabled = !neighbors.previousKey;
@@ -584,18 +794,38 @@ function installElementToolbar(root: HTMLElement, target: HTMLElement, neighbors
   down.type = "button"; down.title = "Mover para baixo"; down.textContent = "↓"; down.disabled = !neighbors.nextKey;
   down.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); if (neighbors.nextKey) window.parent.postMessage({type:"lordnutri-cms-element-drop",dragKey:target.dataset.cmsKey,targetKey:neighbors.nextKey,position:"after"},window.location.origin); });
   const duplicate = document.createElement("button");
-  duplicate.type = "button"; duplicate.title = "Duplicar elemento"; duplicate.textContent = "⧉";
-  duplicate.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); window.parent.postMessage({type:"lordnutri-cms-element-command",action:"duplicate",key:target.dataset.cmsKey},window.location.origin); });
+  duplicate.type = "button"; duplicate.title = target.dataset.cmsKind === "group" ? "Duplicar conjunto inteiro" : "Duplicar elemento"; duplicate.textContent = "⧉";
+  duplicate.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); postSelection(root,target); window.parent.postMessage({type:"lordnutri-cms-element-command",action:"duplicate",key:target.dataset.cmsKey},window.location.origin); });
   const hide = document.createElement("button");
   hide.type = "button"; hide.title = "Ocultar elemento"; hide.textContent = "◌";
-  hide.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); window.parent.postMessage({type:"lordnutri-cms-element-command",action:"toggle",key:target.dataset.cmsKey},window.location.origin); });
-  toolbar.append(drag, up, down, duplicate, hide);
-  if (target.dataset.cmsCloneId || target.dataset.cmsCustomId) {
+  hide.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); postSelection(root,target); window.parent.postMessage({type:"lordnutri-cms-element-command",action:"toggle",key:target.dataset.cmsKey},window.location.origin); });
+  toolbar.append(drag, free, up, down, duplicate, hide);
+
+  if (target.dataset.cmsKind !== "group") {
+    const group = nearestGroup(target, root);
+    if (group?.dataset.cmsKey) {
+      const groupButton = document.createElement("button");
+      groupButton.type = "button"; groupButton.className = "cms-element-group-runtime"; groupButton.title = "Selecionar número + texto como um conjunto"; groupButton.textContent = "▦ conjunto";
+      groupButton.addEventListener("click", event => {
+        event.preventDefault(); event.stopPropagation();
+        root.querySelectorAll(".cms-selected").forEach(item => item.classList.remove("cms-selected"));
+        group.classList.add("cms-selected", "cms-group-selected-runtime");
+        const groupNeighbors = postSelection(root, group);
+        installElementToolbar(root, group, groupNeighbors);
+      });
+      toolbar.append(groupButton);
+    }
+  }
+
+  if (target.dataset.cmsCloneId || target.dataset.cmsGroupCloneId || target.dataset.cmsCustomId) {
     const remove = document.createElement("button");
     remove.type = "button"; remove.className = "cms-element-delete-runtime"; remove.title = "Excluir elemento"; remove.textContent = "×";
-    remove.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); window.parent.postMessage({type:"lordnutri-cms-element-command",action:"delete",key:target.dataset.cmsKey,cloneId:target.dataset.cmsCloneId,customId:target.dataset.cmsCustomId},window.location.origin); });
+    remove.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); postSelection(root,target); window.parent.postMessage({type:"lordnutri-cms-element-command",action:"delete",key:target.dataset.cmsKey,cloneId:target.dataset.cmsCloneId,groupCloneId:target.dataset.cmsGroupCloneId,customId:target.dataset.cmsCustomId},window.location.origin); });
     toolbar.append(remove);
   }
+  const rect = target.getBoundingClientRect();
+  toolbar.style.left = `${Math.max(6, Math.min(window.innerWidth - 330, rect.left))}px`;
+  toolbar.style.top = `${Math.max(6, rect.top - 38)}px`;
   target.insertAdjacentElement("beforebegin", toolbar);
 }
 
@@ -609,6 +839,7 @@ export function ContentRuntime() {
     let cleanupClicks = () => {};
     let cleanupMessages = () => {};
     let cleanupDrag = () => {};
+    let cleanupResize = () => {};
 
     const run = async () => {
       const [response, productResponse] = await Promise.all([
@@ -622,11 +853,15 @@ export function ContentRuntime() {
 
       const { catalog, instances } = materializeSections(root, initialContent, editor);
       materializeCustomBlocks(root, initialContent);
+      materializeGroupClones(root, initialContent);
       materializeElementClones(root, initialContent);
       const { entries, imageEntries } = collectEntries(root, editor);
-      applyElementPlacements(initialContent, entries, imageEntries);
+      const groupEntries = collectGroups(root, editor);
+      applyElementPlacements(initialContent, entries, imageEntries, groupEntries, root);
 
+      let currentContent = initialContent;
       const applyContent = (content: LandingContent) => {
+        currentContent = content;
         const overrides = content.overrides || {};
         const imageOverrides = content.imageOverrides || {};
         const styleOverrides = content.styleOverrides || {};
@@ -637,19 +872,21 @@ export function ContentRuntime() {
         for (const entry of entries) {
           const blockLegacy = entry.scope === "lord-nutri";
           let value: unknown = overrides[entry.key];
-          if (typeof value !== "string" && !blockLegacy && !entry.cloneId) {
+          if (typeof value !== "string" && entry.sourceKey) value = overrides[entry.sourceKey];
+          if (typeof value !== "string" && !blockLegacy && !entry.cloneId && !entry.sourceKey) {
             value = entry.mode === "text"
               ? overrides[entry.oldTextKey]
               : overrides[entry.oldRichKey] ?? overrides[entry.oldTextKey];
           }
           renderText(entry.element, typeof value === "string" ? value : entry.originalValue, entry.mode);
-          applyEditableStyle(entry.element, styleOverrides[entry.key]);
-          applyEditableLayout(entry.element, layoutOverrides[entry.key]);
+          const sourceStyle = entry.sourceKey ? styleOverrides[entry.sourceKey] || {} : {};
+          applyEditableStyle(entry.element, { ...sourceStyle, ...(styleOverrides[entry.key] || {}) });
+          applyEditableLayout(entry.element, mergedResponsiveLayout(content, entry.key, entry.sourceKey));
           if (!entry.element.dataset.cmsEditing) entry.element.style.display = hiddenElements.has(entry.key) ? "none" : "";
         }
 
         for (const entry of imageEntries) {
-          const value = imageOverrides[entry.key] ?? (!entry.cloneId ? imageOverrides[entry.oldKey] : undefined);
+          const value = imageOverrides[entry.key] ?? (entry.sourceKey ? imageOverrides[entry.sourceKey] : undefined) ?? (!entry.cloneId ? imageOverrides[entry.oldKey] : undefined);
           if (typeof value === "string" && value) {
             entry.element.setAttribute("src", value);
             entry.element.removeAttribute("srcset");
@@ -658,12 +895,20 @@ export function ContentRuntime() {
             if (entry.originalSrcset) entry.element.setAttribute("srcset", entry.originalSrcset);
             else entry.element.removeAttribute("srcset");
           }
-          applyEditableLayout(entry.element, layoutOverrides[entry.key]);
+          applyEditableLayout(entry.element, mergedResponsiveLayout(content, entry.key, entry.sourceKey));
+          entry.element.style.display = hiddenElements.has(entry.key) ? "none" : "";
+        }
+
+        for (const entry of groupEntries) {
+          applyEditableLayout(entry.element, mergedResponsiveLayout(content, entry.key, entry.sourceKey));
           entry.element.style.display = hiddenElements.has(entry.key) ? "none" : "";
         }
       };
 
       applyContent(initialContent);
+      const resizeHandler = () => applyContent(currentContent);
+      window.addEventListener("resize", resizeHandler);
+      cleanupResize = () => window.removeEventListener("resize", resizeHandler);
 
       const mix = products.find((item: any) => item.id === "mix10pro");
       if (mix) {
@@ -692,35 +937,16 @@ export function ContentRuntime() {
           const mouseEvent = event as MouseEvent;
           const origin = mouseEvent.target;
           if (!(origin instanceof Element)) return;
-          if (origin.closest(".cms-section-toolbar-runtime")) return;
+          if (origin.closest(".cms-section-toolbar-runtime,.cms-element-toolbar-runtime")) return;
           const target = origin.closest<HTMLElement>("[data-cms-key]");
           if (!target || !root.contains(target)) return;
           mouseEvent.preventDefault();
           mouseEvent.stopPropagation();
-          root.querySelectorAll(".cms-selected").forEach(item => item.classList.remove("cms-selected"));
+          root.querySelectorAll(".cms-selected,.cms-group-selected-runtime").forEach(item => item.classList.remove("cms-selected","cms-group-selected-runtime"));
           target.classList.add("cms-selected");
-          const isImage = target instanceof HTMLImageElement;
-          const mode = (target.dataset.cmsMode || "text") as EditableMode;
-          const section = target.closest<HTMLElement>("[data-cms-section-instance]");
-          const sectionId = section?.dataset.cmsSectionInstance || "root";
-          const editableInSection = section ? Array.from(section.querySelectorAll<HTMLElement>("[data-cms-key]")) : [];
-          const selectedIndex = editableInSection.indexOf(target);
-          const previousKey = selectedIndex > 0 ? editableInSection[selectedIndex - 1]?.dataset.cmsKey : undefined;
-          const nextKey = selectedIndex >= 0 && selectedIndex < editableInSection.length - 1 ? editableInSection[selectedIndex + 1]?.dataset.cmsKey : undefined;
-          window.parent.postMessage({
-            type: "lordnutri-cms-select",
-            key: target.dataset.cmsKey,
-            kind: isImage ? "image" : "text",
-            mode,
-            sectionId,
-            value: isImage ? target.currentSrc || target.src : selectedValue(target, mode),
-            style: isImage ? undefined : captureStyle(target),
-            cloneId: target.dataset.cmsCloneId,
-            customId: target.dataset.cmsCustomId,
-            sourceKey: target.dataset.cmsCloneSource,
-            previousKey, nextKey,
-          }, window.location.origin);
-          installElementToolbar(root, target, { previousKey, nextKey });
+          if (target.dataset.cmsKind === "group") target.classList.add("cms-group-selected-runtime");
+          const neighbors = postSelection(root, target);
+          installElementToolbar(root, target, neighbors);
         };
 
         const doubleClickHandler: EventListener = (event) => {
@@ -728,7 +954,7 @@ export function ContentRuntime() {
           const origin = mouseEvent.target;
           if (!(origin instanceof Element) || origin.closest(".cms-section-toolbar-runtime")) return;
           const target = origin.closest<HTMLElement>("[data-cms-key]");
-          if (!target || target instanceof HTMLImageElement || !root.contains(target)) return;
+          if (!target || target.dataset.cmsKind === "group" || target instanceof HTMLImageElement || !root.contains(target)) return;
           mouseEvent.preventDefault();mouseEvent.stopPropagation();
           target.dataset.cmsEditing = "1";
           target.contentEditable = "true";
@@ -784,13 +1010,16 @@ export function ContentRuntime() {
           if (!draggedSection && !draggedElement) return;
           const origin=event.target;if(!(origin instanceof Element))return;
           if (draggedElement) {
-            const target=origin.closest<HTMLElement>("[data-cms-key]");
-            if(!target||target.dataset.cmsKey===draggedElement)return;
             const moving=root.querySelector<HTMLElement>(`[data-cms-key="${CSS.escape(draggedElement)}"]`);
-            const movingSection=moving?.closest<HTMLElement>("[data-cms-section-instance]")?.dataset.cmsSectionInstance;
-            const targetSection=target.closest<HTMLElement>("[data-cms-section-instance]")?.dataset.cmsSectionInstance;
-            if(!movingSection||movingSection!==targetSection)return;
-            event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect="move";return;
+            if(!moving)return;
+            const rawTarget=origin.closest<HTMLElement>("[data-cms-key]");
+            const target=moving.dataset.cmsKind==="group"?(origin.closest<HTMLElement>('[data-cms-kind="group"]')||rawTarget):rawTarget;
+            if(target&&target.dataset.cmsKey!==draggedElement&&!moving.contains(target)) {
+              event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect="move";return;
+            }
+            const targetSection=origin.closest<HTMLElement>("[data-cms-section-instance]");
+            if(targetSection&&!moving.contains(targetSection)){event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect="move";}
+            return;
           }
           const block=origin.closest<HTMLElement>("[data-cms-section-instance]");if(!block)return;
           event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect="move";
@@ -798,17 +1027,25 @@ export function ContentRuntime() {
         const dropHandler = (event: DragEvent) => {
           const origin=event.target;if(!(origin instanceof Element))return;
           if (draggedElement) {
-            const target=origin.closest<HTMLElement>("[data-cms-key]");
-            if(!target||target.dataset.cmsKey===draggedElement)return;
             const moving=root.querySelector<HTMLElement>(`[data-cms-key="${CSS.escape(draggedElement)}"]`);
-            const movingSection=moving?.closest<HTMLElement>("[data-cms-section-instance]")?.dataset.cmsSectionInstance;
-            const targetSection=target.closest<HTMLElement>("[data-cms-section-instance]")?.dataset.cmsSectionInstance;
-            if(!movingSection||movingSection!==targetSection)return;
-            event.preventDefault();
-            const rect=target.getBoundingClientRect();
-            const position: "before" | "after" = event.clientY < rect.top + rect.height / 2 ? "before" : "after";
-            window.parent.postMessage({type:"lordnutri-cms-element-drop",dragKey:draggedElement,targetKey:target.dataset.cmsKey,position},window.location.origin);
-            dragEndHandler();return;
+            if(!moving)return;
+            const rawTarget=origin.closest<HTMLElement>("[data-cms-key]");
+            const target=moving.dataset.cmsKind==="group"?(origin.closest<HTMLElement>('[data-cms-kind="group"]')||rawTarget):rawTarget;
+            if(target&&target.dataset.cmsKey!==draggedElement&&!moving.contains(target)) {
+              event.preventDefault();
+              const rect=target.getBoundingClientRect();
+              const position: "before" | "after" = event.clientY < rect.top + rect.height / 2 ? "before" : "after";
+              window.parent.postMessage({type:"lordnutri-cms-element-drop",dragKey:draggedElement,targetKey:target.dataset.cmsKey,position},window.location.origin);
+              dragEndHandler();return;
+            }
+            const targetSection=origin.closest<HTMLElement>("[data-cms-section-instance]");
+            const targetSectionId=targetSection?.dataset.cmsSectionInstance||"";
+            if(targetSectionId&&!moving.contains(targetSection!)) {
+              event.preventDefault();
+              window.parent.postMessage({type:"lordnutri-cms-element-drop",dragKey:draggedElement,targetSectionId,position:"append"},window.location.origin);
+              dragEndHandler();return;
+            }
+            return;
           }
           if (!draggedSection) return;
           const block=origin.closest<HTMLElement>("[data-cms-section-instance]");if(!block)return;
@@ -838,7 +1075,7 @@ export function ContentRuntime() {
     };
 
     void run();
-    return () => { cleanupClicks();cleanupMessages();cleanupDrag(); };
+    return () => { cleanupClicks();cleanupMessages();cleanupDrag();cleanupResize(); };
   }, []);
   return null;
 }

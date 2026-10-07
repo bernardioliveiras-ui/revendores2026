@@ -12,16 +12,18 @@ type EditableLayout = {
   marginTop?:string;marginRight?:string;marginBottom?:string;marginLeft?:string;
   paddingTop?:string;paddingRight?:string;paddingBottom?:string;paddingLeft?:string;
   borderRadius?:string;opacity?:string;objectFit?:string;objectPosition?:string;backgroundColor?:string;
-  borderColor?:string;borderWidth?:string;borderStyle?:string;
+  borderColor?:string;borderWidth?:string;borderStyle?:string;position?:string;left?:string;top?:string;right?:string;bottom?:string;
+  zIndex?:string;order?:string;flexBasis?:string;gridColumn?:string;gridRow?:string;alignSelf?:string;justifySelf?:string;
 };
 type Selection = {
-  key:string;kind:"text"|"image";value:string;style?:EditableStyle;mode?:string;sectionId?:string;
-  cloneId?:string;customId?:string;sourceKey?:string;previousKey?:string;nextKey?:string;
+  key:string;kind:"text"|"image"|"group";value:string;style?:EditableStyle;mode?:string;sectionId?:string;
+  cloneId?:string;groupCloneId?:string;customId?:string;sourceKey?:string;previousKey?:string;nextKey?:string;
 };
 type BuilderSection = {id:string;label:string;sourceId?:string;duplicateAllowed?:boolean};
 type SectionInstance = {id:string;sourceId:string;hidden?:boolean;label?:string};
 type ElementClone = {id:string;sourceKey:string;sectionId:string;kind:"text"|"image";mode?:string};
-type ElementPlacement = {key:string;targetKey:string;position:"before"|"after"};
+type ElementPlacement = {key:string;targetKey?:string;targetSectionId?:string;position:"before"|"after"|"append"|"prepend"};
+type GroupClone = {id:string;sourceGroupKey:string;sectionId:string};
 type CustomBlock = {id:string;sectionId:string;kind:"heading"|"text"|"button"|"image";content?:string;href?:string;src?:string};
 type MediaAsset = {id:string;name:string;mime_type?:string;mimeType?:string;size_bytes?:number;sizeBytes?:number;created_at?:string;url?:string};
 type PreviewDevice = "desktop"|"tablet"|"mobile";
@@ -53,7 +55,7 @@ function uniqueId(prefix:string){
 }
 
 function copyScopedMaps(draft:any, fromScope:string, toScope:string){
-  for(const mapName of ["overrides","imageOverrides","styleOverrides","layoutOverrides"]){
+  for(const mapName of ["overrides","imageOverrides","styleOverrides","layoutOverrides","responsiveLayoutOverrides"]){
     const source=draft?.[mapName]||{};
     draft[mapName]=draft[mapName]||{};
     for(const [key,value] of Object.entries(source)){
@@ -65,7 +67,7 @@ function copyScopedMaps(draft:any, fromScope:string, toScope:string){
 }
 
 function removeScopedMaps(draft:any, scope:string){
-  for(const mapName of ["overrides","imageOverrides","styleOverrides","layoutOverrides"]){
+  for(const mapName of ["overrides","imageOverrides","styleOverrides","layoutOverrides","responsiveLayoutOverrides"]){
     const source=draft?.[mapName];
     if(!source||typeof source!=="object") continue;
     const marker=`:${scope}:`;
@@ -73,7 +75,8 @@ function removeScopedMaps(draft:any, scope:string){
   }
   draft.hiddenElements=(draft.hiddenElements||[]).filter((key:string)=>!key.includes(`:${scope}:`));
   draft.elementClones=(draft.elementClones||[]).filter((item:ElementClone)=>item.sectionId!==scope);
-  draft.elementPlacements=(draft.elementPlacements||[]).filter((item:ElementPlacement)=>!item.key.includes(`:${scope}:`)&&!item.targetKey.includes(`:${scope}:`));
+  draft.groupClones=(draft.groupClones||[]).filter((item:GroupClone)=>item.sectionId!==scope);
+  draft.elementPlacements=(draft.elementPlacements||[]).filter((item:ElementPlacement)=>!item.key.includes(`:${scope}:`)&&!String(item.targetKey||"").includes(`:${scope}:`)&&item.targetSectionId!==scope);
   draft.customBlocks=(draft.customBlocks||[]).filter((item:CustomBlock)=>item.sectionId!==scope);
 }
 
@@ -110,7 +113,7 @@ export function ContentStudioAdmin() {
     const handler=(event:MessageEvent)=>{
       if(event.origin!==window.location.origin)return;
       if(event.data?.type==="lordnutri-cms-select"){
-        setSelection({key:event.data.key,kind:event.data.kind,value:event.data.value,style:event.data.style||{},mode:event.data.mode,sectionId:event.data.sectionId,cloneId:event.data.cloneId,customId:event.data.customId,sourceKey:event.data.sourceKey,previousKey:event.data.previousKey,nextKey:event.data.nextKey});
+        setSelection({key:event.data.key,kind:event.data.kind,value:event.data.value,style:event.data.style||{},mode:event.data.mode,sectionId:event.data.sectionId,cloneId:event.data.cloneId,groupCloneId:event.data.groupCloneId,customId:event.data.customId,sourceKey:event.data.sourceKey,previousKey:event.data.previousKey,nextKey:event.data.nextKey});
       }
       if(event.data?.type==="lordnutri-cms-ready"){
         setSections(Array.isArray(event.data.sections)?event.data.sections:[]);
@@ -134,7 +137,11 @@ export function ContentStudioAdmin() {
         reorderSection(String(event.data.dragId||""),String(event.data.targetId||""));
       }
       if(event.data?.type==="lordnutri-cms-element-drop"){
-        moveElement(String(event.data.dragKey||""),String(event.data.targetKey||""),event.data.position==="before"?"before":"after");
+        const position=["before","after","append","prepend"].includes(String(event.data.position))?event.data.position:"after";
+        moveElement(String(event.data.dragKey||""),String(event.data.targetKey||""),position,String(event.data.targetSectionId||""));
+      }
+      if(event.data?.type==="lordnutri-cms-free-move"){
+        offsetElement(String(event.data.key||""),Number(event.data.dx||0),Number(event.data.dy||0),previewDevice);
       }
       if(event.data?.type==="lordnutri-cms-element-command"){
         const action=String(event.data.action||"");
@@ -235,9 +242,18 @@ export function ContentStudioAdmin() {
   }
   function setSelectedLayout(patch:Partial<EditableLayout>,replace=false){
     if(!selection)return;
-    mutate((draft)=>{draft.layoutOverrides=draft.layoutOverrides||{};const current=replace?{}:(draft.layoutOverrides[selection.key]||{});const next={...current,...patch};for(const [key,value] of Object.entries(next)){if(!String(value??"").trim())delete next[key];}if(Object.keys(next).length)draft.layoutOverrides[selection.key]=next;else delete draft.layoutOverrides[selection.key];return draft;});
+    mutate((draft)=>{
+      draft.responsiveLayoutOverrides=draft.responsiveLayoutOverrides||{};
+      const byDevice=draft.responsiveLayoutOverrides[selection.key]||{};
+      const current=replace?{}:(byDevice[previewDevice]||{});
+      const next={...current,...patch};
+      for(const [key,value] of Object.entries(next)){if(!String(value??"").trim())delete next[key];}
+      if(Object.keys(next).length)byDevice[previewDevice]=next;else delete byDevice[previewDevice];
+      if(Object.keys(byDevice).length)draft.responsiveLayoutOverrides[selection.key]=byDevice;else delete draft.responsiveLayoutOverrides[selection.key];
+      return draft;
+    });
   }
-  function resetSelectedLayout(){if(!selection)return;checkpoint();mutate((draft)=>{if(draft.layoutOverrides)delete draft.layoutOverrides[selection.key];return draft;});setNotice("Ajustes de tamanho e espaçamento removidos.");}
+  function resetSelectedLayout(){if(!selection)return;checkpoint();mutate((draft)=>{const byDevice=draft.responsiveLayoutOverrides?.[selection.key];if(byDevice){delete byDevice[previewDevice];if(!Object.keys(byDevice).length)delete draft.responsiveLayoutOverrides[selection.key];}return draft;});setNotice(`Layout de ${previewDevice} restaurado.`);}
 
   function resetSelectedStyle(){if(!selection||selection.kind!=="text")return;checkpoint();mutate((draft)=>{if(draft.styleOverrides)delete draft.styleOverrides[selection.key];return draft;});setSelection({...selection,style:{}});setNotice("Formatação personalizada removida.");}
   function copySelectedStyle(){if(!selection?.style||selection.kind!=="text")return;setStyleClipboard({...selection.style});setNotice("Estilo copiado. Selecione outro texto e use Colar estilo.");}
@@ -304,8 +320,9 @@ export function ContentStudioAdmin() {
       copyScopedMaps(draft,id,newId);
       draft.elementPlacements=draft.elementPlacements||[];
       for(const placement of [...draft.elementPlacements] as ElementPlacement[]){
-        if(!placement.key.includes(`:${id}:`)&&!placement.targetKey.includes(`:${id}:`))continue;
-        draft.elementPlacements.push({...placement,key:placement.key.replace(`:${id}:`,`:${newId}:`),targetKey:placement.targetKey.replace(`:${id}:`,`:${newId}:`)});
+        const targetKey=String(placement.targetKey||"");
+        if(!placement.key.includes(`:${id}:`)&&!targetKey.includes(`:${id}:`)&&placement.targetSectionId!==id)continue;
+        draft.elementPlacements.push({...placement,key:placement.key.replace(`:${id}:`,`:${newId}:`),targetKey:targetKey?targetKey.replace(`:${id}:`,`:${newId}:`):undefined,targetSectionId:placement.targetSectionId===id?newId:placement.targetSectionId});
       }
       draft.customBlocks=draft.customBlocks||[];
       const customCopies=(draft.customBlocks as CustomBlock[]).filter(item=>item.sectionId===id).map(item=>({...item,id:uniqueId(item.kind),sectionId:newId}));
@@ -316,6 +333,9 @@ export function ContentStudioAdmin() {
         const sourceKey=item.sourceKey.replace(`:${id}:`,`:${newId}:`);
         draft.elementClones.push({...item,id:cloneId,sectionId:newId,sourceKey});
       }
+      draft.groupClones=draft.groupClones||[];
+      const originalGroups=(draft.groupClones as GroupClone[]).filter(item=>item.sectionId===id);
+      for(const item of originalGroups){draft.groupClones.push({...item,id:uniqueId(item.id),sectionId:newId,sourceGroupKey:item.sourceGroupKey.replace(`:${id}:`,`:${newId}:`)});}
     },"Seção duplicada com conteúdo e estilos.");
   }
   function toggleSection(id:string){
@@ -330,24 +350,40 @@ export function ContentStudioAdmin() {
 
   function duplicateSelectedElement(){
     if(!doc||!selection)return;
+    if(selection.kind==="group"){
+      const cloneId=uniqueId("group");
+      const sectionId=selection.sectionId||"root";
+      const newKey=`group:${sectionId}:clone:${cloneId}`;
+      structuralUpdate((draft)=>{
+        draft.groupClones=draft.groupClones||[];
+        draft.groupClones.push({id:cloneId,sourceGroupKey:selection.key,sectionId} satisfies GroupClone);
+        draft.elementPlacements=draft.elementPlacements||[];
+        draft.elementPlacements=draft.elementPlacements.filter((item:ElementPlacement)=>item.key!==newKey);
+        draft.elementPlacements.push({key:newKey,targetKey:selection.key,position:"after"});
+      },"Conjunto duplicado com número, texto e formatação.");
+      return;
+    }
     const cloneId=uniqueId("element");
-    const prefix=selection.kind==="image"?"image":selection.mode==="text"?"text":"rich";
+    const selectedKind: "text"|"image" = selection.kind;
+    const prefix=selectedKind==="image"?"image":selection.mode==="text"?"text":"rich";
     const sectionId=selection.sectionId||"root";
     const newKey=`${prefix}:${sectionId}:clone:${cloneId}`;
     structuralUpdate((draft)=>{
       draft.elementClones=draft.elementClones||[];
-      draft.elementClones.push({id:cloneId,sourceKey:selection.key,sectionId,kind:selection.kind,mode:selection.mode||selection.kind} satisfies ElementClone);
-      if(selection.kind==="image"){
+      draft.elementClones.push({id:cloneId,sourceKey:selection.key,sectionId,kind:selectedKind,mode:selection.mode||selectedKind} satisfies ElementClone);
+      draft.layoutOverrides=draft.layoutOverrides||{};
+      draft.responsiveLayoutOverrides=draft.responsiveLayoutOverrides||{};
+      if(selectedKind==="image"){
         draft.imageOverrides=draft.imageOverrides||{};
         draft.imageOverrides[newKey]=(draft.imageOverrides||{})[selection.key]??selection.value;
       }else{
         draft.overrides=draft.overrides||{};
         draft.styleOverrides=draft.styleOverrides||{};
-        draft.layoutOverrides=draft.layoutOverrides||{};
         draft.overrides[newKey]=(draft.overrides||{})[selection.key]??selection.value;
         draft.styleOverrides[newKey]=structuredClone((draft.styleOverrides||{})[selection.key]||selection.style||{});
-        draft.layoutOverrides[newKey]=structuredClone((draft.layoutOverrides||{})[selection.key]||{});
       }
+      draft.layoutOverrides[newKey]=structuredClone((draft.layoutOverrides||{})[selection.key]||{});
+      draft.responsiveLayoutOverrides[newKey]=structuredClone((draft.responsiveLayoutOverrides||{})[selection.key]||{});
       draft.elementPlacements=draft.elementPlacements||[];
       draft.elementPlacements=draft.elementPlacements.filter((item:ElementPlacement)=>item.key!==newKey);
       draft.elementPlacements.push({key:newKey,targetKey:selection.key,position:"after"});
@@ -361,13 +397,29 @@ export function ContentStudioAdmin() {
       draft.hiddenElements=[...hidden];
     },"Visibilidade do elemento atualizada.");
   }
-  function moveElement(dragKey:string,targetKey:string,position:"before"|"after"){
-    if(!dragKey||!targetKey||dragKey===targetKey)return;
+  function moveElement(dragKey:string,targetKey:string,position:ElementPlacement["position"],targetSectionId=""){
+    if(!dragKey)return;
+    if(targetKey&&dragKey===targetKey)return;
+    if(!targetKey&&!targetSectionId)return;
     structuralUpdate((draft)=>{
       draft.elementPlacements=draft.elementPlacements||[];
       draft.elementPlacements=(draft.elementPlacements as ElementPlacement[]).filter(item=>item.key!==dragKey);
-      draft.elementPlacements.push({key:dragKey,targetKey,position});
-    },"Elemento movido. A nova posição foi salva no rascunho.");
+      draft.elementPlacements.push({key:dragKey,targetKey:targetKey||undefined,targetSectionId:targetSectionId||undefined,position});
+    },"Bloco movido. A nova posição foi salva no rascunho.");
+  }
+  function offsetElement(key:string,dx:number,dy:number,device:PreviewDevice){
+    if(!doc||!key||(!dx&&!dy))return;
+    checkpoint();
+    const next=structuredClone(doc.draft||{});
+    next.responsiveLayoutOverrides=next.responsiveLayoutOverrides||{};
+    const byDevice=next.responsiveLayoutOverrides[key]||{};
+    const current={...(byDevice[device]||{})};
+    const left=(Number(pxNumber(current.left,"0"))||0)+dx;
+    const top=(Number(pxNumber(current.top,"0"))||0)+dy;
+    current.position="relative";current.left=`${Math.round(left)}px`;current.top=`${Math.round(top)}px`;
+    byDevice[device]=current;next.responsiveLayoutOverrides[key]=byDevice;
+    setDoc({...doc,draft:next});
+    void persistLandingDraft(next,`Posição ajustada em ${device}.`,false);
   }
   function moveSelected(direction:-1|1){
     if(!selection)return;
@@ -375,11 +427,18 @@ export function ContentStudioAdmin() {
     moveElement(selection.key,target,direction<0?"before":"after");
   }
   function deleteSelectedElement(){
-    if(!selection?.cloneId&&!selection?.customId)return;
+    if(!selection?.cloneId&&!selection?.groupCloneId&&!selection?.customId)return;
     structuralUpdate((draft)=>{
       if(selection.cloneId)draft.elementClones=(draft.elementClones||[]).filter((item:ElementClone)=>item.id!==selection.cloneId);
+      if(selection.groupCloneId){
+        draft.groupClones=(draft.groupClones||[]).filter((item:GroupClone)=>item.id!==selection.groupCloneId);
+        const marker=`:groupclone:${selection.groupCloneId}:`;
+        for(const mapName of ["overrides","imageOverrides","styleOverrides","layoutOverrides","responsiveLayoutOverrides"]){for(const key of Object.keys(draft[mapName]||{}))if(key.includes(marker))delete draft[mapName][key];}
+        draft.hiddenElements=(draft.hiddenElements||[]).filter((key:string)=>!key.includes(marker));
+        draft.elementPlacements=(draft.elementPlacements||[]).filter((item:ElementPlacement)=>!item.key.includes(marker)&&!String(item.targetKey||"").includes(marker));
+      }
       if(selection.customId)draft.customBlocks=(draft.customBlocks||[]).filter((item:CustomBlock)=>item.id!==selection.customId);
-      for(const mapName of ["overrides","imageOverrides","styleOverrides","layoutOverrides"]){if(draft[mapName])delete draft[mapName][selection.key];}
+      for(const mapName of ["overrides","imageOverrides","styleOverrides","layoutOverrides","responsiveLayoutOverrides"]){if(draft[mapName])delete draft[mapName][selection.key];}
       draft.hiddenElements=(draft.hiddenElements||[]).filter((key:string)=>key!==selection.key);
       draft.elementPlacements=(draft.elementPlacements||[]).filter((item:ElementPlacement)=>item.key!==selection.key&&item.targetKey!==selection.key);
     },"Elemento excluído.");
@@ -404,7 +463,12 @@ export function ContentStudioAdmin() {
   async function uploadMedia(e:FormEvent<HTMLFormElement>){e.preventDefault();const form=e.currentTarget;const data=new FormData(form);setBusy(true);setNotice("");try{const item=await api("/api/admin/media",{method:"POST",body:data});setMedia(cur=>[{...item,mime_type:item.mimeType,size_bytes:item.sizeBytes},...cur]);form.reset();setNotice("Imagem enviada e pronta para uso.");}catch(err){setNotice(err instanceof Error?err.message:"Falha no upload.");}finally{setBusy(false)}}
 
   const currentStyle=selection?.style||{};
-  const currentLayout:EditableLayout=selection?(doc?.draft?.layoutOverrides||{})[selection.key]||{}:{};
+  const currentLayout:EditableLayout=useMemo(()=>{
+    if(!selection)return {};
+    const base=(doc?.draft?.layoutOverrides||{})[selection.key]||{};
+    const responsive=(doc?.draft?.responsiveLayoutOverrides||{})[selection.key]||{};
+    return {...base,...(responsive.desktop||{}),...(previewDevice!=="desktop"?(responsive.tablet||{}):{}),...(previewDevice==="mobile"?(responsive.mobile||{}):{})};
+  },[selection,doc?.draft?.layoutOverrides,doc?.draft?.responsiveLayoutOverrides,previewDevice]);
   const selectedCustom:CustomBlock|undefined=selection?.customId?(doc?.draft?.customBlocks||[]).find((item:CustomBlock)=>item.id===selection.customId):undefined;
   const selectedHidden=Boolean(selection&&doc?.draft?.hiddenElements?.includes(selection.key));
 
@@ -418,28 +482,32 @@ export function ContentStudioAdmin() {
       <div className="cms-builder-main">
         <div className="cms-builder-heading"><div><h3>LORDNUTRI Page Builder</h3><p>Clique para selecionar, <strong>duplo clique para editar</strong>. Arraste seções e elementos pelos puxadores dourados, duplique blocos, reorganize a página e use Ctrl/Cmd+Z para desfazer.</p></div><span className="cms-builder-status">Editor visual · rascunho</span></div>
         <div className="cms-canvas-toolbar" aria-label="Tamanho da prévia"><span>Visualizar:</span>{([['desktop','Desktop'],['tablet','Tablet'],['mobile','Celular']] as Array<[PreviewDevice,string]>).map(([id,label])=><button type="button" key={id} className={previewDevice===id?"active":""} onClick={()=>setPreviewDevice(id)}>{label}</button>)}</div>
-        <div className={`cms-canvas-frame device-${previewDevice}`}><iframe ref={iframeRef} key={previewVersion} className="cms-preview" src={`/?cms_preview=draft&cms_editor=1&v=${previewVersion}`} title="Editor visual da landing page" onLoad={()=>iframeRef.current?.contentWindow?.postMessage({type:"lordnutri-cms-live",content:doc.draft},window.location.origin)}/></div>
+        <div className={`cms-canvas-frame device-${previewDevice}`}><iframe ref={iframeRef} key={previewVersion} className="cms-preview" src={`/?cms_preview=draft&cms_editor=1&cms_device=${previewDevice}&v=${previewVersion}`} title="Editor visual da landing page" onLoad={()=>iframeRef.current?.contentWindow?.postMessage({type:"lordnutri-cms-live",content:doc.draft},window.location.origin)}/></div>
       </div>
       <aside className="cms-editor-panel">
-        <div className="cms-panel-block"><h3>Elemento selecionado</h3>{selection?<><code>{selection.sectionId||"root"} · {selection.key}</code><div className="cms-element-actions"><button type="button" disabled={!selection.previousKey} onClick={()=>moveSelected(-1)}>↑ Subir</button><button type="button" disabled={!selection.nextKey} onClick={()=>moveSelected(1)}>↓ Descer</button><button type="button" onClick={duplicateSelectedElement}>⧉ Duplicar</button><button type="button" onClick={toggleSelectedElement}>{selectedHidden?"◉ Exibir":"◌ Ocultar"}</button>{selection.cloneId||selection.customId?<button type="button" className="danger" onClick={deleteSelectedElement}>Excluir</button>:null}</div>{selection.kind==="text"?<>
-          <label>Texto<textarea rows={6} onFocus={checkpoint} value={(doc.draft?.overrides||{})[selection.key]??selection.value} onChange={e=>changeSelected(e.target.value)}/></label>
-          {selectedCustom?.kind==="button"?<label>Destino do botão<input value={selectedCustom.href||""} onFocus={checkpoint} onChange={e=>updateSelectedCustomBlock({href:e.target.value})} placeholder="#kits ou https://..."/></label>:null}
-          <div className="cms-brand-quick"><span>Identidade rápida</span><button type="button" onClick={()=>applyPreset("mix")}>MIX10 PRO</button><button type="button" onClick={()=>applyPreset("lord")}>LORD NUTRI</button></div>
-          <div className="cms-style-actions"><button type="button" className="secondary-button compact" onClick={copySelectedStyle}>Copiar estilo</button><button type="button" className="secondary-button compact" disabled={!styleClipboard} onClick={pasteSelectedStyle}>Colar estilo</button><button type="button" className="text-button" onClick={resetSelectedStyle}>Restaurar</button></div>
-          <div className="cms-typography-grid">
-            <label>Fonte<select onFocus={checkpoint} value={currentStyle.fontFamily||""} onChange={e=>setSelectedStyle({fontFamily:e.target.value})}><option value="">Original</option><option value='Inter, ui-sans-serif, system-ui, sans-serif'>Inter / Sans</option><option value='Georgia, "Times New Roman", serif'>Georgia / Serif</option><option value='Arial, Helvetica, sans-serif'>Arial</option><option value='"Arial Black", Arial, Helvetica, sans-serif'>Arial Black</option></select></label>
-            <label>Tamanho<input onFocus={checkpoint} type="number" min="8" max="160" value={pxNumber(currentStyle.fontSize)} placeholder="px" onChange={e=>setSelectedStyle({fontSize:e.target.value?`${e.target.value}px`:""})}/></label>
-            <label>Peso<select onFocus={checkpoint} value={currentStyle.fontWeight||""} onChange={e=>setSelectedStyle({fontWeight:e.target.value})}><option value="">Original</option>{[300,400,500,600,700,800,900].map(n=><option value={String(n)} key={n}>{n}</option>)}</select></label>
-            <label>Cor<input onFocus={checkpoint} type="color" value={rgbToHex(currentStyle.color)} onChange={e=>setSelectedStyle({color:e.target.value})}/></label>
-            <label>Entrelinha<input onFocus={checkpoint} type="number" step="0.05" min="0.7" max="3" value={pxNumber(currentStyle.lineHeight)} placeholder="px" onChange={e=>setSelectedStyle({lineHeight:e.target.value?`${e.target.value}px`:""})}/></label>
-            <label>Espaçamento<input onFocus={checkpoint} type="number" step="0.01" min="-1" max="2" value={pxNumber(currentStyle.letterSpacing)} placeholder="px" onChange={e=>setSelectedStyle({letterSpacing:e.target.value?`${e.target.value}px`:""})}/></label>
-          </div>
-          <div className="cms-format-buttons"><button type="button" className={currentStyle.fontStyle==="italic"?"active":""} onClick={()=>{checkpoint();setSelectedStyle({fontStyle:currentStyle.fontStyle==="italic"?"normal":"italic"})}}><i>I</i></button>{["left","center","right"].map(align=><button type="button" className={currentStyle.textAlign===align?"active":""} onClick={()=>{checkpoint();setSelectedStyle({textAlign:align})}} key={align}>{align==="left"?"⇤":align==="center"?"↔":"⇥"}</button>)}</div>
-          <details className="cms-builder-details"><summary>Tamanho e espaçamento</summary><div className="cms-layout-grid"><label>Largura<input value={currentLayout.width||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({width:e.target.value})} placeholder="auto / 100% / 420px"/></label><label>Máx. largura<input value={currentLayout.maxWidth||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({maxWidth:e.target.value})} placeholder="ex.: 720px"/></label><label>Margem topo<input value={currentLayout.marginTop||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({marginTop:e.target.value})} placeholder="ex.: 24px"/></label><label>Margem baixo<input value={currentLayout.marginBottom||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({marginBottom:e.target.value})} placeholder="ex.: 24px"/></label><label>Padding<input value={currentLayout.paddingTop||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({paddingTop:e.target.value,paddingBottom:e.target.value})} placeholder="ex.: 16px"/></label><label>Raio<input value={currentLayout.borderRadius||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({borderRadius:e.target.value})} placeholder="ex.: 18px"/></label></div><button type="button" className="text-button" onClick={resetSelectedLayout}>Restaurar layout do elemento</button></details>
-          <small className="cms-layout-lock-note">Conteúdo, tipografia e posição ficam salvos separadamente do HTML-base. Assim você edita sem destruir o checkout nem o responsivo.</small>
-        </>:<><label>URL da imagem<input onFocus={checkpoint} value={(doc.draft?.imageOverrides||{})[selection.key]??selection.value} onChange={e=>changeSelected(e.target.value)}/></label><div className="cms-media-picker">{media.slice(0,12).map(m=><button key={m.id} type="button" onClick={()=>{checkpoint();changeSelected(m.url||`/api/media/${m.id}`)}}><img src={m.url||`/api/media/${m.id}`} alt={m.name}/><span>{m.name}</span></button>)}</div><details className="cms-builder-details"><summary>Imagem / layout</summary><div className="cms-layout-grid"><label>Largura<input value={currentLayout.width||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({width:e.target.value})} placeholder="100%"/></label><label>Máx. largura<input value={currentLayout.maxWidth||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({maxWidth:e.target.value})} placeholder="640px"/></label><label>Altura<input value={currentLayout.height||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({height:e.target.value})} placeholder="auto"/></label><label>Opacidade<input value={currentLayout.opacity||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({opacity:e.target.value})} placeholder="0.8"/></label><label>Encaixe<select value={currentLayout.objectFit||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({objectFit:e.target.value})}><option value="">Original</option><option value="cover">Cover</option><option value="contain">Contain</option><option value="fill">Fill</option></select></label><label>Posição<input value={currentLayout.objectPosition||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({objectPosition:e.target.value})} placeholder="center center"/></label><label>Raio<input value={currentLayout.borderRadius||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({borderRadius:e.target.value})} placeholder="18px"/></label></div><button type="button" className="text-button" onClick={resetSelectedLayout}>Restaurar layout da imagem</button></details></>}</>:<p>Clique em qualquer texto ou imagem na prévia.</p>}</div>
+        <div className="cms-panel-block"><div className="cms-section-manager-head"><h3>Elemento selecionado</h3><span>{previewDevice}</span></div>{selection?<><code>{selection.kind} · {selection.sectionId||"root"} · {selection.key}</code><div className="cms-element-actions"><button type="button" disabled={!selection.previousKey} onClick={()=>moveSelected(-1)}>↑ Subir</button><button type="button" disabled={!selection.nextKey} onClick={()=>moveSelected(1)}>↓ Descer</button><button type="button" onClick={duplicateSelectedElement}>⧉ Duplicar</button><button type="button" onClick={toggleSelectedElement}>{selectedHidden?"◉ Exibir":"◌ Ocultar"}</button>{selection.cloneId||selection.groupCloneId||selection.customId?<button type="button" className="danger" onClick={deleteSelectedElement}>Excluir</button>:null}</div>
+          {selection.kind==="group"?<div className="cms-group-help"><strong>Conjunto / container</strong><p>Esse bloco mantém os itens internos juntos. Ex.: <b>30 + “cápsulas por caixa”</b>. Duplique o conjunto e arraste tudo de uma vez para outra área da landing.</p></div>:null}
+          {selection.kind==="text"?<>
+            <label>Texto<textarea rows={6} onFocus={checkpoint} value={(doc.draft?.overrides||{})[selection.key]??selection.value} onChange={e=>changeSelected(e.target.value)}/></label>
+            {selectedCustom?.kind==="button"?<label>Destino do botão<input value={selectedCustom.href||""} onFocus={checkpoint} onChange={e=>updateSelectedCustomBlock({href:e.target.value})} placeholder="#kits ou https://..."/></label>:null}
+            <div className="cms-brand-quick"><span>Identidade rápida</span><button type="button" onClick={()=>applyPreset("mix")}>MIX10 PRO</button><button type="button" onClick={()=>applyPreset("lord")}>LORD NUTRI</button></div>
+            <div className="cms-style-actions"><button type="button" className="secondary-button compact" onClick={copySelectedStyle}>Copiar estilo</button><button type="button" className="secondary-button compact" disabled={!styleClipboard} onClick={pasteSelectedStyle}>Colar estilo</button><button type="button" className="text-button" onClick={resetSelectedStyle}>Restaurar fonte</button></div>
+            <div className="cms-typography-grid">
+              <label>Fonte<select onFocus={checkpoint} value={currentStyle.fontFamily||""} onChange={e=>setSelectedStyle({fontFamily:e.target.value})}><option value="">Original</option><option value='Inter, ui-sans-serif, system-ui, sans-serif'>Inter / Sans</option><option value='Georgia, "Times New Roman", serif'>Georgia / Serif</option><option value='Arial, Helvetica, sans-serif'>Arial</option><option value='"Arial Black", Arial, Helvetica, sans-serif'>Arial Black</option></select></label>
+              <label>Tamanho<input onFocus={checkpoint} type="number" min="8" max="160" value={pxNumber(currentStyle.fontSize)} placeholder="px" onChange={e=>setSelectedStyle({fontSize:e.target.value?`${e.target.value}px`:""})}/></label>
+              <label>Peso<select onFocus={checkpoint} value={currentStyle.fontWeight||""} onChange={e=>setSelectedStyle({fontWeight:e.target.value})}><option value="">Original</option>{[300,400,500,600,700,800,900].map(n=><option value={String(n)} key={n}>{n}</option>)}</select></label>
+              <label>Cor<input onFocus={checkpoint} type="color" value={rgbToHex(currentStyle.color)} onChange={e=>setSelectedStyle({color:e.target.value})}/></label>
+              <label>Entrelinha<input onFocus={checkpoint} type="number" step="0.05" min="0.7" max="3" value={pxNumber(currentStyle.lineHeight)} placeholder="px" onChange={e=>setSelectedStyle({lineHeight:e.target.value?`${e.target.value}px`:""})}/></label>
+              <label>Espaçamento<input onFocus={checkpoint} type="number" step="0.01" min="-1" max="2" value={pxNumber(currentStyle.letterSpacing)} placeholder="px" onChange={e=>setSelectedStyle({letterSpacing:e.target.value?`${e.target.value}px`:""})}/></label>
+            </div>
+            <div className="cms-format-buttons"><button type="button" className={currentStyle.fontStyle==="italic"?"active":""} onClick={()=>{checkpoint();setSelectedStyle({fontStyle:currentStyle.fontStyle==="italic"?"normal":"italic"})}}><i>I</i></button>{["left","center","right"].map(align=><button type="button" className={currentStyle.textAlign===align?"active":""} onClick={()=>{checkpoint();setSelectedStyle({textAlign:align})}} key={align}>{align==="left"?"⇤":align==="center"?"↔":"⇥"}</button>)}</div>
+          </>:null}
+          {selection.kind==="image"?<><label>URL da imagem<input onFocus={checkpoint} value={(doc.draft?.imageOverrides||{})[selection.key]??selection.value} onChange={e=>changeSelected(e.target.value)}/></label><div className="cms-media-picker">{media.slice(0,12).map(m=><button key={m.id} type="button" onClick={()=>{checkpoint();changeSelected(m.url||`/api/media/${m.id}`)}}><img src={m.url||`/api/media/${m.id}`} alt={m.name}/><span>{m.name}</span></button>)}</div></>:null}
+          <details className="cms-builder-details" open><summary>Posição responsiva · {previewDevice}</summary><div className="cms-layout-grid"><label>Largura<input value={currentLayout.width||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({width:e.target.value})} placeholder="auto / 100% / 320px"/></label><label>Máx. largura<input value={currentLayout.maxWidth||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({maxWidth:e.target.value})} placeholder="ex.: 720px"/></label><label>X / esquerda<input value={currentLayout.left||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({position:e.target.value?"relative":"",left:e.target.value})} placeholder="ex.: 40px"/></label><label>Y / topo<input value={currentLayout.top||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({position:e.target.value?"relative":"",top:e.target.value})} placeholder="ex.: -20px"/></label><label>Margem topo<input value={currentLayout.marginTop||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({marginTop:e.target.value})} placeholder="ex.: 24px"/></label><label>Margem baixo<input value={currentLayout.marginBottom||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({marginBottom:e.target.value})} placeholder="ex.: 24px"/></label><label>Ordem<input value={currentLayout.order||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({order:e.target.value})} placeholder="0, 1, 2..."/></label><label>Coluna grid<input value={currentLayout.gridColumn||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({gridColumn:e.target.value})} placeholder="1 / -1"/></label><label>Linha grid<input value={currentLayout.gridRow||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({gridRow:e.target.value})} placeholder="auto"/></label><label>Z-index<input value={currentLayout.zIndex||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({zIndex:e.target.value})} placeholder="1"/></label><label>Padding<input value={currentLayout.paddingTop||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({paddingTop:e.target.value,paddingBottom:e.target.value})} placeholder="ex.: 16px"/></label><label>Raio<input value={currentLayout.borderRadius||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({borderRadius:e.target.value})} placeholder="18px"/></label>{selection.kind==="image"?<><label>Altura<input value={currentLayout.height||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({height:e.target.value})} placeholder="auto"/></label><label>Opacidade<input value={currentLayout.opacity||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({opacity:e.target.value})} placeholder="0.8"/></label><label>Encaixe<select value={currentLayout.objectFit||""} onFocus={checkpoint} onChange={e=>setSelectedLayout({objectFit:e.target.value})}><option value="">Original</option><option value="cover">Cover</option><option value="contain">Contain</option><option value="fill">Fill</option></select></label></>:null}</div><button type="button" className="text-button" onClick={resetSelectedLayout}>Restaurar somente {previewDevice}</button></details>
+          <small className="cms-layout-lock-note"><b>Layout travado:</b> o HTML-base e as funções ficam protegidos. <b>Responsivo real:</b> desktop, tablet e celular guardam posições separadas. Use o puxador <b>✥</b> sobre o elemento para deslocar livremente e <b>⋮⋮</b> para encaixar em outro ponto/seção.</small>
+        </>:<p>Clique em um texto, imagem ou no espaço de um conjunto. Para pegar “30 + texto”, clique no 30 e depois no botão <b>▦ conjunto</b> que aparece sobre ele.</p>}</div>
 
-        <div className="cms-panel-block"><div className="cms-section-manager-head"><h3>Adicionar bloco</h3><span>na seção selecionada</span></div><div className="cms-block-library"><button type="button" onClick={()=>addCustomBlock("heading")}>H<br/><small>Título</small></button><button type="button" onClick={()=>addCustomBlock("text")}>¶<br/><small>Texto</small></button><button type="button" onClick={()=>addCustomBlock("button")}>▣<br/><small>Botão</small></button><button type="button" onClick={()=>addCustomBlock("image")}>▧<br/><small>Imagem</small></button></div><small className="cms-layout-lock-note">Selecione qualquer elemento da seção desejada e adicione um bloco. Depois arraste pelo puxador que aparece sobre ele.</small></div>
+        <div className="cms-panel-block"><div className="cms-section-manager-head"><h3>Adicionar bloco</h3><span>na seção selecionada</span></div><div className="cms-block-library"><button type="button" onClick={()=>addCustomBlock("heading")}>H<br/><small>Título</small></button><button type="button" onClick={()=>addCustomBlock("text")}>¶<br/><small>Texto</small></button><button type="button" onClick={()=>addCustomBlock("button")}>▣<br/><small>Botão</small></button><button type="button" onClick={()=>addCustomBlock("image")}>▧<br/><small>Imagem</small></button></div><small className="cms-layout-lock-note">Selecione qualquer elemento da seção desejada e adicione um bloco. Para conjuntos como “30 + texto”, selecione ▦ conjunto, duplique e arraste o bloco inteiro.</small></div>
 
         <div className="cms-panel-block"><div className="cms-section-manager-head"><h3>Camadas / seções</h3><span>arraste · duplique · oculte</span></div><div className="cms-section-list">{sectionInstances.map((instance,index)=>{const catalog=sectionCatalog.get(instance.sourceId);const isCopy=instance.id!==instance.sourceId;return <div draggable onDragStart={()=>setDraggingSection(instance.id)} onDragOver={e=>e.preventDefault()} onDrop={()=>dropSection(instance.id)} className={`cms-section-row${instance.hidden?" is-hidden":""}`} key={instance.id}><span className="cms-drag-handle" title="Arrastar">⋮⋮</span><div className="cms-section-name"><strong>{sectionLabel(instance)}</strong><small>{isCopy?"cópia":"original"}</small></div><div className="cms-section-buttons"><button type="button" disabled={index===0} onClick={()=>moveSection(instance.id,-1)} title="Subir">↑</button><button type="button" disabled={index===sectionInstances.length-1} onClick={()=>moveSection(instance.id,1)} title="Descer">↓</button><button type="button" disabled={catalog?.duplicateAllowed===false} onClick={()=>duplicateSection(instance.id)} title="Duplicar">⧉</button><button type="button" onClick={()=>toggleSection(instance.id)} title={instance.hidden?"Exibir":"Ocultar"}>{instance.hidden?"◉":"◌"}</button>{isCopy?<button type="button" className="danger" onClick={()=>deleteSection(instance.id)} title="Excluir cópia">×</button>:null}</div></div>})}</div><small className="cms-layout-lock-note">Também dá para arrastar pelo puxador que aparece sobre cada seção dentro da própria página. Simulador e checkout não são duplicáveis porque têm lógica dinâmica.</small></div>
         <button className="secondary-button" type="button" onClick={()=>void save()}>Salvar sem publicar</button>
