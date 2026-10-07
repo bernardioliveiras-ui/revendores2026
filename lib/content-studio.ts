@@ -19,7 +19,7 @@ const mediaDefaults = { assets: [
   { id:"people-wellbeing", label:"Foto bem-estar", url:"/brand/caminhada-bem-estar-1280-v4.webp", kind:"image" },
 ]};
 const defaults: Record<StudioDocType, unknown> = {
-  landing: { overrides: {} },
+  landing: { overrides: {}, fontScales: {}, freeElements: [] },
   manual: manualFields,
   products: productDefaults,
   media: mediaDefaults,
@@ -269,6 +269,84 @@ function sanitizeStringList(value: unknown, max = 160) {
   return output;
 }
 
+
+const allowedFreeStyleKeys = new Set([
+  "fontFamily", "fontSize", "fontWeight", "fontStyle", "color", "textAlign",
+  "letterSpacing", "lineHeight", "textTransform", "textDecoration", "opacity",
+  "borderRadius", "objectFit", "objectPosition",
+]);
+
+function sanitizeFreeStyle(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const output: Record<string, string> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!allowedFreeStyleKeys.has(key) || typeof raw !== "string") continue;
+    const clean = safeCssValue(raw);
+    if (clean) output[key] = clean;
+  }
+  return output;
+}
+
+function clampNumber(value: unknown, min: number, max: number, fallback: number) {
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(min, Math.min(max, Math.round(numeric * 100) / 100));
+}
+
+function sanitizeFreePlacement(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const raw = value as Record<string, unknown>;
+  return {
+    xPct: clampNumber(raw.xPct, -50, 150, 8),
+    yPx: clampNumber(raw.yPx, -1200, 12000, 80),
+    widthPct: clampNumber(raw.widthPct, 3, 160, 45),
+    z: Math.round(clampNumber(raw.z, 1, 999, 30)),
+  };
+}
+
+function sanitizeFreeElements(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const output: Array<{
+    id: string; kind: "text" | "image"; sectionId: string; content?: string; src?: string; alt?: string;
+    style?: Record<string, string>; placements?: Record<string, { xPct: number; yPx: number; widthPct: number; z: number }>; groupId?: string;
+  }> = [];
+  for (const rawItem of value) {
+    if (!rawItem || typeof rawItem !== "object" || Array.isArray(rawItem)) continue;
+    const item = rawItem as Record<string, unknown>;
+    const id = typeof item.id === "string" ? item.id.trim().slice(0, 100) : "";
+    const kind = item.kind === "image" ? "image" : item.kind === "text" ? "text" : null;
+    const sectionId = typeof item.sectionId === "string" ? item.sectionId.trim().slice(0, 100) : "";
+    if (!kind || !/^[a-z0-9][a-z0-9-]*$/i.test(id) || !/^[a-z0-9][a-z0-9-]*$/i.test(sectionId) || seen.has(id)) continue;
+    seen.add(id);
+    const next: {
+      id: string; kind: "text" | "image"; sectionId: string; content?: string; src?: string; alt?: string;
+      style?: Record<string, string>; placements?: Record<string, { xPct: number; yPx: number; widthPct: number; z: number }>; groupId?: string;
+    } = { id, kind, sectionId };
+    const groupId = typeof item.groupId === "string" ? item.groupId.trim().slice(0, 100) : "";
+    if (/^[a-z0-9][a-z0-9-]*$/i.test(groupId)) next.groupId = groupId;
+    if (kind === "text") next.content = typeof item.content === "string" ? item.content.slice(0, 6000) : "Novo texto";
+    if (kind === "image") {
+      const src = typeof item.src === "string" ? item.src.trim().slice(0, 1800) : "";
+      if (src && !/^javascript:/i.test(src) && !/^data:text\//i.test(src)) next.src = src;
+      next.alt = typeof item.alt === "string" ? item.alt.slice(0, 500) : "";
+    }
+    const style = sanitizeFreeStyle(item.style);
+    if (Object.keys(style).length) next.style = style;
+    const placements: Record<string, { xPct: number; yPx: number; widthPct: number; z: number }> = {};
+    if (item.placements && typeof item.placements === "object" && !Array.isArray(item.placements)) {
+      for (const device of ["desktop", "tablet", "mobile"]) {
+        const placement = sanitizeFreePlacement((item.placements as Record<string, unknown>)[device]);
+        if (placement) placements[device] = placement;
+      }
+    }
+    if (Object.keys(placements).length) next.placements = placements;
+    output.push(next);
+    if (output.length >= 180) break;
+  }
+  return output;
+}
+
 function sanitizeLandingDraft(value: unknown) {
   const source = value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -289,10 +367,10 @@ function sanitizeLandingDraft(value: unknown) {
     const safe = Math.min(1.4, Math.max(.8, Math.round(numeric * 20) / 20));
     if (Math.abs(safe - 1) > .001) fontScales[key.slice(0, 500)] = safe;
   }
-  // TEXT-SAFE 0.6.1: landing persists copy plus one bounded typography control:
-  // a proportional 80%-140% font-size multiplier. Legacy image/layout/clone/order
-  // data is still discarded, so changing copy or size cannot reposition the LP.
-  return { overrides, fontScales };
+  // FREE CANVAS 0.7.0: the original LP remains structurally immutable.
+  // Visual freedom lives in isolated overlay elements with bounded, device-specific placement.
+  // This prevents a drag/duplicate action from rewriting React markup, grids or checkout logic.
+  return { overrides, fontScales, freeElements: sanitizeFreeElements(source.freeElements) };
 }
 
 export async function getStudioDoc(type: StudioDocType) {

@@ -539,3 +539,18 @@
 .cms-drop-target-runtime{outline:4px solid #55c7a2!important;outline-offset:6px!important;box-shadow:0 0 0 7px rgba(85,199,162,.12)!important}
 .cms-drop-section-runtime{box-shadow:inset 0 0 0 4px rgba(216,179,95,.72)!important}
 .lnr-page [data-cms-group].cms-group-selected-runtime{outline:3px solid #55c7a2!important;outline-offset:5px!important}
+
+/* FREE CANVAS 0.7.0 -------------------------------------------------------
+   Camadas visuais independentes. A estrutura React original permanece intacta. */
+.lnr-page .cms-free-layer{position:absolute;inset:0;pointer-events:none;z-index:20;overflow:visible}
+.lnr-page .cms-free-element{position:absolute;box-sizing:border-box;min-width:24px;min-height:18px;pointer-events:none;touch-action:none}
+.lnr-page .cms-free-content{width:100%;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere}
+.lnr-page .cms-free-image .cms-free-content{line-height:0}
+.lnr-page .cms-free-content>img{display:block;width:100%;height:auto;max-width:none}
+.lnr-page .cms-free-selected{outline:2px solid #d8b35f!important;outline-offset:4px!important}
+.lnr-page .cms-free-move,.lnr-page .cms-free-resize{position:absolute;z-index:2147483001;width:27px;height:27px;border:1px solid #d8b35f;border-radius:7px;background:#10221c;color:#f6e3a7;font:800 14px/1 Arial,sans-serif;display:grid;place-items:center;cursor:grab;box-shadow:0 5px 16px #0007;padding:0}
+.lnr-page .cms-free-move{left:-13px;top:-34px}
+.lnr-page .cms-free-resize{right:-13px;bottom:-34px;cursor:nwse-resize}
+.lnr-page .cms-free-move:active{cursor:grabbing}
+.lnr-page [data-cms-image-editable="1"]{cursor:pointer}
+.lnr-page [data-cms-image-editable="1"]:hover:not(.cms-selected){outline:1px dashed rgba(216,179,95,.78);outline-offset:3px}
