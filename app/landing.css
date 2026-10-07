@@ -532,3 +532,10 @@
 .lnr-page [data-cms-kind="group"].cms-group-selected-runtime{outline:3px solid #55c7a2!important;outline-offset:5px!important}
 .cms-element-dragging-runtime{opacity:.55!important;outline:3px dashed #d8b35f!important;outline-offset:4px!important}
 .cms-element-free-moving-runtime{outline:3px dashed #55c7a2!important;outline-offset:4px!important;cursor:move!important}
+
+/* 0.5.2 — STABLE BUILDER: drag por pointer e grupos explícitos */
+.cms-element-toolbar-runtime .cms-element-drag-runtime,
+.cms-element-toolbar-runtime .cms-element-free-runtime{touch-action:none;user-select:none;-webkit-user-select:none}
+.cms-drop-target-runtime{outline:4px solid #55c7a2!important;outline-offset:6px!important;box-shadow:0 0 0 7px rgba(85,199,162,.12)!important}
+.cms-drop-section-runtime{box-shadow:inset 0 0 0 4px rgba(216,179,95,.72)!important}
+.lnr-page [data-cms-group].cms-group-selected-runtime{outline:3px solid #55c7a2!important;outline-offset:5px!important}

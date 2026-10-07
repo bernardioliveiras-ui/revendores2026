@@ -67,6 +67,8 @@ const layoutKeys: LayoutKey[] = [
 ];
 
 const sectionLabels: Record<string, string> = {
+  announce: "Faixa dourada do topo",
+  header: "Cabeçalho / menu",
   inicio: "Abertura",
   "lord-nutri": "LORD NUTRI",
   mix10pro: "MIX10 PRO",
@@ -78,7 +80,7 @@ const sectionLabels: Record<string, string> = {
   checkout: "Checkout",
 };
 
-const duplicateBlockedSections = new Set(["simulador", "checkout"]);
+const duplicateBlockedSections = new Set(["announce", "header", "simulador", "checkout"]);
 
 function domPath(el: Element, root: Element): string {
   const parts: string[] = [];
@@ -115,7 +117,15 @@ function scopeName(scope: HTMLElement, root: HTMLElement) {
 function stableKey(kind: "text" | "rich" | "image", element: HTMLElement, root: HTMLElement) {
   if (element.dataset.cmsExplicitKey) return element.dataset.cmsExplicitKey;
   const scope = editableScope(element, root);
-  return `${kind}:${scopeName(scope, root)}:${domPath(element, scope)}`;
+  const scopeId = scopeName(scope, root);
+  // Prefer named CMS groups over section-wide DOM paths. This keeps an element's
+  // identity stable when its whole card/group is reordered or moved elsewhere.
+  const namedGroup = element.closest<HTMLElement>("[data-cms-group]");
+  if (namedGroup && scope.contains(namedGroup)) {
+    const groupName = (namedGroup.dataset.cmsGroup || "group").replace(/[^a-z0-9-]+/gi, "-").toLowerCase();
+    return `${kind}:${scopeId}:group:${groupName}:${domPath(element, namedGroup) || "self"}`;
+  }
+  return `${kind}:${scopeId}:${domPath(element, scope)}`;
 }
 
 function legacyKey(kind: "text" | "rich" | "image", element: HTMLElement, root: HTMLElement) {
@@ -235,7 +245,13 @@ function sourceCatalog(root: HTMLElement): BlockCatalogEntry[] {
   return Array.from(root.children).flatMap((child) => {
     if (!(child instanceof HTMLElement)) return [];
     let id = "";
-    if (child.matches("section[id]")) id = child.id;
+    // Structural blocks outside <section> also belong to the visual builder.
+    // The announcement bar used to be editable only through its inner text,
+    // which could leave the two separator dots behind. Treating the whole
+    // bar as one section makes hide/show atomic and predictable.
+    if (child.classList.contains("lnr-announce")) id = "announce";
+    else if (child.classList.contains("lnr-header")) id = "header";
+    else if (child.matches("section[id]")) id = child.id;
     else if (child.classList.contains("lnr-proof-section")) id = "avaliacoes";
     if (!id) return [];
     return [{ id, label: sectionLabels[id] || id, duplicateAllowed: !duplicateBlockedSections.has(id), element: child }];
@@ -259,7 +275,22 @@ function normalizedInstances(content: LandingContent, catalog: BlockCatalogEntry
     for (const id of order) { result.push({ id, sourceId: id }); seen.add(id); }
   }
   for (const item of catalog) {
-    if (!result.some(instance => instance.id === item.id)) result.push({ id: item.id, sourceId: item.id });
+    if (result.some(instance => instance.id === item.id)) continue;
+    // New structural blocks must be inserted in their natural DOM position.
+    // This is especially important when upgrading an existing saved document:
+    // appending the announcement bar would move it to the bottom of the LP.
+    const catalogIndex = catalog.findIndex(candidate => candidate.id === item.id);
+    let inserted = false;
+    for (let i = catalogIndex + 1; i < catalog.length; i += 1) {
+      const nextId = catalog[i]?.id;
+      const nextIndex = result.findIndex(instance => instance.sourceId === nextId);
+      if (nextIndex >= 0) {
+        result.splice(nextIndex, 0, { id: item.id, sourceId: item.id });
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) result.push({ id: item.id, sourceId: item.id });
   }
   return result;
 }
@@ -379,10 +410,8 @@ function selectableDescendants(container: HTMLElement) {
 }
 
 function isGroupCandidate(element: HTMLElement) {
-  if (element.matches("section,main,footer,form,nav,details,summary,.lnr-shell,.cms-section-toolbar-runtime,.cms-element-toolbar-runtime")) return false;
   if (element.closest(".cms-section-toolbar-runtime,.cms-element-toolbar-runtime")) return false;
-  const count = selectableDescendants(element).length;
-  return count >= 2 && count <= 18;
+  return Boolean(element.dataset.cmsGroup || element.dataset.cmsGroupExplicitKey || element.dataset.cmsGroupCloneId);
 }
 
 function groupScope(element: HTMLElement, root: HTMLElement) {
@@ -392,6 +421,8 @@ function groupScope(element: HTMLElement, root: HTMLElement) {
 function groupStableKey(element: HTMLElement, root: HTMLElement) {
   if (element.dataset.cmsGroupExplicitKey) return element.dataset.cmsGroupExplicitKey;
   const scope = groupScope(element, root);
+  const explicitName = element.dataset.cmsGroup?.trim();
+  if (explicitName) return `group:${scopeName(scope, root)}:${explicitName.replace(/[^a-z0-9-]+/gi, "-").toLowerCase()}`;
   return `group:${scopeName(scope, root)}:${domPath(element, scope)}`;
 }
 
@@ -764,8 +795,62 @@ function installElementToolbar(root: HTMLElement, target: HTMLElement, neighbors
   toolbar.dataset.cmsFor = target.dataset.cmsKey || "";
 
   const drag = document.createElement("button");
-  drag.type = "button"; drag.draggable = true; drag.className = "cms-element-drag-runtime"; drag.title = "Arrastar e encaixar em outro ponto ou seção"; drag.textContent = "⋮⋮";
+  drag.type = "button"; drag.className = "cms-element-drag-runtime"; drag.title = "Arrastar e encaixar em outro ponto"; drag.textContent = "⋮⋮";
   drag.dataset.cmsDragKey = target.dataset.cmsKey || "";
+  drag.addEventListener("pointerdown", event => {
+    const dragKey = target.dataset.cmsKey || "";
+    if (!dragKey) return;
+    event.preventDefault(); event.stopPropagation();
+    const startX = event.clientX; const startY = event.clientY;
+    let candidate: HTMLElement | null = null;
+    let candidateSection: HTMLElement | null = null;
+    let position: "before" | "after" = "after";
+    const clearTarget = () => {
+      root.querySelectorAll(".cms-drop-target-runtime,.cms-drop-section-runtime").forEach(node => node.classList.remove("cms-drop-target-runtime","cms-drop-section-runtime"));
+      candidate = null; candidateSection = null;
+    };
+    const locate = (pointer: PointerEvent) => {
+      target.style.translate = `${Math.round(pointer.clientX - startX)}px ${Math.round(pointer.clientY - startY)}px`;
+      toolbar.style.pointerEvents = "none";
+      const hit = document.elementFromPoint(pointer.clientX, pointer.clientY);
+      toolbar.style.pointerEvents = "";
+      clearTarget();
+      if (!(hit instanceof Element) || target.contains(hit)) return;
+      const raw = hit.closest<HTMLElement>("[data-cms-key]");
+      const next = target.dataset.cmsKind === "group" ? (hit.closest<HTMLElement>('[data-cms-kind="group"]') || raw) : raw;
+      if (next && next !== target && !target.contains(next) && !next.contains(target)) {
+        const rect = next.getBoundingClientRect();
+        position = pointer.clientY < rect.top + rect.height / 2 ? "before" : "after";
+        candidate = next;
+        next.classList.add("cms-drop-target-runtime");
+        return;
+      }
+      const section = hit.closest<HTMLElement>("[data-cms-section-instance]");
+      if (section && !target.contains(section)) { candidateSection = section; section.classList.add("cms-drop-section-runtime"); }
+    };
+    const finish = (pointer: PointerEvent) => {
+      document.removeEventListener("pointermove", locate);
+      document.removeEventListener("pointerup", finish);
+      document.removeEventListener("pointercancel", cancel);
+      target.style.removeProperty("translate");
+      target.classList.remove("cms-element-dragging-runtime");
+      const targetKey = candidate?.dataset.cmsKey || "";
+      const targetSectionId = candidateSection?.dataset.cmsSectionInstance || "";
+      clearTarget();
+      if (targetKey) window.parent.postMessage({type:"lordnutri-cms-element-drop",dragKey,targetKey,position},window.location.origin);
+      else if (targetSectionId) window.parent.postMessage({type:"lordnutri-cms-element-drop",dragKey,targetSectionId,position:"append"},window.location.origin);
+    };
+    const cancel = () => {
+      document.removeEventListener("pointermove", locate);
+      document.removeEventListener("pointerup", finish);
+      document.removeEventListener("pointercancel", cancel);
+      target.style.removeProperty("translate"); target.classList.remove("cms-element-dragging-runtime"); clearTarget();
+    };
+    target.classList.add("cms-element-dragging-runtime");
+    document.addEventListener("pointermove", locate);
+    document.addEventListener("pointerup", finish, { once: true });
+    document.addEventListener("pointercancel", cancel, { once: true });
+  });
 
   const free = document.createElement("button");
   free.type = "button"; free.className = "cms-element-free-runtime"; free.title = "Mover livremente neste tamanho de tela"; free.textContent = "✥";
@@ -826,7 +911,7 @@ function installElementToolbar(root: HTMLElement, target: HTMLElement, neighbors
   const rect = target.getBoundingClientRect();
   toolbar.style.left = `${Math.max(6, Math.min(window.innerWidth - 330, rect.left))}px`;
   toolbar.style.top = `${Math.max(6, rect.top - 38)}px`;
-  target.insertAdjacentElement("beforebegin", toolbar);
+  root.append(toolbar);
 }
 
 export function ContentRuntime() {

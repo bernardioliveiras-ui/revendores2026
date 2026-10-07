@@ -1,6 +1,6 @@
 # LORD NUTRI — LP e Portal do Revendedor
 
-Versão 0.5.1-lordnutri-responsive-blocks. Next.js, Node 22, MySQL e Drizzle.
+Versão 0.5.2-lordnutri-stable-builder. Next.js, Node 22, MySQL e Drizzle.
 
 Comece por `LEIA-ME-PRIMEIRO.md`. Aplique a atualização completa para receber tanto o layout quanto as correções de checkout e automação. A revisão e as pendências de homologação estão em `REVISAO-FINAL-TRAFEGO.md`.
 
@@ -18,6 +18,6 @@ O manual atualizado tem 22 páginas, escrita do PDF-base preservada e sete cenas
 Abertura sem a logo central duplicada; marca mantida no cabeçalho. Título e CTA ampliados. Cards com flutuação suave e suporte a movimento reduzido. Manual privado atualizado com escrita preservada, capa somente com marca e título, três capítulos adicionais e composição atualizada.
 
 
-## Editor visual 0.5.1 — blocos responsivos
+## Editor visual 0.5.2 — Stable Builder
 
-A aba **BKO > Conteúdo > Landing Page** agora permite selecionar conjuntos compostos (por exemplo, número + legenda), duplicá-los como um único bloco, mover entre seções e manter posições/layouts independentes em Desktop, Tablet e Celular. Consulte `ENTREGA-0.5.1-RESPONSIVE-BLOCKS.md`.
+A aba **BKO > Conteúdo > Landing Page** usa grupos explícitos e permanentes para os principais blocos da LP. Conjuntos como `30 + cápsulas por caixa` podem ser selecionados, duplicados e movidos juntos com pointer-drag, mantendo posições/layouts independentes em Desktop, Tablet e Celular. Consulte `ENTREGA-0.5.2-STABLE-BUILDER.md`.
