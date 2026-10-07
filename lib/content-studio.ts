@@ -278,10 +278,21 @@ function sanitizeLandingDraft(value: unknown) {
   for (const [key, entry] of Object.entries(raw)) {
     if (/^(text|rich):/.test(key)) overrides[key] = entry;
   }
-  // TEXT-SAFE 0.6.0: landing content persists text only.
-  // Legacy image/style/layout/clone/order fields are intentionally discarded so
-  // an old visual-builder draft cannot move, resize, hide or restyle the LP.
-  return { overrides };
+  const fontScales: Record<string, number> = {};
+  const rawScales = source.fontScales && typeof source.fontScales === "object" && !Array.isArray(source.fontScales)
+    ? source.fontScales as Record<string, unknown>
+    : {};
+  for (const [key, rawValue] of Object.entries(rawScales)) {
+    if (!/^(text|rich):/.test(key)) continue;
+    const numeric = typeof rawValue === "number" ? rawValue : Number(rawValue);
+    if (!Number.isFinite(numeric)) continue;
+    const safe = Math.min(1.4, Math.max(.8, Math.round(numeric * 20) / 20));
+    if (Math.abs(safe - 1) > .001) fontScales[key.slice(0, 500)] = safe;
+  }
+  // TEXT-SAFE 0.6.1: landing persists copy plus one bounded typography control:
+  // a proportional 80%-140% font-size multiplier. Legacy image/layout/clone/order
+  // data is still discarded, so changing copy or size cannot reposition the LP.
+  return { overrides, fontScales };
 }
 
 export async function getStudioDoc(type: StudioDocType) {

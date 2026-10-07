@@ -921,3 +921,6 @@ body { overflow-x: clip; }
 .cms-text-groups button span{display:block;font-size:11px;line-height:1.35}
 .cms-text-safe-panel textarea{resize:vertical;min-height:86px;line-height:1.45}
 @media(max-width:1100px){.cms-text-safe-shell{grid-template-columns:1fr}.cms-text-groups{max-height:360px}}
+
+/* TEXT-SAFE 0.6.1 — bounded font-size control; layout remains locked. */
+.cms-safe-type-size{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid #ddd6c9;background:#faf8f3;border-radius:10px}.cms-safe-type-size>div:first-child{display:grid;gap:2px}.cms-safe-type-size strong{font-size:12px}.cms-safe-type-size small{font-size:10px;color:#756d61}.cms-safe-size-buttons{display:flex;gap:5px;align-items:center}.cms-safe-size-buttons button{min-width:42px;height:34px;padding:0 9px;border:1px solid #d3cbbb;background:#fff;border-radius:8px;font-weight:900;cursor:pointer}.cms-safe-size-buttons button:first-child,.cms-safe-size-buttons button:last-child{font-size:16px}.cms-safe-size-buttons button:disabled{opacity:.38;cursor:not-allowed}.cms-safe-size-buttons button:not(:disabled):hover{border-color:#8d7440;background:#fffdf8}

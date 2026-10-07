@@ -16,7 +16,14 @@ async function api(url:string, init:RequestInit={}) {
 }
 
 function landingDraft(value:any){
-  return {overrides:{...(value?.overrides||{})}};
+  const fontScales:Record<string,number>={};
+  for(const [key,raw] of Object.entries(value?.fontScales||{})){
+    const numeric=typeof raw==="number"?raw:Number(raw);
+    if(!/^(text|rich):/.test(key)||!Number.isFinite(numeric))continue;
+    const safe=Math.min(1.4,Math.max(.8,Math.round(numeric*20)/20));
+    if(Math.abs(safe-1)>.001)fontScales[key]=safe;
+  }
+  return {overrides:{...(value?.overrides||{})},fontScales};
 }
 
 function recommendedMax(original:string){
@@ -179,15 +186,27 @@ export function ContentStudioAdmin() {
     setSelection({...selection,value});
   }
 
+  function setSelectedFontScale(scale:number){
+    if(!selection||!doc)return;
+    checkpoint();
+    const next=landingDraft(doc.draft);
+    const safe=Math.min(1.4,Math.max(.8,Math.round(scale*20)/20));
+    if(Math.abs(safe-1)<.001)delete next.fontScales[selection.key];
+    else next.fontScales[selection.key]=safe;
+    setDoc({...doc,draft:next});
+    setNotice(`Tamanho do texto: ${Math.round(safe*100)}%. O restante do layout continua protegido.`);
+  }
+
   function restoreSelected(){
     if(!selection||!doc)return;
     checkpoint();
     const next=landingDraft(doc.draft);
     delete next.overrides[selection.key];
+    delete next.fontScales[selection.key];
     for(const legacyKey of selection.legacyKeys||[])delete next.overrides[legacyKey];
     setDoc({...doc,draft:next});
     setSelection({...selection,value:selection.originalValue});
-    setNotice("Texto original restaurado. A formatação não foi alterada.");
+    setNotice("Texto e tamanho original restaurados.");
   }
 
   function focusText(item:TextItem){
@@ -225,6 +244,7 @@ export function ContentStudioAdmin() {
 
   const selectedLimit=selection?recommendedMax(selection.originalValue):0;
   const selectedTooLong=Boolean(selection&&selection.value.length>selectedLimit);
+  const selectedFontScale=selection?Number(doc?.draft?.fontScales?.[selection.key]||1):1;
 
   return <section className="portal-card cms-studio">
     <div className="card-title"><div><span className="section-kicker">EDITOR DE CONTEÚDO</span><h2>Landing, manual, produtos e mídia</h2></div><div className="cms-actions">{tab==="landing"?<><button className="secondary-button compact" disabled={!undoStack.current.length||busy} onClick={undo} title="Ctrl/Cmd + Z">↶ Desfazer</button><button className="secondary-button compact" disabled={!redoStack.current.length||busy} onClick={redo} title="Ctrl/Cmd + Shift + Z">↷ Refazer</button></>:null}<button className="secondary-button compact" disabled={busy||!doc} onClick={()=>void save()}>Salvar rascunho</button><button className="primary-button compact" disabled={busy||!doc} onClick={()=>void publish()}>Publicar</button></div></div>
@@ -234,19 +254,21 @@ export function ContentStudioAdmin() {
 
     {doc&&tab==="landing"?<div className="cms-builder-shell cms-text-safe-shell">
       <div className="cms-builder-main">
-        <div className="cms-builder-heading"><div><h3>Editor de texto seguro</h3><p>Clique em qualquer texto da prévia ou dê <strong>duplo clique</strong> para escrever direto na página. O editor salva apenas palavras: fonte, cor, tamanho, posições, imagens e responsividade continuam definidos pelo briefing da LP.</p></div><span className="cms-builder-status">TEXT-SAFE · 0.6.0</span></div>
+        <div className="cms-builder-heading"><div><h3>Editor de texto seguro</h3><p>Clique em qualquer texto da prévia ou dê <strong>duplo clique</strong> para escrever direto na página. Você pode trocar a copy e ajustar o <strong>tamanho da letra dentro de uma faixa segura</strong>; fonte, cor, posição, imagens, grid e responsividade continuam definidos pelo briefing da LP.</p></div><span className="cms-builder-status">TEXT-SAFE · 0.6.1</span></div>
         <div className="cms-canvas-toolbar" aria-label="Tamanho da prévia"><span>Conferir em:</span>{([['desktop','Desktop'],['tablet','Tablet'],['mobile','Celular']] as Array<[PreviewDevice,string]>).map(([id,label])=><button type="button" key={id} className={previewDevice===id?"active":""} onClick={()=>setPreviewDevice(id)}>{label}</button>)}</div>
         <div className={`cms-canvas-frame device-${previewDevice}`}><iframe ref={iframeRef} key={previewVersion} className="cms-preview" src={`/?cms_preview=draft&cms_editor=1&cms_device=${previewDevice}&v=${previewVersion}`} title="Editor de texto da landing page" onLoad={()=>iframeRef.current?.contentWindow?.postMessage({type:"lordnutri-cms-live",content:landingDraft(doc.draft)},window.location.origin)}/></div>
       </div>
 
       <aside className="cms-editor-panel cms-text-safe-panel">
-        <div className="cms-panel-block cms-safe-lock"><div className="cms-section-manager-head"><h3>Layout protegido</h3><span>briefing travado</span></div><p>Você pode trocar os textos à vontade. <strong>Não existem mais controles de arrastar, duplicar, fonte, imagem ou posição</strong> nesta aba, então uma edição de copy não consegue desmontar a landing.</p><small>MIX10 PRO e LORD NUTRI são reconstruídos com a identidade visual da marca mesmo quando você cola texto sem formatação.</small></div>
+        <div className="cms-panel-block cms-safe-lock"><div className="cms-section-manager-head"><h3>Layout protegido</h3><span>briefing travado</span></div><p>Você pode trocar os textos e aumentar/diminuir a letra com limite seguro. <strong>Arrastar, duplicar, trocar imagens, posição, grid, cor ou família tipográfica continuam bloqueados</strong>, então a copy não desmonta a landing.</p><small>MIX10 PRO e LORD NUTRI são reconstruídos com a identidade visual da marca mesmo quando você cola texto sem formatação.</small></div>
 
         <div className="cms-panel-block"><div className="cms-section-manager-head"><h3>Texto selecionado</h3><span>{selection?.sectionId||"clique na LP"}</span></div>{selection?<>
           <label>Conteúdo<textarea rows={Math.max(3,Math.min(10,Math.ceil(selection.value.length/46)))} value={selection.value} onFocus={checkpoint} onChange={(event:ChangeEvent<HTMLTextAreaElement>)=>changeSelected(event.target.value)} /></label>
           <div className={`cms-copy-meter${selectedTooLong?" is-warning":""}`}><span>{selection.value.length} caracteres</span><span>referência segura: ~{selectedLimit}</span></div>
           {selectedTooLong?<small className="cms-copy-warning">Esse texto ficou bem maior que o original. A formatação continua protegida, mas a copy pode ocupar mais linhas no celular.</small>:null}
-          <div className="cms-element-actions"><button type="button" onClick={restoreSelected}>Restaurar texto original</button></div>
+          <div className="cms-safe-type-size"><div><strong>Tamanho da letra</strong><small>{Math.round(selectedFontScale*100)}% do tamanho original</small></div><div className="cms-safe-size-buttons"><button type="button" disabled={selectedFontScale<=.8} onClick={()=>setSelectedFontScale(selectedFontScale-.05)} aria-label="Diminuir letra">A−</button><button type="button" onClick={()=>setSelectedFontScale(1)} disabled={Math.abs(selectedFontScale-1)<.001}>100%</button><button type="button" disabled={selectedFontScale>=1.4} onClick={()=>setSelectedFontScale(selectedFontScale+.05)} aria-label="Aumentar letra">A+</button></div></div>
+          <small className="cms-layout-lock-note">Faixa segura: 80% a 140%. O ajuste é proporcional ao tamanho responsivo original, então desktop, tablet e celular continuam seguindo o briefing.</small>
+          <div className="cms-element-actions"><button type="button" onClick={restoreSelected}>Restaurar texto e tamanho</button></div>
           <small className="cms-layout-lock-note">Colar de Word, WhatsApp, Google Docs etc. traz apenas o texto. A formatação externa não entra na landing.</small>
         </>:<p>Clique em um título, parágrafo, número, legenda ou CTA na prévia. Imagens e estrutura não são selecionáveis.</p>}</div>
 

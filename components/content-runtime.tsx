@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 
 type EditableMode = "text" | "brand" | "lines";
-type LandingContent = { overrides?: Record<string, string> };
+type LandingContent = { overrides?: Record<string, string>; fontScales?: Record<string, number> };
 type EditableEntry = {
   element: HTMLElement;
   key: string;
@@ -184,6 +184,23 @@ function selectedValue(element: HTMLElement, mode: EditableMode) {
   return mode === "lines" ? element.innerText.trim() : (element.textContent?.trim() || "");
 }
 
+function safeFontScale(value:unknown){
+  const numeric=typeof value==="number"?value:Number(value);
+  if(!Number.isFinite(numeric))return 1;
+  return Math.min(1.4,Math.max(.8,Math.round(numeric*20)/20));
+}
+
+function applyFontScale(entry:EditableEntry, rawScale:unknown){
+  const scale=safeFontScale(rawScale);
+  // Always return to CSS first. This lets clamp()/media-query typography remain
+  // the source of truth at each viewport before we apply the safe multiplier.
+  entry.element.style.removeProperty("font-size");
+  if(Math.abs(scale-1)<.001)return;
+  const base=parseFloat(window.getComputedStyle(entry.element).fontSize);
+  if(!Number.isFinite(base)||base<=0)return;
+  entry.element.style.fontSize=`${Math.round(base*scale*100)/100}px`;
+}
+
 function collectEntries(root: HTMLElement, editor: boolean) {
   wrapDirectTextNodes(root);
   const candidates: EditableEntry[] = [];
@@ -288,6 +305,8 @@ export function ContentRuntime() {
               : overrides[entry.legacyRichKey] ?? overrides[entry.legacyTextKey];
           }
           renderText(entry.element, typeof value === "string" ? value : entry.originalValue, entry.mode);
+          const scale = content.fontScales?.[entry.key] ?? 1;
+          applyFontScale(entry, scale);
         }
       };
       applyContent(initialContent);
@@ -382,13 +401,16 @@ export function ContentRuntime() {
         }
       };
 
+      const resizeHandler = () => applyContent(currentContent);
       root.addEventListener("click", clickHandler, true);
       root.addEventListener("dblclick", doubleClickHandler, true);
       window.addEventListener("message", messageHandler);
+      window.addEventListener("resize", resizeHandler);
       cleanup = () => {
         root.removeEventListener("click", clickHandler, true);
         root.removeEventListener("dblclick", doubleClickHandler, true);
         window.removeEventListener("message", messageHandler);
+        window.removeEventListener("resize", resizeHandler);
       };
     };
 

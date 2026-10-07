@@ -6,10 +6,11 @@ import path from 'node:path';
 const root=path.resolve(process.cwd());
 const read=(file)=>fs.readFileSync(path.join(root,file),'utf8');
 
-test('landing CMS persists text overrides only',()=>{
+test('landing CMS persists copy plus bounded safe font scale only',()=>{
   const source=read('lib/content-studio.ts');
-  assert.match(source,/TEXT-SAFE 0\.6\.0/);
-  assert.match(source,/return \{ overrides \};/);
+  assert.match(source,/TEXT-SAFE 0\.6\.1/);
+  assert.match(source,/return \{ overrides, fontScales \};/);
+  assert.match(source,/Math\.min\(1\.4, Math\.max\(\.8/);
   const block=source.slice(source.indexOf('function sanitizeLandingDraft'),source.indexOf('export async function getStudioDoc'));
   assert.doesNotMatch(block,/styleOverrides:/);
   assert.doesNotMatch(block,/layoutOverrides:/);
@@ -17,9 +18,11 @@ test('landing CMS persists text overrides only',()=>{
   assert.doesNotMatch(block,/elementClones:/);
 });
 
-test('runtime applies copy only and does not run visual-builder mutations',()=>{
+test('runtime applies copy and safe font scale without visual-builder mutations',()=>{
   const source=read('components/content-runtime.tsx');
-  assert.match(source,/type LandingContent = \{ overrides\?: Record<string, string> \}/);
+  assert.match(source,/fontScales\?: Record<string, number>/);
+  assert.match(source,/applyFontScale\(entry, scale\)/);
+  assert.match(source,/style\.removeProperty\("font-size"\)/);
   assert.doesNotMatch(source,/materializeSections\(/);
   assert.doesNotMatch(source,/applyEditableLayout\(/);
   assert.doesNotMatch(source,/installSectionToolbars\(/);
@@ -34,10 +37,12 @@ test('brand tokens are reconstructed after plain text editing',()=>{
   assert.match(source,/className = "lnr-mix-name"/);
 });
 
-test('admin exposes text-safe editing instead of layout builder controls',()=>{
+test('admin exposes safe A-/A+ sizing but no free layout builder controls',()=>{
   const source=read('components/content-studio-admin.tsx');
   assert.match(source,/Editor de texto seguro/);
-  assert.match(source,/Não existem mais controles de arrastar, duplicar, fonte, imagem ou posição/);
+  assert.match(source,/Aumentar letra/);
+  assert.match(source,/Diminuir letra/);
+  assert.match(source,/80% a 140%/);
   assert.doesNotMatch(source,/Posição responsiva/);
   assert.doesNotMatch(source,/Duplicar seção/);
   assert.doesNotMatch(source,/Copiar estilo/);
