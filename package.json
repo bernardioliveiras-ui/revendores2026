@@ -1,6 +1,6 @@
 {
   "name": "mix10-pro-revendedores",
-  "version": "0.3.5-lordnutri-typography-lock",
+  "version": "0.4.0-lordnutri-visual-builder",
   "private": true,
   "engines": {
     "node": "22.x"

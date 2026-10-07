@@ -2,6 +2,49 @@
 import { useEffect } from "react";
 
 type EditableMode = "text" | "brand" | "lines";
+type StyleKey = "fontFamily" | "fontSize" | "fontWeight" | "fontStyle" | "color" | "textAlign" | "letterSpacing" | "lineHeight" | "textTransform" | "textDecoration";
+type EditableStyle = Partial<Record<StyleKey, string>>;
+type LandingContent = {
+  overrides?: Record<string, string>;
+  imageOverrides?: Record<string, string>;
+  styleOverrides?: Record<string, EditableStyle>;
+  sectionOrder?: string[];
+};
+
+type EditableEntry = {
+  element: HTMLElement;
+  key: string;
+  oldTextKey: string;
+  oldRichKey: string;
+  mode: EditableMode;
+  scope: string;
+  originalValue: string;
+};
+
+type ImageEntry = {
+  element: HTMLImageElement;
+  key: string;
+  oldKey: string;
+  originalSrc: string;
+  originalSrcset: string | null;
+};
+
+const styleKeys: StyleKey[] = [
+  "fontFamily", "fontSize", "fontWeight", "fontStyle", "color", "textAlign",
+  "letterSpacing", "lineHeight", "textTransform", "textDecoration",
+];
+
+const sectionLabels: Record<string, string> = {
+  inicio: "Abertura",
+  "lord-nutri": "LORD NUTRI",
+  mix10pro: "MIX10 PRO",
+  avaliacoes: "Avaliações Google",
+  modelo: "Como começar",
+  simulador: "Simulador",
+  kits: "Kits",
+  duvidas: "Dúvidas",
+  checkout: "Checkout",
+};
 
 function domPath(el: Element, root: Element): string {
   const parts: string[] = [];
@@ -59,11 +102,7 @@ function isLineBreakRichText(element: HTMLElement) {
   return Array.from(element.children).every((child) => child.tagName === "BR");
 }
 
-function renderBrandRichText(element: HTMLElement, value: string) {
-  const fragment = document.createDocumentFragment();
-  // O editor salva apenas a copy. A identidade tipográfica é sempre reconstruída
-  // pelo runtime, inclusive quando o administrador digita Lord Nutri / Mix10 Pro
-  // com caixa ou espaçamento diferentes.
+function appendBrandTokens(fragment: DocumentFragment, value: string) {
   const parts = value.split(/(LORD\s*NUTRI|MIX10\s*PRO)/gi);
   for (const part of parts) {
     if (!part) continue;
@@ -88,6 +127,11 @@ function renderBrandRichText(element: HTMLElement, value: string) {
     }
     fragment.append(document.createTextNode(part));
   }
+}
+
+function renderBrandRichText(element: HTMLElement, value: string) {
+  const fragment = document.createDocumentFragment();
+  appendBrandTokens(fragment, value);
   element.replaceChildren(fragment);
 }
 
@@ -95,14 +139,67 @@ function renderLineBreakText(element: HTMLElement, value: string) {
   const fragment = document.createDocumentFragment();
   value.split(/\r?\n/).forEach((line, index) => {
     if (index) fragment.append(document.createElement("br"));
-    fragment.append(document.createTextNode(line));
+    appendBrandTokens(fragment, line);
   });
   element.replaceChildren(fragment);
+}
+
+function renderText(element: HTMLElement, value: string, mode: EditableMode) {
+  // A identidade visual da marca funciona em QUALQUER campo editável. Assim,
+  // copiar/colar "MIX10 PRO" ou "LORD NUTRI" para outra seção preserva o visual.
+  if (mode === "lines") renderLineBreakText(element, value);
+  else renderBrandRichText(element, value);
 }
 
 function selectedValue(element: HTMLElement, mode: EditableMode) {
   if (mode === "lines") return element.innerText.trim();
   return element.textContent?.trim() || "";
+}
+
+function captureStyle(element: HTMLElement): EditableStyle {
+  const computed = window.getComputedStyle(element);
+  return {
+    fontFamily: computed.fontFamily,
+    fontSize: computed.fontSize,
+    fontWeight: computed.fontWeight,
+    fontStyle: computed.fontStyle,
+    color: computed.color,
+    textAlign: computed.textAlign,
+    letterSpacing: computed.letterSpacing,
+    lineHeight: computed.lineHeight,
+    textTransform: computed.textTransform,
+    textDecoration: computed.textDecorationLine,
+  };
+}
+
+function applyEditableStyle(element: HTMLElement, style: EditableStyle | undefined) {
+  for (const key of styleKeys) element.style[key] = "";
+  if (!style) return;
+  for (const key of styleKeys) {
+    const value = style[key];
+    if (typeof value === "string" && value.trim()) element.style[key] = value;
+  }
+}
+
+function builderBlocks(root: HTMLElement) {
+  return Array.from(root.children).flatMap((child) => {
+    if (!(child instanceof HTMLElement)) return [];
+    if (child.matches("section[id]")) return [{ id: child.id, element: child }];
+    if (child.classList.contains("lnr-proof-section")) return [{ id: "avaliacoes", element: child }];
+    return [];
+  });
+}
+
+function applySectionOrder(root: HTMLElement, order: string[] | undefined) {
+  if (!Array.isArray(order) || !order.length) return;
+  const blocks = builderBlocks(root);
+  const byId = new Map(blocks.map((item) => [item.id, item.element]));
+  const normalized = [...order.filter((id) => byId.has(id)), ...blocks.map((item) => item.id).filter((id) => !order.includes(id))];
+  const footer = Array.from(root.children).find((item) => item instanceof HTMLElement && item.tagName === "FOOTER") || null;
+  for (const id of normalized) {
+    const element = byId.get(id);
+    if (element) root.insertBefore(element, footer);
+  }
 }
 
 export function ContentRuntime() {
@@ -113,6 +210,7 @@ export function ContentRuntime() {
     const preview = url.searchParams.get("cms_preview") === "draft";
     const editor = url.searchParams.get("cms_editor") === "1";
     let cleanupClicks = () => {};
+    let cleanupMessages = () => {};
 
     const run = async () => {
       const [response, productResponse] = await Promise.all([
@@ -121,10 +219,10 @@ export function ContentRuntime() {
       ]);
       const body = await response.json().catch(() => ({ content: null }));
       const productBody = await productResponse.json().catch(() => ({ content: null }));
-      const content = body?.content || {};
-      const overrides = content.overrides || {};
-      const imageOverrides = content.imageOverrides || {};
+      const initialContent = (body?.content || {}) as LandingContent;
       const products = productBody?.content?.products || [];
+      const entries: EditableEntry[] = [];
+      const imageEntries: ImageEntry[] = [];
 
       const elements = Array.from(root.querySelectorAll<HTMLElement>("*"));
       for (const html of elements) {
@@ -136,36 +234,22 @@ export function ContentRuntime() {
         const textLeaf = isTextLeaf(html);
         const brandRichText = isBrandRichText(html);
         const lineBreakRichText = isLineBreakRichText(html);
-
-        // REGRA DE SEGURANÇA DO LAYOUT:
-        // somente folhas de texto e dois formatos ricos conhecidos são editáveis.
-        // Elementos compostos (strong/span/cards/grids) nunca recebem textContent do CMS.
         if (!textLeaf && !brandRichText && !lineBreakRichText) continue;
 
         const mode: EditableMode = brandRichText ? "brand" : lineBreakRichText ? "lines" : "text";
         const kind = mode === "text" ? "text" : "rich";
         const key = stableKey(kind, html, root);
         const scope = editableScope(html, root);
-        const blockLegacy = scopeName(scope, root) === "lord-nutri";
-        const oldTextKey = legacyKey("text", html, root);
-        const oldRichKey = legacyKey("rich", html, root);
-
-        let value: unknown = overrides[key];
-        // Mantém as edições 0.3.x onde a posição antiga ainda é confiável. No bloco
-        // institucional LORD NUTRI, os overrides antigos são ignorados de propósito
-        // para eliminar a frase incorreta já publicada e partir da copy revisada.
-        if (typeof value !== "string" && !blockLegacy) {
-          value = mode === "text"
-            ? overrides[oldTextKey]
-            : overrides[oldRichKey] ?? overrides[oldTextKey];
-        }
-
-        if (typeof value === "string") {
-          if (mode === "brand") renderBrandRichText(html, value);
-          else if (mode === "lines") renderLineBreakText(html, value);
-          else html.textContent = value;
-        }
-
+        const entry: EditableEntry = {
+          element: html,
+          key,
+          oldTextKey: legacyKey("text", html, root),
+          oldRichKey: legacyKey("rich", html, root),
+          mode,
+          scope: scopeName(scope, root),
+          originalValue: selectedValue(html, mode),
+        };
+        entries.push(entry);
         if (editor) {
           html.dataset.cmsKey = key;
           html.dataset.cmsLayoutSafe = "1";
@@ -174,19 +258,53 @@ export function ContentRuntime() {
       }
 
       for (const img of Array.from(root.querySelectorAll<HTMLImageElement>("img"))) {
-        const key = stableKey("image", img, root);
-        const oldKey = legacyKey("image", img, root);
+        const entry: ImageEntry = {
+          element: img,
+          key: stableKey("image", img, root),
+          oldKey: legacyKey("image", img, root),
+          originalSrc: img.getAttribute("src") || "",
+          originalSrcset: img.getAttribute("srcset"),
+        };
+        imageEntries.push(entry);
         if (editor) {
-          img.dataset.cmsKey = key;
+          img.dataset.cmsKey = entry.key;
           img.dataset.cmsLayoutSafe = "1";
           img.dataset.cmsMode = "image";
         }
-        const imageValue = imageOverrides[key] ?? imageOverrides[oldKey];
-        if (typeof imageValue === "string" && imageValue) {
-          img.setAttribute("src", imageValue);
-          img.removeAttribute("srcset");
-        }
       }
+
+      const applyContent = (content: LandingContent) => {
+        const overrides = content.overrides || {};
+        const imageOverrides = content.imageOverrides || {};
+        const styleOverrides = content.styleOverrides || {};
+        applySectionOrder(root, content.sectionOrder);
+
+        for (const entry of entries) {
+          const blockLegacy = entry.scope === "lord-nutri";
+          let value: unknown = overrides[entry.key];
+          if (typeof value !== "string" && !blockLegacy) {
+            value = entry.mode === "text"
+              ? overrides[entry.oldTextKey]
+              : overrides[entry.oldRichKey] ?? overrides[entry.oldTextKey];
+          }
+          renderText(entry.element, typeof value === "string" ? value : entry.originalValue, entry.mode);
+          applyEditableStyle(entry.element, styleOverrides[entry.key]);
+        }
+
+        for (const entry of imageEntries) {
+          const value = imageOverrides[entry.key] ?? imageOverrides[entry.oldKey];
+          if (typeof value === "string" && value) {
+            entry.element.setAttribute("src", value);
+            entry.element.removeAttribute("srcset");
+          } else {
+            entry.element.setAttribute("src", entry.originalSrc);
+            if (entry.originalSrcset) entry.element.setAttribute("srcset", entry.originalSrcset);
+            else entry.element.removeAttribute("srcset");
+          }
+        }
+      };
+
+      applyContent(initialContent);
 
       const mix = products.find((item: any) => item.id === "mix10pro");
       if (mix) {
@@ -208,6 +326,12 @@ export function ContentRuntime() {
       }
 
       if (editor) {
+        const blocks = builderBlocks(root);
+        window.parent.postMessage({
+          type: "lordnutri-cms-ready",
+          sections: blocks.map((item) => ({ id: item.id, label: sectionLabels[item.id] || item.id })),
+        }, window.location.origin);
+
         const handler: EventListener = (event) => {
           const mouseEvent = event as MouseEvent;
           const origin = mouseEvent.target;
@@ -220,23 +344,38 @@ export function ContentRuntime() {
           target.classList.add("cms-selected");
           const isImage = target instanceof HTMLImageElement;
           const mode = (target.dataset.cmsMode || "text") as EditableMode;
+          const section = target.closest<HTMLElement>("section[id]");
           window.parent.postMessage(
             {
               type: "lordnutri-cms-select",
               key: target.dataset.cmsKey,
               kind: isImage ? "image" : "text",
+              mode,
+              sectionId: section?.id || "root",
               value: isImage ? target.currentSrc || target.src : selectedValue(target, mode),
+              style: isImage ? undefined : captureStyle(target),
             },
             window.location.origin,
           );
         };
         root.addEventListener("click", handler, true);
         cleanupClicks = () => root.removeEventListener("click", handler, true);
+
+        const messageHandler = (event: MessageEvent) => {
+          if (event.origin !== window.location.origin) return;
+          if (event.data?.type !== "lordnutri-cms-live") return;
+          applyContent((event.data.content || {}) as LandingContent);
+        };
+        window.addEventListener("message", messageHandler);
+        cleanupMessages = () => window.removeEventListener("message", messageHandler);
       }
     };
 
     void run();
-    return () => cleanupClicks();
+    return () => {
+      cleanupClicks();
+      cleanupMessages();
+    };
   }, []);
   return null;
 }

@@ -24,8 +24,8 @@ test("CMS applies only layout-safe text and section-scoped stable keys", async (
   const studio = await read("lib/content-studio.ts");
   assert.match(runtime, /stableKey\(kind, html, root\)/);
   assert.match(runtime, /if \(!textLeaf && !brandRichText && !lineBreakRichText\) continue;/);
-  assert.match(runtime, /scopeName\(scope, root\) === "lord-nutri"/);
-  assert.match(studio, /O CMS nunca persiste classes, HTML, estilos ou estrutura/);
+  assert.match(runtime, /entry\.scope === "lord-nutri"/);
+  assert.match(studio, /O editor visual nunca persiste HTML, classes arbitrárias ou scripts/);
   assert.match(studio, /sanitizeLandingDraft/);
 });
 
