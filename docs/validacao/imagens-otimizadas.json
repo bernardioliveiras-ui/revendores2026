@@ -1,0 +1,32 @@
+{
+  "originalBytes": 7075589,
+  "desktopBytes": 479372,
+  "reductionPercent": 93.2,
+  "mobilePhotosBytes": 105158,
+  "transparentAssets": {
+    "mix10-box-transparent-v3-web.webp": {
+      "size": [
+        800,
+        1067
+      ],
+      "alphaCorners": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "lordnutri-logo-gold-v3-web.webp": {
+      "size": [
+        512,
+        495
+      ],
+      "alphaCorners": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}

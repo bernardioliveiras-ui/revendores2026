@@ -1,0 +1,138 @@
+[
+  {
+    "width": 1440,
+    "height": 900,
+    "anvisa": "Processo de NotificaçãoANVISA nº 2535115572620267",
+    "googleCheck": "https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F",
+    "cta": {
+      "top": 531.234375,
+      "bottom": 591.234375,
+      "inViewport": true
+    },
+    "horizontalOverflow": false,
+    "overflow": [],
+    "overlaps": [],
+    "clipped": [],
+    "documentHeight": 6331,
+    "errors": []
+  },
+  {
+    "width": 1366,
+    "height": 768,
+    "anvisa": "Processo de NotificaçãoANVISA nº 2535115572620267",
+    "googleCheck": "https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F",
+    "cta": {
+      "top": 531.234375,
+      "bottom": 591.234375,
+      "inViewport": true
+    },
+    "horizontalOverflow": false,
+    "overflow": [],
+    "overlaps": [],
+    "clipped": [],
+    "documentHeight": 6331,
+    "errors": []
+  },
+  {
+    "width": 1024,
+    "height": 768,
+    "anvisa": "Processo de NotificaçãoANVISA nº 2535115572620267",
+    "googleCheck": "https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F",
+    "cta": {
+      "top": 502.859375,
+      "bottom": 562.859375,
+      "inViewport": true
+    },
+    "horizontalOverflow": false,
+    "overflow": [],
+    "overlaps": [],
+    "clipped": [],
+    "documentHeight": 6195,
+    "errors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "anvisa": "Processo de NotificaçãoANVISA nº 2535115572620267",
+    "googleCheck": "https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F",
+    "cta": {
+      "top": 485.921875,
+      "bottom": 545.921875,
+      "inViewport": true
+    },
+    "horizontalOverflow": false,
+    "overflow": [],
+    "overlaps": [],
+    "clipped": [],
+    "documentHeight": 6666,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "anvisa": "Processo de NotificaçãoANVISA nº 2535115572620267",
+    "googleCheck": "https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F",
+    "cta": {
+      "top": 445.734375,
+      "bottom": 503.734375,
+      "inViewport": true
+    },
+    "horizontalOverflow": false,
+    "overflow": [],
+    "overlaps": [],
+    "clipped": [],
+    "documentHeight": 8881,
+    "errors": []
+  },
+  {
+    "width": 360,
+    "height": 800,
+    "anvisa": "Processo de NotificaçãoANVISA nº 2535115572620267",
+    "googleCheck": "https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F",
+    "cta": {
+      "top": 420.3125,
+      "bottom": 478.3125,
+      "inViewport": true
+    },
+    "horizontalOverflow": false,
+    "overflow": [],
+    "overlaps": [],
+    "clipped": [],
+    "documentHeight": 9025,
+    "errors": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "anvisa": "Processo de NotificaçãoANVISA nº 2535115572620267",
+    "googleCheck": "https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F",
+    "cta": {
+      "top": 454.21875,
+      "bottom": 512.21875,
+      "inViewport": true
+    },
+    "horizontalOverflow": false,
+    "overflow": [],
+    "overlaps": [],
+    "clipped": [],
+    "documentHeight": 9254,
+    "errors": []
+  },
+  {
+    "heroLinkHash": "#simulador",
+    "simulatorTop": 88.109375
+  },
+  {
+    "scenario10000": "KIT50 · caixas necessárias\n250\n≈ 9.6 caixa(s)/dia · resultado estimado R$ 10.000,00"
+  },
+  {
+    "kit50Selected": "kit50",
+    "checkoutHash": "#checkout"
+  },
+  {
+    "kit20Selected": "kit20"
+  },
+  {
+    "expandedHorizontalOverflow": false
+  }
+]
