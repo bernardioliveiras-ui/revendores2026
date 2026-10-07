@@ -1,0 +1,76 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> mix10-pro-revendedores@0.2.5-lordnutri-marca-beneficios prebuild
+> node scripts/protect-manual-assets.mjs
+
+
+> mix10-pro-revendedores@0.2.5-lordnutri-marca-beneficios build
+> next build --webpack
+
+▲ Next.js 16.2.6 (webpack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.9s
+  Running TypeScript ...
+  Finished TypeScript in 7.6s ...
+  Collecting page data using 8 workers ...
+  Generating static pages using 8 workers (0/44) ...
+  Generating static pages using 8 workers (11/44) 
+  Generating static pages using 8 workers (22/44) 
+  Generating static pages using 8 workers (33/44) 
+✓ Generating static pages using 8 workers (44/44) in 429ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/admin/access
+├ ƒ /api/admin/cashback
+├ ƒ /api/admin/orders
+├ ƒ /api/admin/overview
+├ ƒ /api/admin/sales
+├ ƒ /api/admin/shipping
+├ ƒ /api/admin/welcome
+├ ƒ /api/auth/change-password
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/request-code
+├ ƒ /api/auth/session
+├ ƒ /api/auth/verify-code
+├ ƒ /api/billing/webhook
+├ ƒ /api/cashback
+├ ƒ /api/manual/progress
+├ ƒ /api/movements
+├ ƒ /api/my-purchases
+├ ƒ /api/onboarding
+├ ƒ /api/orders
+├ ƒ /api/public/affiliate/qualify
+├ ƒ /api/public/checkout
+├ ƒ /api/public/google-reviews
+├ ƒ /api/public/quote
+├ ƒ /api/referrals
+├ ƒ /api/replenishment
+├ ƒ /api/reseller/manual
+├ ƒ /api/sales
+├ ƒ /api/shipping/webhook
+├ ƒ /api/stock
+├ ƒ /api/team
+├ ○ /comprar
+├ ○ /cookies
+├ ○ /entrar
+├ ○ /icon.png
+├ ○ /manifest.webmanifest
+├ ○ /painel
+├ ○ /politica-de-privacidade
+├ ƒ /r/[code]
+├ ○ /reembolso-e-devolucao
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+├ ○ /termos-de-uso
+└ ○ /trocar-senha
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
