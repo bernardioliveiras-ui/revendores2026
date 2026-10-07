@@ -1,7 +1,0 @@
-Microajustes do hero — 03/10/2026
-
-Comando:
-node --experimental-strip-types --test tests/landing-checkout.test.mjs tests/layout-css.test.mjs
-
-Resultado: 7 testes aprovados, 0 falhas.
-Validação visual isolada: 1440x900, 390x844 e 320x568 sem overflow horizontal.
