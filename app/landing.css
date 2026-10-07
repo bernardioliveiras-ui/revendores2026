@@ -475,3 +475,35 @@
  .lnr-page .lnr-care-band img{left:-16px;top:-12px;width:calc(100% + 32px)!important;height:62%!important;opacity:.38;object-position:center 38%}
  .lnr-page .lnr-care-band>div{position:absolute;left:0;right:0;bottom:0;width:100%;margin:0;padding:24px 22px 30px!important}
 }
+
+
+/* 0.3.5 — trava tipográfica do CMS.
+   O painel altera apenas a copy; família, peso, itálico, cores e hierarquia
+   continuam definidos pelo layout e não podem ser sobrescritos pelo conteúdo. */
+.lnr-page .lnr-brand-story-copy>p{
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-style:normal!important;
+  letter-spacing:0!important;
+}
+.lnr-page .lnr-brand-story-copy>p:not(.lnr-brand-story-lead){
+  font-size:17px!important;
+  line-height:1.72!important;
+  font-weight:400!important;
+}
+.lnr-page .lnr-brand-story-copy .lnr-lord-name{
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-style:normal!important;
+  font-weight:700!important;
+  letter-spacing:.01em!important;
+}
+.lnr-page .lnr-brand-story-copy .lnr-mix-name{
+  font-family:"Arial Black",Arial,Helvetica,sans-serif!important;
+  font-style:italic!important;
+  font-weight:900!important;
+  letter-spacing:-.055em!important;
+}
+.lnr-page .lnr-brand-story-copy .lnr-mix-name>span:first-child{color:#f5f2e9!important}
+.lnr-page .lnr-brand-story-copy .lnr-mix-name>span:last-child{color:#45c8a6!important}
+@media(max-width:700px){
+  .lnr-page .lnr-brand-story-copy>p:not(.lnr-brand-story-lead){font-size:16px!important;line-height:1.68!important}
+}

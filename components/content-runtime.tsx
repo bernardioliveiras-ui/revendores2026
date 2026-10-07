@@ -61,17 +61,21 @@ function isLineBreakRichText(element: HTMLElement) {
 
 function renderBrandRichText(element: HTMLElement, value: string) {
   const fragment = document.createDocumentFragment();
-  const parts = value.split(/(LORD NUTRI|MIX10 PRO)/g);
+  // O editor salva apenas a copy. A identidade tipográfica é sempre reconstruída
+  // pelo runtime, inclusive quando o administrador digita Lord Nutri / Mix10 Pro
+  // com caixa ou espaçamento diferentes.
+  const parts = value.split(/(LORD\s*NUTRI|MIX10\s*PRO)/gi);
   for (const part of parts) {
     if (!part) continue;
-    if (part === "LORD NUTRI") {
+    const normalized = part.replace(/\s+/g, " ").trim().toUpperCase();
+    if (normalized === "LORD NUTRI") {
       const span = document.createElement("span");
       span.className = "lnr-lord-name";
-      span.textContent = part;
+      span.textContent = "LORD NUTRI";
       fragment.append(span);
       continue;
     }
-    if (part === "MIX10 PRO") {
+    if (normalized === "MIX10 PRO") {
       const wrapper = document.createElement("span");
       wrapper.className = "lnr-mix-name";
       const mix = document.createElement("span");
