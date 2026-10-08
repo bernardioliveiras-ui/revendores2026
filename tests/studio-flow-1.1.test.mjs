@@ -7,7 +7,7 @@ const read = (p) => readFile(new URL(`../${p}`, import.meta.url), 'utf8');
 test('Studio Flow 1.1 removes absolute-position editing', async () => {
   const builder = await read('components/landing-studio-builder.tsx');
   const server = await read('lib/content-studio.ts');
-  assert.match(builder, /Studio Flow/);
+  assert.match(builder, /Studio .*Flow/);
   assert.match(builder, /normalizeFlowStyles/);
   assert.match(builder, /flowBlockedProperties/);
   assert.doesNotMatch(builder, /toggleFreePosition/);

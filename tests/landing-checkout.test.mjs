@@ -19,7 +19,7 @@ test('landing page follows the approved briefing structure and VSL', async () =>
   for (const copy of [
     'PROGRAMA DE REVENDEDORES LORD NUTRI',
     'Vem realizar seus sonhos com a gente!',
-    'Uma oportunidade em um mercado que acompanha uma necessidade real.',
+    'Conheça o MIX10 PRO.',
     'Sua revenda LORD NUTRI em 3 passos',
     'Quanto você quer construir de ganho bruto por mês?',
     'Por que escolher MIX10 PRO para começar sua revenda?',

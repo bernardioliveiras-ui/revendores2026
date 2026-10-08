@@ -979,3 +979,16 @@ body { overflow-x: clip; }
 .ln-studio-advanced .ln-studio-inspector-group{margin:0 8px 8px}
 .ln-studio-flow .ln-studio-ruler{background:#ece8df;border:1px solid #cbc4b7;border-radius:8px;padding:7px 10px;line-height:1.35}
 @media(max-width:520px){.ln-studio-flow-actions{grid-template-columns:1fr}.ln-studio-width-buttons{grid-template-columns:1fr 1fr}.ln-studio-align-buttons{grid-template-columns:1fr}}
+
+/* Studio Nested Flow 1.2 */
+.ln-studio-insert-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.ln-studio-insert-buttons button{border:1px solid #d8cfc2;background:#fff;color:#18303e;border-radius:8px;padding:8px 7px;font-size:10px;font-weight:800;cursor:pointer}
+.ln-studio-insert-buttons button:hover{border-color:#c79a43;background:#fff9e9}
+
+/* Studio Nested Flow 1.2 */
+.ln-studio-insert-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.ln-studio-insert-buttons button{border:1px solid #d8cfc2;background:#fff;color:#18303e;border-radius:8px;padding:8px 7px;font-size:10px;font-weight:800;cursor:pointer}
+.ln-studio-insert-buttons button:hover{border-color:#c79a43;background:#fff9e9}
+.ln-studio-layout-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.ln-studio-layout-presets button{border:1px solid #d8cfc2;background:#fff;color:#18303e;border-radius:8px;padding:8px 5px;font-size:9px;font-weight:800;cursor:pointer}
+.ln-studio-layout-presets button:hover{border-color:#c79a43;background:#fff9e9}

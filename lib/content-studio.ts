@@ -400,7 +400,7 @@ function sanitizeStudioConfig(value: unknown) {
   if (!html) return null;
   return {
     enabled: source.enabled === true,
-    version: "1.1",
+    version: "1.2",
     html,
     styles: sanitizeStudioStyles(source.styles),
   };

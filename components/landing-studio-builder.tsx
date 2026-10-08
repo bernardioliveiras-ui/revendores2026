@@ -9,7 +9,7 @@ type StyleMap = Record<string, DeviceStyles>;
 type StudioConfig = { enabled: boolean; version: string; html: string; styles: StyleMap };
 type LandingDraft = { overrides?: Record<string, string>; fontScales?: Record<string, number>; freeElements?: unknown[]; studio?: StudioConfig };
 type LandingDoc = { type: "landing"; draft: LandingDraft; published: LandingDraft; updatedAt?: string | null; publishedAt?: string | null };
-type SelectedInfo = { id: string; tag: string; label: string; text: string; src: string; alt: string; href: string; protected: boolean; isImage: boolean; isText: boolean; computedColor: string; computedFontSize: string; computedTextAlign: string };
+type SelectedInfo = { id: string; tag: string; label: string; text: string; src: string; alt: string; href: string; protected: boolean; isImage: boolean; isText: boolean; isContainer: boolean; computedColor: string; computedBackgroundColor: string; computedBorderColor: string; computedFontSize: string; computedTextAlign: string };
 type LayerItem = { id: string; depth: number; label: string; protected: boolean };
 type Snapshot = { html: string; styles: StyleMap };
 type MediaAsset = { id: string; label: string; url: string; kind: string };
@@ -22,6 +22,18 @@ const devices: Array<{ id: Device; label: string; width: string }> = [
 
 const textTags = new Set(["H1", "H2", "H3", "H4", "H5", "H6", "P", "SPAN", "STRONG", "SMALL", "A", "BUTTON", "DT", "DD", "LI", "B", "EM"]);
 const containerTags = new Set(["MAIN", "SECTION", "DIV", "ARTICLE", "HEADER", "FOOTER", "NAV", "ASIDE"]);
+type FlowDropMode = "before" | "after" | "inside";
+
+function isFlowContainer(el: HTMLElement | null) {
+  return Boolean(el && containerTags.has(el.tagName) && !el.hasAttribute("data-ln-protected"));
+}
+
+function canAcceptFlowChild(parent: HTMLElement | null, child: HTMLElement, root: HTMLElement) {
+  if (!parent || !isFlowContainer(parent) || parent === child || child.contains(parent)) return false;
+  if (parent.closest("[data-ln-protected]")) return false;
+  if (child.tagName === "SECTION" && parent !== root) return false;
+  return true;
+}
 
 function makeId() {
   return `ln-${crypto.randomUUID().replace(/-/g, "").slice(0, 18)}`;
@@ -101,6 +113,7 @@ function editorShellCss() {
     [data-studio-selected="1"]{outline:3px solid #d3a83d!important;outline-offset:3px!important;position:relative;cursor:grab!important}
     [data-studio-drop="before"]{box-shadow:inset 0 4px 0 #16a34a!important}
     [data-studio-drop="after"]{box-shadow:inset 0 -4px 0 #16a34a!important}
+    [data-studio-drop="inside"]{outline:3px dashed #16a34a!important;outline-offset:-6px!important;background-image:linear-gradient(rgba(22,163,74,.06),rgba(22,163,74,.06))!important}
     [data-studio-dragging="1"]{opacity:.45!important}
     [data-ln-protected]{min-height:120px!important;display:grid!important;place-items:center!important;border:2px dashed rgba(211,168,61,.85)!important;background:repeating-linear-gradient(135deg,rgba(211,168,61,.08),rgba(211,168,61,.08) 10px,rgba(11,34,54,.03) 10px,rgba(11,34,54,.03) 20px)!important;color:#8c6727!important}
     [data-ln-protected]::before{content:attr(data-ln-label);font:800 12px/1.2 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;border-radius:999px;background:#fff7df;border:1px solid #d3a83d}
@@ -207,7 +220,7 @@ export function LandingStudioBuilder() {
     doc.querySelectorAll("[data-studio-selected]").forEach((node) => node.removeAttribute("data-studio-selected"));
     doc.querySelectorAll("[draggable=\"true\"]").forEach((node) => node.removeAttribute("draggable"));
     actual.setAttribute("data-studio-selected", "1");
-    if (!actual.hasAttribute("data-ln-protected")) actual.setAttribute("draggable", "true");
+    actual.setAttribute("draggable", "true");
     const isImage = actual.tagName === "IMG";
     const isText = isEditableText(actual);
     const computed = doc.defaultView?.getComputedStyle(actual);
@@ -222,7 +235,10 @@ export function LandingStudioBuilder() {
       protected: actual.hasAttribute("data-ln-protected"),
       isImage,
       isText,
+      isContainer: isFlowContainer(actual),
       computedColor: computed?.color || "#ffffff",
+      computedBackgroundColor: computed?.backgroundColor || "#000000",
+      computedBorderColor: computed?.borderColor || "#d4a942",
       computedFontSize: computed?.fontSize || "16px",
       computedTextAlign: computed?.textAlign || "left",
     });
@@ -360,7 +376,7 @@ export function LandingStudioBuilder() {
         if (loaded.draft?.studio?.html) {
           setInitialHtml(loaded.draft.studio.html);
           setStyles(normalizeFlowStyles(loaded.draft.studio.styles || {}));
-          setNotice("Studio Flow carregado. Clique em um elemento, edite e arraste no fluxo sem sair do eixo.");
+          setNotice("Studio Nested Flow carregado. Você pode mover elementos para dentro de cards e seções sem usar X/Y.");
         } else {
           const html = await seedFromBase();
           if (!active) return;
@@ -429,7 +445,7 @@ export function LandingStudioBuilder() {
 
     doc.addEventListener("dragstart", (event) => {
       const el = selectFromTarget(event.target);
-      if (!el || el.hasAttribute("data-ln-protected") || el.getAttribute("data-studio-selected") !== "1") {
+      if (!el || el.getAttribute("data-studio-selected") !== "1") {
         event.preventDefault();
         return;
       }
@@ -446,28 +462,51 @@ export function LandingStudioBuilder() {
     doc.addEventListener("dragover", (event) => {
       if (!flowDrag) return;
       const target = selectFromTarget(event.target);
-      if (!target || target === flowDrag.el || target.hasAttribute("data-ln-protected")) return;
-      if (target.parentElement !== flowDrag.el.parentElement) return;
+      if (!target || target === flowDrag.el || target.hasAttribute("data-ln-protected") || flowDrag.el.contains(target)) return;
+
+      const rect = target.getBoundingClientRect();
+      const targetIsContainer = isFlowContainer(target);
+      const pointerInsideCore = event.clientY > rect.top + Math.min(28, rect.height * .22)
+        && event.clientY < rect.bottom - Math.min(28, rect.height * .22)
+        && event.clientX > rect.left + Math.min(28, rect.width * .12)
+        && event.clientX < rect.right - Math.min(28, rect.width * .12);
+
+      let mode: FlowDropMode;
+      if (targetIsContainer && canAcceptFlowChild(target, flowDrag.el, root) && (target.children.length === 0 || pointerInsideCore)) {
+        mode = "inside";
+      } else {
+        const parent = target.parentElement;
+        if (!parent || !canAcceptFlowChild(parent, flowDrag.el, root)) return;
+        const parentStyle = doc.defaultView?.getComputedStyle(parent);
+        const horizontal = parentStyle?.display.includes("flex") && (parentStyle.flexDirection === "row" || parentStyle.flexDirection === "row-reverse");
+        const before = horizontal ? event.clientX < rect.left + rect.width / 2 : event.clientY < rect.top + rect.height / 2;
+        mode = before ? "before" : "after";
+      }
+
       event.preventDefault();
       clearDropMarks();
-      const rect = target.getBoundingClientRect();
-      const parentStyle = target.parentElement ? doc.defaultView?.getComputedStyle(target.parentElement) : null;
-      const horizontal = parentStyle?.display.includes("flex") && (parentStyle.flexDirection === "row" || parentStyle.flexDirection === "row-reverse");
-      const before = horizontal ? event.clientX < rect.left + rect.width / 2 : event.clientY < rect.top + rect.height / 2;
-      target.setAttribute("data-studio-drop", before ? "before" : "after");
+      target.setAttribute("data-studio-drop", mode);
       if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
     }, true);
 
     doc.addEventListener("drop", (event) => {
       if (!flowDrag) return;
-      const target = selectFromTarget(event.target);
-      if (!target || target === flowDrag.el || target.parentElement !== flowDrag.el.parentElement) { clearDropMarks(); return; }
+      const marked = doc.querySelector<HTMLElement>("[data-studio-drop]");
+      const target = marked || selectFromTarget(event.target);
+      if (!target || target === flowDrag.el || flowDrag.el.contains(target)) { clearDropMarks(); return; }
+      const mode = (target.getAttribute("data-studio-drop") || "before") as FlowDropMode;
       event.preventDefault();
-      const mode = target.getAttribute("data-studio-drop") || "before";
-      const parent = target.parentElement;
-      if (!parent) return;
-      if (mode === "after") parent.insertBefore(flowDrag.el, target.nextSibling);
-      else parent.insertBefore(flowDrag.el, target);
+
+      if (mode === "inside") {
+        if (!canAcceptFlowChild(target, flowDrag.el, root)) { clearDropMarks(); return; }
+        target.appendChild(flowDrag.el);
+      } else {
+        const parent = target.parentElement;
+        if (!parent || !canAcceptFlowChild(parent, flowDrag.el, root)) { clearDropMarks(); return; }
+        if (mode === "after") parent.insertBefore(flowDrag.el, target.nextSibling);
+        else parent.insertBefore(flowDrag.el, target);
+      }
+
       undoRef.current.push(flowDrag.before);
       redoRef.current = [];
       setHistoryTick((n) => n + 1);
@@ -475,7 +514,7 @@ export function LandingStudioBuilder() {
       clearDropMarks();
       refreshLayers();
       refreshSelected(flowDrag.el);
-      setNotice("Elemento movido no fluxo. O layout continua responsivo.");
+      setNotice(mode === "inside" ? "Elemento movido para dentro do bloco." : "Elemento movido no fluxo responsivo.");
       flowDrag = null;
     }, true);
 
@@ -661,30 +700,62 @@ export function LandingStudioBuilder() {
     refreshSelected(el);
   }, [currentElement, recordBeforeAction, refreshLayers, refreshSelected]);
 
-  const addElement = useCallback((kind: "text" | "title" | "button" | "image" | "section", imageSrc?: string) => {
+  const resolveInsertTarget = useCallback(() => {
+    const root = studioRoot();
+    const selectedEl = currentElement();
+    if (!root) return null;
+    if (!selectedEl) return root.querySelector<HTMLElement>(".lnr-shell") || root;
+    if (selectedEl.hasAttribute("data-ln-protected")) return selectedEl.parentElement || root;
+    if (selectedEl.tagName === "SECTION") {
+      const directShell = Array.from(selectedEl.children).find((child) => child.classList.contains("lnr-shell"));
+      if (directShell instanceof (frameDocument()?.defaultView?.HTMLElement || HTMLElement)) return directShell as HTMLElement;
+    }
+    if (isFlowContainer(selectedEl)) return selectedEl;
+    if (selectedEl.parentElement && canAcceptFlowChild(selectedEl.parentElement, selectedEl, root)) return selectedEl.parentElement;
+    return selectedEl.closest<HTMLElement>(".lnr-shell") || selectedEl.parentElement || root;
+  }, [currentElement, frameDocument, studioRoot]);
+
+  const addElement = useCallback((kind: "text" | "title" | "highlight" | "button" | "image" | "block" | "section", imageSrc?: string) => {
     const doc = frameDocument();
     const root = studioRoot();
     if (!doc || !root) return;
     recordBeforeAction();
     let el: HTMLElement;
+    let initialStyle: Record<string, string> | null = null;
     if (kind === "section") {
       el = doc.createElement("section");
       el.className = "lnr-section";
       el.innerHTML = '<div class="lnr-shell"><span class="lnr-eyebrow">NOVA SEÇÃO</span><h2>Novo título</h2><p>Edite este conteúdo no Studio Builder.</p></div>';
       root.appendChild(el);
     } else {
-      const selectedEl = currentElement();
-      const target = selectedEl?.closest<HTMLElement>(".lnr-shell") || selectedEl?.parentElement || root;
+      const target = resolveInsertTarget() || root;
       if (kind === "title") { el = doc.createElement("h2"); el.textContent = "Novo título"; }
+      else if (kind === "highlight") {
+        el = doc.createElement("p");
+        el.textContent = "R$ 10 mil/mês";
+        el.className = "ln-studio-highlight";
+        initialStyle = { display: "block", width: "100%", textAlign: "center", fontSize: "28px", fontWeight: "800", color: "#d4a942", lineHeight: "1.05", marginTop: "10px", marginBottom: "10px" };
+      }
       else if (kind === "button") { el = doc.createElement("a"); el.className = "lnr-button"; el.setAttribute("href", "#"); el.innerHTML = "<span>NOVO BOTÃO</span>"; }
       else if (kind === "image") { el = doc.createElement("img"); el.setAttribute("src", imageSrc || media[0]?.url || "/brand/mix10-box-transparent-v3-web.webp"); el.setAttribute("alt", "Nova imagem"); }
+      else if (kind === "block") {
+        el = doc.createElement("div");
+        el.className = "ln-studio-block";
+        el.innerHTML = "<p>Novo bloco. Arraste textos, botões ou imagens para dentro.</p>";
+        initialStyle = { display: "flex", flexDirection: "column", gap: "12px", width: "100%", paddingTop: "20px", paddingRight: "20px", paddingBottom: "20px", paddingLeft: "20px", borderWidth: "1px", borderStyle: "solid", borderColor: "#d4a942", borderRadius: "18px" };
+      }
       else { el = doc.createElement("p"); el.textContent = "Novo texto"; }
       target.appendChild(el);
     }
     assignIds(el);
+    if (initialStyle) {
+      const id = el.getAttribute("data-studio-id");
+      if (id) setStyles((current) => ({ ...cloneStyles(current), [id]: { ...(current[id] || {}), [deviceRef.current]: initialStyle as Record<string, string> } }));
+    }
     refreshLayers();
     refreshSelected(el);
-  }, [currentElement, frameDocument, media, recordBeforeAction, refreshLayers, refreshSelected, studioRoot]);
+    setNotice(kind === "section" ? "Nova seção adicionada." : "Elemento adicionado dentro do bloco selecionado.");
+  }, [frameDocument, media, recordBeforeAction, refreshLayers, refreshSelected, resolveInsertTarget, studioRoot]);
 
   const copyStyle = useCallback(() => {
     if (!selected) return;
@@ -707,7 +778,7 @@ export function LandingStudioBuilder() {
     try {
       const draft: LandingDraft = {
         ...currentDoc.draft,
-        studio: { enabled: true, version: "1.1", html, styles: normalizeFlowStyles(stylesRef.current) },
+        studio: { enabled: true, version: "1.2", html, styles: normalizeFlowStyles(stylesRef.current) },
       };
       const patch = await fetch("/api/admin/cms/landing", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ draft }) });
       const patched = await patch.json();
@@ -718,7 +789,7 @@ export function LandingStudioBuilder() {
         const published = await response.json();
         if (!response.ok) throw new Error(published.error || "Não foi possível publicar.");
         docRef.current = published;
-        setNotice("Publicado. A landing pública agora usa o Studio Flow 1.1.");
+        setNotice("Publicado. A landing pública agora usa o Studio Nested Flow 1.2.");
       } else setNotice("Rascunho salvo.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Falha ao salvar.");
@@ -762,19 +833,28 @@ export function LandingStudioBuilder() {
     draggedLayerRef.current = "";
     if (!draggedId || draggedId === targetId) return;
     const doc = frameDocument();
+    const root = studioRoot();
     const dragged = doc?.querySelector<HTMLElement>(`[data-studio-id="${draggedId}"]`);
     const target = doc?.querySelector<HTMLElement>(`[data-studio-id="${targetId}"]`);
-    if (!dragged || !target || !target.parentElement || dragged.contains(target)) return;
-    if (dragged.parentElement !== target.parentElement) {
-      setNotice("Para manter o responsivo estável, arraste entre elementos do mesmo bloco. Use ‘Selecionar bloco pai’ para mover um conjunto maior.");
+    if (!root || !dragged || !target || dragged.contains(target)) return;
+
+    const before = capture();
+    if (canAcceptFlowChild(target, dragged, root)) {
+      target.appendChild(dragged);
+      setNotice("Camada movida para dentro do bloco.");
+    } else if (target.parentElement && canAcceptFlowChild(target.parentElement, dragged, root)) {
+      target.parentElement.insertBefore(dragged, target);
+      setNotice("Camada movida no fluxo.");
+    } else {
+      setNotice("Esse destino não aceita o elemento. Solte sobre um card, seção ou bloco.");
       return;
     }
-    recordBeforeAction();
-    target.parentElement.insertBefore(dragged, target);
+    undoRef.current.push(before);
+    redoRef.current = [];
+    setHistoryTick((n) => n + 1);
     refreshLayers();
     refreshSelected(dragged);
-    setNotice("Ordem alterada dentro do bloco, sem posição livre.");
-  }, [frameDocument, recordBeforeAction, refreshLayers, refreshSelected]);
+  }, [capture, frameDocument, refreshLayers, refreshSelected, studioRoot]);
 
   const selectLayer = useCallback((id: string) => {
     const el = frameDocument()?.querySelector<HTMLElement>(`[data-studio-id="${id}"]`);
@@ -783,14 +863,14 @@ export function LandingStudioBuilder() {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [frameDocument, refreshSelected]);
 
-  if (loading) return <section className="portal-card ln-studio-loading"><h2>LORDNUTRI Studio Flow 1.1</h2><p>{notice}</p></section>;
+  if (loading) return <section className="portal-card ln-studio-loading"><h2>LORDNUTRI Studio Nested Flow 1.2</h2><p>{notice}</p></section>;
 
   return (
     <section className="ln-studio-app ln-studio-flow">
       <header className="ln-studio-toolbar">
-        <div className="ln-studio-title"><strong>LORDNUTRI Studio Flow</strong><span>1.1 · edição profissional sem posição livre</span></div>
+        <div className="ln-studio-title"><strong>LORDNUTRI Studio Nested Flow</strong><span>1.2 · arraste entre blocos sem posição livre</span></div>
         <div className="ln-studio-toolgroup">
-          <button onClick={() => addElement("text")}>+ Texto</button><button onClick={() => addElement("title")}>+ Título</button><button onClick={() => addElement("button")}>+ Botão</button><button onClick={() => addElement("image")}>+ Imagem</button><button onClick={() => addElement("section")}>+ Seção</button>
+          <button onClick={() => addElement("text")}>+ Texto</button><button onClick={() => addElement("title")}>+ Título</button><button onClick={() => addElement("highlight")}>+ Destaque</button><button onClick={() => addElement("button")}>+ Botão</button><button onClick={() => addElement("image")}>+ Imagem</button><button onClick={() => addElement("block")}>+ Bloco</button><button onClick={() => addElement("section")}>+ Seção</button>
         </div>
         <div className="ln-studio-toolgroup">
           <button disabled={!undoRef.current.length} onClick={undo}>↶ Desfazer</button><button disabled={!redoRef.current.length} onClick={redo}>↷ Refazer</button>
@@ -811,20 +891,20 @@ export function LandingStudioBuilder() {
         <aside className="ln-studio-left">
           <div className="ln-studio-panel-title"><strong>Estrutura da LP</strong><button onClick={() => setShowLayers((value) => !value)}>{showLayers ? "←" : "→"}</button></div>
           {showLayers ? <div className="ln-studio-layers">
-            {layers.map((layer) => <button key={layer.id} draggable={!layer.protected} onDragStart={() => { draggedLayerRef.current = layer.id; }} onDragOver={(event) => event.preventDefault()} onDrop={() => layerDrop(layer.id)} onClick={() => selectLayer(layer.id)} className={selected?.id === layer.id ? "active" : ""} style={{ paddingLeft: 10 + layer.depth * 14 }}><span>{layer.protected ? "🔒" : "⋮⋮"}</span><em>{layer.label}</em></button>)}
+            {layers.map((layer) => <button key={layer.id} draggable onDragStart={() => { draggedLayerRef.current = layer.id; }} onDragOver={(event) => event.preventDefault()} onDrop={() => layerDrop(layer.id)} onClick={() => selectLayer(layer.id)} className={selected?.id === layer.id ? "active" : ""} style={{ paddingLeft: 10 + layer.depth * 14 }}><span>{layer.protected ? "🔒" : "⋮⋮"}</span><em>{layer.label}</em></button>)}
           </div> : null}
           <div className="ln-studio-library"><strong>Imagens</strong><div className="ln-studio-library-grid">{media.slice(0, 12).map((asset) => <button key={asset.id} onClick={() => addElement("image", asset.url)}><img src={asset.url} alt=""/><span>{asset.label}</span></button>)}</div></div>
         </aside>
 
         <div className="ln-studio-canvas-stage">
-          <div className="ln-studio-ruler">{device === "desktop" ? "Desktop · fluxo responsivo" : device === "tablet" ? "Tablet · 820 px" : "Celular · 390 px"} · clique para selecionar · arraste o selecionado para reordenar no mesmo bloco</div>
+          <div className="ln-studio-ruler">{device === "desktop" ? "Desktop · fluxo responsivo" : device === "tablet" ? "Tablet · 820 px" : "Celular · 390 px"} · clique para selecionar · arraste entre cards, blocos e seções</div>
           <div className="ln-studio-device-frame" style={{ width: frameWidth }}>
             {srcDoc ? <iframe key={canvasKey} ref={iframeRef} className="ln-studio-iframe" title="Editor visual da landing" srcDoc={srcDoc} onLoad={onFrameLoad}/> : null}
           </div>
         </div>
 
         <aside className="ln-studio-inspector">
-          {!selected ? <div className="ln-studio-empty"><strong>Selecione algo na landing</strong><p>Clique no texto, imagem, botão, card ou seção. O editor trabalha em <b>fluxo responsivo</b>: sem X/Y e sem posição absoluta.</p><p>Depois de selecionar, você pode editar, mudar cor/tamanho, centralizar, duplicar e arrastar dentro do mesmo bloco.</p></div> : <>
+          {!selected ? <div className="ln-studio-empty"><strong>Selecione algo na landing</strong><p>Clique no texto, imagem, botão, card ou seção. O editor trabalha em <b>fluxo responsivo</b>: sem X/Y e sem posição absoluta.</p><p>Depois de selecionar, você pode editar, mudar cor/tamanho, duplicar e arrastar para dentro de outro card, bloco ou seção.</p></div> : <>
             <div className="ln-studio-selection-head"><span>{selected.protected ? "🔒 componente protegido" : selected.tag}</span><strong>{selected.label}</strong></div>
 
             <div className="ln-studio-flow-actions">
@@ -833,6 +913,11 @@ export function LandingStudioBuilder() {
               <button type="button" onClick={() => moveSelected(1)}>↓ Descer</button>
               <button type="button" disabled={selected.protected} onClick={duplicateSelected}>⧉ Duplicar</button>
             </div>
+
+            {selected.isContainer && !selected.protected ? <InspectorGroup title="Adicionar dentro deste bloco">
+              <div className="ln-studio-insert-buttons"><button type="button" onClick={() => addElement("text")}>+ Texto</button><button type="button" onClick={() => addElement("highlight")}>+ Destaque</button><button type="button" onClick={() => addElement("button")}>+ Botão</button><button type="button" onClick={() => addElement("image")}>+ Imagem</button><button type="button" onClick={() => addElement("block")}>+ Bloco</button></div>
+              <p className="ln-studio-help">O novo item nasce dentro do card/bloco selecionado. Você também pode arrastar elementos de outros blocos para cá.</p>
+            </InspectorGroup> : null}
 
             {selected.protected ? <div className="ln-studio-protected-note">A lógica interna deste componente fica protegida. Você ainda pode reposicionar o bloco no fluxo e ajustar largura/espaçamento sem mexer no Asaas, simulador ou dados do Google.</div> : null}
 
@@ -847,11 +932,17 @@ export function LandingStudioBuilder() {
               <div className="ln-studio-two"><StyleSelect label="Peso" value={styleValue("fontWeight")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("fontWeight", v)} options={["", "400", "500", "600", "700", "800", "900"]}/><StyleSelect label="Estilo" value={styleValue("fontStyle")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("fontStyle", v)} options={["", "normal", "italic"]}/></div>
             </InspectorGroup> : null}
 
+            {selected.isContainer && !selected.protected ? <InspectorGroup title={`Card / bloco · ${device}`}>
+              <div className="ln-studio-two"><ColorControl label="Fundo" value={rgbToHex(styleValue("backgroundColor") || selected.computedBackgroundColor)} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(value) => setStyleValue("backgroundColor", value)}/><ColorControl label="Borda" value={rgbToHex(styleValue("borderColor") || selected.computedBorderColor)} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(value) => setStyleValue("borderColor", value)}/></div>
+              <div className="ln-studio-two"><StyleInput label="Raio" placeholder="18px" value={styleValue("borderRadius")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("borderRadius", v)}/><StyleInput label="Gap interno" placeholder="16px" value={styleValue("gap")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("gap", v)}/></div>
+              <div className="ln-studio-layout-presets"><button type="button" onClick={() => { recordBeforeAction(); patchSelectedStyles({ display: "flex", flexDirection: "column" }); }}>Empilhar</button><button type="button" onClick={() => { recordBeforeAction(); patchSelectedStyles({ display: "flex", flexDirection: "row", flexWrap: "wrap" }); }}>Lado a lado</button><button type="button" onClick={() => { recordBeforeAction(); patchSelectedStyles({ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))" }); }}>2 colunas</button></div>
+            </InspectorGroup> : null}
+
             <InspectorGroup title={`Largura e posição no fluxo · ${device}`}>
               <div className="ln-studio-width-buttons"><button type="button" onClick={() => setFlowWidth("auto")}>Auto</button><button type="button" onClick={() => setFlowWidth("50%")}>50%</button><button type="button" onClick={() => setFlowWidth("75%")}>75%</button><button type="button" onClick={() => setFlowWidth("100%")}>100%</button></div>
               <div className="ln-studio-align-buttons"><button type="button" onClick={() => alignSelected("left")}>←</button><button type="button" onClick={() => alignSelected("center")}>Centralizar no bloco</button><button type="button" onClick={() => alignSelected("right")}>→</button></div>
               <div className="ln-studio-two"><StyleInput label="Espaço acima" placeholder="0px" value={styleValue("marginTop")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("marginTop", v)}/><StyleInput label="Espaço abaixo" placeholder="0px" value={styleValue("marginBottom")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("marginBottom", v)}/></div>
-              <p className="ln-studio-help">Para mover, selecione o elemento e arraste-o antes/depois de outro elemento do mesmo bloco. Nada usa posição absoluta.</p>
+              <p className="ln-studio-help">Para mover, arraste o elemento sobre outro item para posicionar antes/depois ou sobre o centro de um card/bloco para inserir dentro. Nada usa posição absoluta.</p>
             </InspectorGroup>
 
             <details className="ln-studio-advanced"><summary>Opções avançadas</summary>
