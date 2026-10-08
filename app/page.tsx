@@ -8,7 +8,6 @@ import { WelcomeVideo } from "@/components/welcome-video";
 import { CheckoutForm } from "@/components/checkout-form";
 import { ProfitSimulator } from "@/components/profit-simulator";
 import { ContentRuntime } from "@/components/content-runtime";
-import { GoogleReviews } from "@/components/google-reviews";
 import { StudioPublishedLanding } from "@/components/studio-published-landing";
 import { getStudioDoc } from "@/lib/content-studio";
 import "./landing.css";
@@ -137,9 +136,6 @@ function OriginalLanding() {
         </div>
       </section>
 
-      <div className="lnr-proof-section">
-        <GoogleReviews />
-      </div>
 
       <section id="modelo" className="lnr-section lnr-model">
         <div className="lnr-shell">
@@ -176,7 +172,7 @@ function OriginalLanding() {
         <div className="lnr-shell lnr-faq-layout"><div><span className="lnr-eyebrow">FAQ</span><h2>Antes de começar.</h2></div><div className="lnr-faq-list" data-cms-dropzone="faq-list">{faqs.map(([title, text], index) => <details className="lnr-disclosure" data-cms-group={`faq-${index + 1}`} key={title}><summary><h3>{title}</h3><span className="lnr-plus" aria-hidden="true" /></summary><p><BrandText text={text} /></p></details>)}</div></div>
       </section>
       <section id="checkout" className="lnr-section lnr-checkout">
-        <div className="lnr-shell lnr-checkout-layout"><div><span className="lnr-eyebrow">COMECE SUA REVENDA</span><h2>Escolha seu kit</h2><p>Antes de pagar, você vê o valor dos produtos, o frete e as condições de parcelamento.</p></div><CheckoutForm /></div>
+        <div className="lnr-shell lnr-checkout-layout"><CheckoutForm /></div>
       </section>
       <footer className="lnr-footer"><div className="lnr-shell"><div><BrandLogo compact /><p><BrandText text="MIX10 PRO" /></p><p>Programa de Revendedores</p></div><nav aria-label="Informações e acesso"><Link href="/termos-de-uso">Termos de Uso</Link><Link href="/politica-de-privacidade">Política de Privacidade</Link><Link href="/reembolso-e-devolucao">Reembolso e Devolução</Link><Link href="/entrar">Portal do Revendedor</Link><a className="lnr-google-check" href="https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F" target="_blank" rel="noopener noreferrer">Consultar segurança do site no Google </a></nav></div></footer>
     </main>

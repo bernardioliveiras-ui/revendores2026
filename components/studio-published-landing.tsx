@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckoutForm } from "@/components/checkout-form";
 import { ProfitSimulator } from "@/components/profit-simulator";
-import { GoogleReviews, GoogleReviewsDynamic } from "@/components/google-reviews";
+
 
 type Device = "desktop" | "mobile";
 type StyleMap = Record<string, Partial<Record<Device, Record<string, string>>>>;
@@ -71,6 +71,8 @@ export function buildStudioCss(styles: StyleMap | undefined) {
  */
 const criticalSafetyCss = `
 .lnr-studio-published{overflow-x:clip!important}
+.lnr-studio-published .lnr-proof-section{display:none!important}
+.lnr-studio-published #checkout .lnr-checkout-layout{grid-template-columns:minmax(0,1fr)!important}
 .lnr-studio-published .lnr-studio-document{min-width:0!important;max-width:100%!important}
 .lnr-studio-published .lnr-section,.lnr-studio-published .lnr-shell{box-sizing:border-box!important;min-width:0!important}
 .lnr-studio-published img{max-width:100%!important}
@@ -155,6 +157,8 @@ export function StudioPublishedLanding({ html, styles }: { html: string; styles?
     let raf2 = 0;
     const run = () => {
       if (cancelled) return;
+      rootRef.current?.querySelectorAll(".lnr-proof-section").forEach((node) => node.remove());
+      rootRef.current?.querySelectorAll("#checkout .lnr-checkout-layout > div:not([data-ln-protected])").forEach((node) => { if (!node.querySelector("form")) node.remove(); });
       setTargets(ensureTargets(rootRef.current));
       setScanned(true);
     };
@@ -176,7 +180,7 @@ export function StudioPublishedLanding({ html, styles }: { html: string; styles?
     return () => window.clearTimeout(timer);
   }, [scanned, targets]);
 
-  const missingGoogle = scanned && runtimeChecked && (!targets["google-dynamic"] || !ready.google);
+  
   const missingSimulator = scanned && runtimeChecked && (!targets.simulator || !ready.simulator);
   const missingCheckout = scanned && runtimeChecked && (!targets.checkout || !ready.checkout);
 
@@ -186,13 +190,13 @@ export function StudioPublishedLanding({ html, styles }: { html: string; styles?
       <style dangerouslySetInnerHTML={{ __html: criticalSafetyCss }} />
       <div ref={rootRef} className="lnr-studio-document" dangerouslySetInnerHTML={{ __html: html }} />
 
-      {targets["google-dynamic"] ? createPortal(<GoogleReviewsDynamic />, targets["google-dynamic"]) : null}
+
       {targets.simulator ? createPortal(<ProfitSimulator />, targets.simulator) : null}
       {targets.checkout ? createPortal(<CheckoutForm />, targets.checkout) : null}
 
-      {missingGoogle ? <div className="lnr-proof-section lnr-runtime-recovery" data-ln-runtime-recovery="google"><GoogleReviews /></div> : null}
+
       {missingSimulator ? <section id="simulador-recuperado" className="lnr-section lnr-simulator lnr-runtime-recovery" data-ln-runtime-recovery="simulator"><div className="lnr-shell"><ProfitSimulator /></div></section> : null}
-      {missingCheckout ? <section id="checkout-recuperado" className="lnr-section lnr-checkout lnr-runtime-recovery" data-ln-runtime-recovery="checkout"><div className="lnr-shell lnr-checkout-layout"><div><span className="lnr-eyebrow">COMECE SUA REVENDA</span><h2>Escolha seu kit</h2><p>Antes de pagar, você vê o valor dos produtos, o frete e as condições de parcelamento.</p></div><CheckoutForm /></div></section> : null}
+      {missingCheckout ? <section id="checkout-recuperado" className="lnr-section lnr-checkout lnr-runtime-recovery" data-ln-runtime-recovery="checkout"><div className="lnr-shell lnr-checkout-layout"><CheckoutForm /></div></section> : null}
     </main>
   );
 }
