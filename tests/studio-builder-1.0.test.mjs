@@ -52,8 +52,9 @@ test('Studio supports full visual operations without DOM-path identity', async (
   assert.match(builder, /\+ Texto/);
   assert.match(builder, /\+ Imagem/);
   assert.match(builder, /Duplicar/);
-  assert.match(builder, /Camadas/);
-  assert.match(builder, /Posição livre/);
+  assert.match(builder, /Estrutura da LP/);
+  assert.match(builder, /fluxo responsivo/i);
+  assert.doesNotMatch(builder, /Ativar posição livre/);
   assert.match(builder, /Desktop/);
   assert.match(builder, /Tablet/);
   assert.match(builder, /Celular/);

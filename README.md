@@ -1,3 +1,7 @@
+# LORDNUTRI 1.1.0 — STUDIO FLOW
+
+> Editor da LP revisado para trabalhar em fluxo responsivo, sem posição livre/X-Y. Use BKO → Studio LP. Veja `README-STUDIO-1.1.md`.
+
 # LORDNUTRI Revendedores 0.7.0
 
 Portal de revendedores LORD NUTRI / MIX10 PRO em Next.js 16.

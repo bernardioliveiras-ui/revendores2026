@@ -956,3 +956,26 @@ body { overflow-x: clip; }
 .lnr-studio-published>.lnr-studio-document{display:contents}.ln-studio-google-dynamic{display:contents;min-height:270px}.ln-studio-checkout-placeholder{min-height:420px}
 @media(max-width:1250px){.ln-studio-workspace{grid-template-columns:205px minmax(0,1fr) 300px}.ln-studio-toolbar{position:relative}.ln-studio-inspector{max-height:none;position:relative}.ln-studio-iframe{height:760px}}
 @media(max-width:980px){.ln-studio-workspace,.ln-studio-workspace:not(.has-layers){grid-template-columns:1fr}.ln-studio-left{border-right:0;border-bottom:1px solid var(--studio-line)}.ln-studio-inspector{border-left:0;border-top:1px solid var(--studio-line)}.ln-studio-layers{max-height:240px}.ln-studio-canvas-stage{padding:10px}.ln-studio-iframe{height:700px}.ln-studio-publish{margin-left:0}.ln-studio-left{display:block}.ln-studio-workspace:not(.has-layers) .ln-studio-layers,.ln-studio-workspace:not(.has-layers) .ln-studio-library{display:none}}
+
+/* LORDNUTRI Studio Flow 1.1 */
+.ln-studio-flow .ln-studio-title span{color:#f1d996}
+.ln-studio-flow-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
+.ln-studio-flow-actions button,.ln-studio-quick-row button,.ln-studio-align-buttons button,.ln-studio-width-buttons button{border:1px solid #d8cfc2;background:#fff;color:#18303e;border-radius:8px;padding:8px 9px;font-size:10px;font-weight:800;cursor:pointer}
+.ln-studio-flow-actions button:hover,.ln-studio-quick-row button:hover,.ln-studio-align-buttons button:hover,.ln-studio-width-buttons button:hover{border-color:#c79a43;background:#fff9e9}
+.ln-studio-flow-actions button:disabled{opacity:.4;cursor:not-allowed}
+.ln-studio-quick-row{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;gap:6px;margin-bottom:8px}
+.ln-studio-quick-row span{display:flex;align-items:center;justify-content:center;min-height:34px;border:1px solid #e2d8c9;border-radius:8px;background:#f8f5ef;color:#6e5830;font-size:11px;font-weight:900}
+.ln-studio-align-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.ln-studio-align-buttons button.active{background:#102435;color:#fff;border-color:#102435}
+.ln-studio-width-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}
+.ln-studio-color-control{display:grid!important;gap:4px!important;font-size:9px!important;font-weight:800!important;color:#5a646a!important;margin-bottom:8px!important}
+.ln-studio-color-control>span{display:grid;grid-template-columns:42px 1fr;gap:6px;align-items:center}
+.ln-studio-color-control input[type=color]{padding:2px!important;height:34px!important;cursor:pointer;background:#fff!important}
+.ln-studio-advanced{margin:10px 0;border:1px solid #e4d8c6;border-radius:10px;background:#fbf8f2;overflow:hidden}
+.ln-studio-advanced>summary{cursor:pointer;padding:10px 11px;font-size:10px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:#74571f;list-style:none}
+.ln-studio-advanced>summary::-webkit-details-marker{display:none}
+.ln-studio-advanced>summary::after{content:"+";float:right;font-size:14px}
+.ln-studio-advanced[open]>summary::after{content:"−"}
+.ln-studio-advanced .ln-studio-inspector-group{margin:0 8px 8px}
+.ln-studio-flow .ln-studio-ruler{background:#ece8df;border:1px solid #cbc4b7;border-radius:8px;padding:7px 10px;line-height:1.35}
+@media(max-width:520px){.ln-studio-flow-actions{grid-template-columns:1fr}.ln-studio-width-buttons{grid-template-columns:1fr 1fr}.ln-studio-align-buttons{grid-template-columns:1fr}}

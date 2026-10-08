@@ -9,7 +9,7 @@ type StyleMap = Record<string, DeviceStyles>;
 type StudioConfig = { enabled: boolean; version: string; html: string; styles: StyleMap };
 type LandingDraft = { overrides?: Record<string, string>; fontScales?: Record<string, number>; freeElements?: unknown[]; studio?: StudioConfig };
 type LandingDoc = { type: "landing"; draft: LandingDraft; published: LandingDraft; updatedAt?: string | null; publishedAt?: string | null };
-type SelectedInfo = { id: string; tag: string; label: string; text: string; src: string; alt: string; href: string; protected: boolean; isImage: boolean; isText: boolean };
+type SelectedInfo = { id: string; tag: string; label: string; text: string; src: string; alt: string; href: string; protected: boolean; isImage: boolean; isText: boolean; computedColor: string; computedFontSize: string; computedTextAlign: string };
 type LayerItem = { id: string; depth: number; label: string; protected: boolean };
 type Snapshot = { html: string; styles: StyleMap };
 type MediaAsset = { id: string; label: string; url: string; kind: string };
@@ -41,6 +41,29 @@ function brandify(value: string) {
 
 function cloneStyles(value: StyleMap): StyleMap {
   return JSON.parse(JSON.stringify(value || {})) as StyleMap;
+}
+
+const flowBlockedProperties = new Set(["position", "left", "top", "right", "bottom", "zIndex"]);
+
+function normalizeFlowStyles(value: StyleMap): StyleMap {
+  const next = cloneStyles(value || {});
+  for (const [id, byDevice] of Object.entries(next)) {
+    for (const device of ["desktop", "tablet", "mobile"] as const) {
+      const raw = byDevice?.[device];
+      if (!raw) continue;
+      for (const property of flowBlockedProperties) delete raw[property];
+      if (!Object.keys(raw).length) delete byDevice[device];
+    }
+    if (!Object.keys(byDevice).length) delete next[id];
+  }
+  return next;
+}
+
+function rgbToHex(value: string) {
+  if (/^#[0-9a-f]{6}$/i.test(value.trim())) return value.trim();
+  const match = value.match(/rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+  if (!match) return "#ffffff";
+  return `#${[match[1], match[2], match[3]].map((part) => Math.max(0, Math.min(255, Number(part))).toString(16).padStart(2, "0")).join("")}`;
 }
 
 function labelFor(el: Element) {
@@ -75,7 +98,10 @@ function editorShellCss() {
     html,body{margin:0;min-height:100%;background:#f4eee6}
     body.studio-editing{overflow-x:hidden}
     body.studio-editing a{cursor:default}
-    [data-studio-selected="1"]{outline:3px solid #d3a83d!important;outline-offset:3px!important;position:relative}
+    [data-studio-selected="1"]{outline:3px solid #d3a83d!important;outline-offset:3px!important;position:relative;cursor:grab!important}
+    [data-studio-drop="before"]{box-shadow:inset 0 4px 0 #16a34a!important}
+    [data-studio-drop="after"]{box-shadow:inset 0 -4px 0 #16a34a!important}
+    [data-studio-dragging="1"]{opacity:.45!important}
     [data-ln-protected]{min-height:120px!important;display:grid!important;place-items:center!important;border:2px dashed rgba(211,168,61,.85)!important;background:repeating-linear-gradient(135deg,rgba(211,168,61,.08),rgba(211,168,61,.08) 10px,rgba(11,34,54,.03) 10px,rgba(11,34,54,.03) 20px)!important;color:#8c6727!important}
     [data-ln-protected]::before{content:attr(data-ln-label);font:800 12px/1.2 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;border-radius:999px;background:#fff7df;border:1px solid #d3a83d}
   `;
@@ -94,6 +120,13 @@ function isEditableText(el: HTMLElement) {
 
 function cleanPlainText(el: HTMLElement) {
   return (el.innerText || el.textContent || "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function writePlainText(el: HTMLElement, value: string) {
+  const onlyChild = el.children.length === 1 ? el.firstElementChild as HTMLElement | null : null;
+  const keepButtonSpan = (el.tagName === "A" || el.tagName === "BUTTON") && onlyChild?.tagName === "SPAN" && !onlyChild.classList.contains("lnr-lord-name") && !onlyChild.classList.contains("lnr-mix-name");
+  if (keepButtonSpan && onlyChild) onlyChild.innerHTML = brandify(value);
+  else el.innerHTML = brandify(value);
 }
 
 export function LandingStudioBuilder() {
@@ -172,9 +205,12 @@ export function LandingStudioBuilder() {
     const id = actual.getAttribute("data-studio-id") || makeId();
     if (!actual.getAttribute("data-studio-id")) actual.setAttribute("data-studio-id", id);
     doc.querySelectorAll("[data-studio-selected]").forEach((node) => node.removeAttribute("data-studio-selected"));
+    doc.querySelectorAll("[draggable=\"true\"]").forEach((node) => node.removeAttribute("draggable"));
     actual.setAttribute("data-studio-selected", "1");
+    if (!actual.hasAttribute("data-ln-protected")) actual.setAttribute("draggable", "true");
     const isImage = actual.tagName === "IMG";
     const isText = isEditableText(actual);
+    const computed = doc.defaultView?.getComputedStyle(actual);
     setSelected({
       id,
       tag: actual.tagName.toLowerCase(),
@@ -186,6 +222,9 @@ export function LandingStudioBuilder() {
       protected: actual.hasAttribute("data-ln-protected"),
       isImage,
       isText,
+      computedColor: computed?.color || "#ffffff",
+      computedFontSize: computed?.fontSize || "16px",
+      computedTextAlign: computed?.textAlign || "left",
     });
   }, [frameDocument]);
 
@@ -320,8 +359,8 @@ export function LandingStudioBuilder() {
         setMedia(Array.isArray(mediaDoc?.draft?.assets) ? mediaDoc.draft.assets : []);
         if (loaded.draft?.studio?.html) {
           setInitialHtml(loaded.draft.studio.html);
-          setStyles(loaded.draft.studio.styles || {});
-          setNotice("Studio carregado. Clique em qualquer elemento para editar.");
+          setStyles(normalizeFlowStyles(loaded.draft.studio.styles || {}));
+          setNotice("Studio Flow carregado. Clique em um elemento, edite e arraste no fluxo sem sair do eixo.");
         } else {
           const html = await seedFromBase();
           if (!active) return;
@@ -377,7 +416,7 @@ export function LandingStudioBuilder() {
       const finish = () => {
         const value = cleanPlainText(el);
         el.removeAttribute("contenteditable");
-        el.innerHTML = brandify(value);
+        writePlainText(el, value);
         refreshSelected(el);
         refreshLayers();
         el.removeEventListener("blur", finish);
@@ -385,52 +424,65 @@ export function LandingStudioBuilder() {
       el.addEventListener("blur", finish);
     }, true);
 
-    let dragState: { id: string; startX: number; startY: number; left: number; top: number; before: Snapshot; el: HTMLElement } | null = null;
-    doc.addEventListener("pointerdown", (event) => {
-      if (!event.altKey || event.button !== 0) return;
+    let flowDrag: { id: string; before: Snapshot; el: HTMLElement } | null = null;
+    const clearDropMarks = () => doc.querySelectorAll("[data-studio-drop]").forEach((node) => node.removeAttribute("data-studio-drop"));
+
+    doc.addEventListener("dragstart", (event) => {
       const el = selectFromTarget(event.target);
-      if (!el) return;
+      if (!el || el.hasAttribute("data-ln-protected") || el.getAttribute("data-studio-selected") !== "1") {
+        event.preventDefault();
+        return;
+      }
       const id = el.getAttribute("data-studio-id") || "";
-      if (!id || el.hasAttribute("data-ln-protected")) return;
-      const current = stylesRef.current[id]?.[deviceRef.current] || {};
-      if (current.position !== "absolute") return;
-      const computed = doc.defaultView?.getComputedStyle(el);
-      dragState = {
-        id,
-        startX: event.clientX,
-        startY: event.clientY,
-        left: Number.parseFloat(current.left || computed?.left || "0") || 0,
-        top: Number.parseFloat(current.top || computed?.top || "0") || 0,
-        before: capture(),
-        el,
-      };
-      el.setPointerCapture?.(event.pointerId);
+      if (!id) return;
+      flowDrag = { id, before: capture(), el };
+      el.setAttribute("data-studio-dragging", "1");
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", id);
+      }
+    }, true);
+
+    doc.addEventListener("dragover", (event) => {
+      if (!flowDrag) return;
+      const target = selectFromTarget(event.target);
+      if (!target || target === flowDrag.el || target.hasAttribute("data-ln-protected")) return;
+      if (target.parentElement !== flowDrag.el.parentElement) return;
       event.preventDefault();
+      clearDropMarks();
+      const rect = target.getBoundingClientRect();
+      const parentStyle = target.parentElement ? doc.defaultView?.getComputedStyle(target.parentElement) : null;
+      const horizontal = parentStyle?.display.includes("flex") && (parentStyle.flexDirection === "row" || parentStyle.flexDirection === "row-reverse");
+      const before = horizontal ? event.clientX < rect.left + rect.width / 2 : event.clientY < rect.top + rect.height / 2;
+      target.setAttribute("data-studio-drop", before ? "before" : "after");
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
     }, true);
-    doc.addEventListener("pointermove", (event) => {
-      if (!dragState) return;
-      const left = dragState.left + (event.clientX - dragState.startX);
-      const top = dragState.top + (event.clientY - dragState.startY);
-      dragState.el.style.left = `${Math.round(left)}px`;
-      dragState.el.style.top = `${Math.round(top)}px`;
-    }, true);
-    doc.addEventListener("pointerup", (event) => {
-      if (!dragState) return;
-      const state = dragState;
-      dragState = null;
-      const left = state.left + (event.clientX - state.startX);
-      const top = state.top + (event.clientY - state.startY);
-      state.el.style.removeProperty("left");
-      state.el.style.removeProperty("top");
-      setStyles((current) => {
-        const next = cloneStyles(current);
-        next[state.id] ||= {};
-        next[state.id][deviceRef.current] = { ...(next[state.id][deviceRef.current] || {}), left: `${Math.round(left)}px`, top: `${Math.round(top)}px`, position: "absolute" };
-        return next;
-      });
-      undoRef.current.push(state.before);
+
+    doc.addEventListener("drop", (event) => {
+      if (!flowDrag) return;
+      const target = selectFromTarget(event.target);
+      if (!target || target === flowDrag.el || target.parentElement !== flowDrag.el.parentElement) { clearDropMarks(); return; }
+      event.preventDefault();
+      const mode = target.getAttribute("data-studio-drop") || "before";
+      const parent = target.parentElement;
+      if (!parent) return;
+      if (mode === "after") parent.insertBefore(flowDrag.el, target.nextSibling);
+      else parent.insertBefore(flowDrag.el, target);
+      undoRef.current.push(flowDrag.before);
       redoRef.current = [];
       setHistoryTick((n) => n + 1);
+      flowDrag.el.removeAttribute("data-studio-dragging");
+      clearDropMarks();
+      refreshLayers();
+      refreshSelected(flowDrag.el);
+      setNotice("Elemento movido no fluxo. O layout continua responsivo.");
+      flowDrag = null;
+    }, true);
+
+    doc.addEventListener("dragend", () => {
+      if (flowDrag?.el) flowDrag.el.removeAttribute("data-studio-dragging");
+      clearDropMarks();
+      flowDrag = null;
     }, true);
   }, [applyCss, capture, frameDocument, recordBeforeAction, refreshLayers, refreshSelected, studioRoot]);
 
@@ -454,7 +506,7 @@ export function LandingStudioBuilder() {
   const updateSelectedText = useCallback((value: string) => {
     const el = currentElement();
     if (!el || !selected?.isText) return;
-    el.innerHTML = brandify(value);
+    writePlainText(el, value);
     setSelected((current) => current ? { ...current, text: value, label: labelFor(el) } : current);
     refreshLayers();
   }, [currentElement, refreshLayers, selected?.isText]);
@@ -467,7 +519,7 @@ export function LandingStudioBuilder() {
   }, [currentElement, refreshSelected]);
 
   const setStyleValue = useCallback((property: string, value: string) => {
-    if (!selected) return;
+    if (!selected || flowBlockedProperties.has(property)) return;
     setStyles((current) => {
       const next = cloneStyles(current);
       next[selected.id] ||= {};
@@ -477,20 +529,115 @@ export function LandingStudioBuilder() {
       if (!Object.keys(next[selected.id]).length) delete next[selected.id];
       return next;
     });
-  }, [device, selected]);
+    window.setTimeout(() => refreshSelected(currentElement()), 0);
+  }, [currentElement, device, refreshSelected, selected]);
 
   const styleValue = useCallback((property: string) => selected ? styles[selected.id]?.[device]?.[property] || "" : "", [device, selected, styles]);
+
+  const patchSelectedStyles = useCallback((patch: Record<string, string>) => {
+    if (!selected) return;
+    setStyles((current) => {
+      const next = cloneStyles(current);
+      next[selected.id] ||= {};
+      const deviceStyles = { ...(next[selected.id][device] || {}) };
+      for (const [property, rawValue] of Object.entries(patch)) {
+        if (flowBlockedProperties.has(property)) continue;
+        const value = rawValue.trim();
+        if (value) deviceStyles[property] = value; else delete deviceStyles[property];
+      }
+      if (Object.keys(deviceStyles).length) next[selected.id][device] = deviceStyles; else delete next[selected.id][device];
+      if (!Object.keys(next[selected.id]).length) delete next[selected.id];
+      return next;
+    });
+    window.setTimeout(() => refreshSelected(currentElement()), 0);
+  }, [currentElement, device, refreshSelected, selected]);
+
+  const changeFontSize = useCallback((delta: number) => {
+    if (!selected || selected.isImage) return;
+    const el = currentElement();
+    if (!el || (!textTags.has(el.tagName) && !selected.isText)) return;
+    recordBeforeAction();
+    const computed = frameDocument()?.defaultView?.getComputedStyle(el);
+    const base = Number.parseFloat(styleValue("fontSize") || computed?.fontSize || selected.computedFontSize || "16") || 16;
+    const next = Math.max(9, Math.min(120, Math.round(base + delta)));
+    patchSelectedStyles({ fontSize: `${next}px` });
+    setNotice(`Fonte ajustada para ${next}px em ${device}.`);
+  }, [currentElement, device, frameDocument, patchSelectedStyles, recordBeforeAction, selected, styleValue]);
+
+  const alignSelected = useCallback((align: "left" | "center" | "right") => {
+    if (!selected) return;
+    const el = currentElement();
+    if (!el) return;
+    recordBeforeAction();
+    if (selected.isText || textTags.has(el.tagName)) {
+      patchSelectedStyles({ display: "block", width: "100%", textAlign: align, marginLeft: "0", marginRight: "0" });
+    } else if (align === "center") {
+      patchSelectedStyles({ marginLeft: "auto", marginRight: "auto" });
+    } else if (align === "left") {
+      patchSelectedStyles({ marginLeft: "0", marginRight: "auto" });
+    } else {
+      patchSelectedStyles({ marginLeft: "auto", marginRight: "0" });
+    }
+    setNotice(align === "center" ? "Elemento centralizado no bloco." : `Elemento alinhado à ${align === "left" ? "esquerda" : "direita"}.`);
+  }, [currentElement, patchSelectedStyles, recordBeforeAction, selected]);
+
+  const setFlowWidth = useCallback((width: string) => {
+    if (!selected) return;
+    recordBeforeAction();
+    patchSelectedStyles({ width, maxWidth: width === "auto" ? "" : styleValue("maxWidth") });
+  }, [patchSelectedStyles, recordBeforeAction, selected, styleValue]);
+
+  const resetSelectedDeviceStyles = useCallback(() => {
+    if (!selected) return;
+    recordBeforeAction();
+    setStyles((current) => {
+      const next = cloneStyles(current);
+      if (next[selected.id]) {
+        delete next[selected.id][device];
+        if (!Object.keys(next[selected.id]).length) delete next[selected.id];
+      }
+      return next;
+    });
+    setNotice(`Estilo de ${device} restaurado ao layout original.`);
+    window.setTimeout(() => refreshSelected(currentElement()), 0);
+  }, [currentElement, device, recordBeforeAction, refreshSelected, selected]);
+
+  const selectParent = useCallback(() => {
+    const el = currentElement();
+    const root = studioRoot();
+    const parent = el?.parentElement;
+    if (!parent || parent === root) return;
+    refreshSelected(parent);
+    parent.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [currentElement, refreshSelected, studioRoot]);
 
   const duplicateSelected = useCallback(() => {
     const el = currentElement();
     if (!el || selected?.protected) return;
     recordBeforeAction();
     const clone = el.cloneNode(true) as HTMLElement;
-    assignIds(clone);
-    clone.removeAttribute("data-studio-selected");
+    const sourceNodes = [el, ...Array.from(el.querySelectorAll<HTMLElement>("[data-studio-id]"))];
+    const cloneNodes = [clone, ...Array.from(clone.querySelectorAll<HTMLElement>("[data-studio-id]"))];
+    const styleCopies: Array<{ from: string; to: string }> = [];
+    for (let index = 0; index < cloneNodes.length; index += 1) {
+      const source = sourceNodes[index];
+      const copy = cloneNodes[index];
+      const oldId = source?.getAttribute("data-studio-id") || copy.getAttribute("data-studio-id") || "";
+      const newId = makeId();
+      copy.setAttribute("data-studio-id", newId);
+      copy.removeAttribute("data-studio-selected");
+      copy.removeAttribute("draggable");
+      if (oldId) styleCopies.push({ from: oldId, to: newId });
+    }
+    setStyles((current) => {
+      const next = cloneStyles(current);
+      for (const pair of styleCopies) if (current[pair.from]) next[pair.to] = cloneStyles({ x: current[pair.from] }).x;
+      return next;
+    });
     el.insertAdjacentElement("afterend", clone);
     refreshLayers();
     refreshSelected(clone);
+    setNotice("Elemento duplicado com formatação própria, sem compartilhar IDs com o original.");
   }, [currentElement, recordBeforeAction, refreshLayers, refreshSelected, selected?.protected]);
 
   const deleteSelected = useCallback(() => {
@@ -539,40 +686,6 @@ export function LandingStudioBuilder() {
     refreshSelected(el);
   }, [currentElement, frameDocument, media, recordBeforeAction, refreshLayers, refreshSelected, studioRoot]);
 
-  const toggleFreePosition = useCallback(() => {
-    const el = currentElement();
-    if (!el || !selected || selected.protected) return;
-    recordBeforeAction();
-    const currentPosition = stylesRef.current[selected.id]?.[device]?.position;
-    if (currentPosition === "absolute") {
-      for (const key of ["position", "left", "top", "right", "bottom", "zIndex"]) setStyleValue(key, "");
-      return;
-    }
-    const parent = el.parentElement;
-    if (parent) {
-      const parentId = parent.getAttribute("data-studio-id") || makeId();
-      if (!parent.getAttribute("data-studio-id")) parent.setAttribute("data-studio-id", parentId);
-      const computed = frameDocument()?.defaultView?.getComputedStyle(parent);
-      if (computed?.position === "static") {
-        setStyles((current) => {
-          const next = cloneStyles(current);
-          next[parentId] ||= {};
-          next[parentId][device] = { ...(next[parentId][device] || {}), position: "relative" };
-          return next;
-        });
-      }
-    }
-    const left = `${Math.max(0, Math.round(el.offsetLeft))}px`;
-    const top = `${Math.max(0, Math.round(el.offsetTop))}px`;
-    setStyles((current) => {
-      const next = cloneStyles(current);
-      next[selected.id] ||= {};
-      next[selected.id][device] = { ...(next[selected.id][device] || {}), position: "absolute", left, top, zIndex: "20" };
-      return next;
-    });
-    setNotice("Posição livre ativada. Segure ALT e arraste o elemento no canvas.");
-  }, [currentElement, device, frameDocument, recordBeforeAction, selected, setStyleValue]);
-
   const copyStyle = useCallback(() => {
     if (!selected) return;
     styleClipboardRef.current = cloneStyles({ x: styles[selected.id] || {} }).x;
@@ -582,7 +695,7 @@ export function LandingStudioBuilder() {
   const pasteStyle = useCallback(() => {
     if (!selected || !styleClipboardRef.current) return;
     recordBeforeAction();
-    setStyles((current) => ({ ...cloneStyles(current), [selected.id]: JSON.parse(JSON.stringify(styleClipboardRef.current)) }));
+    setStyles((current) => normalizeFlowStyles({ ...cloneStyles(current), [selected.id]: JSON.parse(JSON.stringify(styleClipboardRef.current)) }));
   }, [recordBeforeAction, selected]);
 
   const save = useCallback(async (publish = false) => {
@@ -594,7 +707,7 @@ export function LandingStudioBuilder() {
     try {
       const draft: LandingDraft = {
         ...currentDoc.draft,
-        studio: { enabled: true, version: "1.0", html, styles: cloneStyles(stylesRef.current) },
+        studio: { enabled: true, version: "1.1", html, styles: normalizeFlowStyles(stylesRef.current) },
       };
       const patch = await fetch("/api/admin/cms/landing", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ draft }) });
       const patched = await patch.json();
@@ -605,7 +718,7 @@ export function LandingStudioBuilder() {
         const published = await response.json();
         if (!response.ok) throw new Error(published.error || "Não foi possível publicar.");
         docRef.current = published;
-        setNotice("Publicado. A landing pública agora usa o Studio Builder 1.0.");
+        setNotice("Publicado. A landing pública agora usa o Studio Flow 1.1.");
       } else setNotice("Rascunho salvo.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Falha ao salvar.");
@@ -652,10 +765,15 @@ export function LandingStudioBuilder() {
     const dragged = doc?.querySelector<HTMLElement>(`[data-studio-id="${draggedId}"]`);
     const target = doc?.querySelector<HTMLElement>(`[data-studio-id="${targetId}"]`);
     if (!dragged || !target || !target.parentElement || dragged.contains(target)) return;
+    if (dragged.parentElement !== target.parentElement) {
+      setNotice("Para manter o responsivo estável, arraste entre elementos do mesmo bloco. Use ‘Selecionar bloco pai’ para mover um conjunto maior.");
+      return;
+    }
     recordBeforeAction();
     target.parentElement.insertBefore(dragged, target);
     refreshLayers();
     refreshSelected(dragged);
+    setNotice("Ordem alterada dentro do bloco, sem posição livre.");
   }, [frameDocument, recordBeforeAction, refreshLayers, refreshSelected]);
 
   const selectLayer = useCallback((id: string) => {
@@ -665,18 +783,18 @@ export function LandingStudioBuilder() {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [frameDocument, refreshSelected]);
 
-  if (loading) return <section className="portal-card ln-studio-loading"><h2>LORDNUTRI Studio Builder 1.0</h2><p>{notice}</p></section>;
+  if (loading) return <section className="portal-card ln-studio-loading"><h2>LORDNUTRI Studio Flow 1.1</h2><p>{notice}</p></section>;
 
   return (
-    <section className="ln-studio-app">
+    <section className="ln-studio-app ln-studio-flow">
       <header className="ln-studio-toolbar">
-        <div className="ln-studio-title"><strong>LORDNUTRI Studio Builder</strong><span>1.0 · editor visual da landing</span></div>
+        <div className="ln-studio-title"><strong>LORDNUTRI Studio Flow</strong><span>1.1 · edição profissional sem posição livre</span></div>
         <div className="ln-studio-toolgroup">
           <button onClick={() => addElement("text")}>+ Texto</button><button onClick={() => addElement("title")}>+ Título</button><button onClick={() => addElement("button")}>+ Botão</button><button onClick={() => addElement("image")}>+ Imagem</button><button onClick={() => addElement("section")}>+ Seção</button>
         </div>
         <div className="ln-studio-toolgroup">
-          <button disabled={!undoRef.current.length} onClick={undo}>↶</button><button disabled={!redoRef.current.length} onClick={redo}>↷</button>
-          <button disabled={!selected || selected.protected} onClick={duplicateSelected}>Duplicar</button><button disabled={!selected || selected.protected} onClick={deleteSelected}>Excluir</button>
+          <button disabled={!undoRef.current.length} onClick={undo}>↶ Desfazer</button><button disabled={!redoRef.current.length} onClick={redo}>↷ Refazer</button>
+          <button disabled={!selected || selected.protected} onClick={duplicateSelected}>⧉ Duplicar</button><button disabled={!selected || selected.protected} onClick={deleteSelected}>Excluir</button>
         </div>
         <div className="ln-studio-toolgroup ln-studio-devices">
           {devices.map((item) => <button key={item.id} className={device === item.id ? "active" : ""} onClick={() => setDevice(item.id)}>{item.label}</button>)}
@@ -691,53 +809,68 @@ export function LandingStudioBuilder() {
 
       <div className={`ln-studio-workspace${showLayers ? " has-layers" : ""}`}>
         <aside className="ln-studio-left">
-          <div className="ln-studio-panel-title"><strong>Camadas</strong><button onClick={() => setShowLayers((value) => !value)}>{showLayers ? "←" : "→"}</button></div>
+          <div className="ln-studio-panel-title"><strong>Estrutura da LP</strong><button onClick={() => setShowLayers((value) => !value)}>{showLayers ? "←" : "→"}</button></div>
           {showLayers ? <div className="ln-studio-layers">
-            {layers.map((layer) => <button key={layer.id} draggable onDragStart={() => { draggedLayerRef.current = layer.id; }} onDragOver={(event) => event.preventDefault()} onDrop={() => layerDrop(layer.id)} onClick={() => selectLayer(layer.id)} className={selected?.id === layer.id ? "active" : ""} style={{ paddingLeft: 10 + layer.depth * 14 }}><span>{layer.protected ? "🔒" : "⋮⋮"}</span><em>{layer.label}</em></button>)}
+            {layers.map((layer) => <button key={layer.id} draggable={!layer.protected} onDragStart={() => { draggedLayerRef.current = layer.id; }} onDragOver={(event) => event.preventDefault()} onDrop={() => layerDrop(layer.id)} onClick={() => selectLayer(layer.id)} className={selected?.id === layer.id ? "active" : ""} style={{ paddingLeft: 10 + layer.depth * 14 }}><span>{layer.protected ? "🔒" : "⋮⋮"}</span><em>{layer.label}</em></button>)}
           </div> : null}
-          <div className="ln-studio-library"><strong>Biblioteca</strong><div className="ln-studio-library-grid">{media.slice(0, 12).map((asset) => <button key={asset.id} onClick={() => addElement("image", asset.url)}><img src={asset.url} alt=""/><span>{asset.label}</span></button>)}</div></div>
+          <div className="ln-studio-library"><strong>Imagens</strong><div className="ln-studio-library-grid">{media.slice(0, 12).map((asset) => <button key={asset.id} onClick={() => addElement("image", asset.url)}><img src={asset.url} alt=""/><span>{asset.label}</span></button>)}</div></div>
         </aside>
 
         <div className="ln-studio-canvas-stage">
-          <div className="ln-studio-ruler">{device === "desktop" ? "Canvas responsivo · largura total" : device === "tablet" ? "820 px" : "390 px"}</div>
+          <div className="ln-studio-ruler">{device === "desktop" ? "Desktop · fluxo responsivo" : device === "tablet" ? "Tablet · 820 px" : "Celular · 390 px"} · clique para selecionar · arraste o selecionado para reordenar no mesmo bloco</div>
           <div className="ln-studio-device-frame" style={{ width: frameWidth }}>
             {srcDoc ? <iframe key={canvasKey} ref={iframeRef} className="ln-studio-iframe" title="Editor visual da landing" srcDoc={srcDoc} onLoad={onFrameLoad}/> : null}
           </div>
         </div>
 
         <aside className="ln-studio-inspector">
-          {!selected ? <div className="ln-studio-empty"><strong>Selecione um elemento</strong><p>Clique em qualquer texto, imagem, botão, card ou seção no canvas. Para editar texto diretamente, dê duplo clique.</p><p><b>Dica:</b> arraste itens na lista de Camadas para reorganizar. Posição livre é opcional e usa ALT + arrastar.</p></div> : <>
+          {!selected ? <div className="ln-studio-empty"><strong>Selecione algo na landing</strong><p>Clique no texto, imagem, botão, card ou seção. O editor trabalha em <b>fluxo responsivo</b>: sem X/Y e sem posição absoluta.</p><p>Depois de selecionar, você pode editar, mudar cor/tamanho, centralizar, duplicar e arrastar dentro do mesmo bloco.</p></div> : <>
             <div className="ln-studio-selection-head"><span>{selected.protected ? "🔒 componente protegido" : selected.tag}</span><strong>{selected.label}</strong></div>
-            <div className="ln-studio-mini-actions"><button onClick={() => moveSelected(-1)}>↑</button><button onClick={() => moveSelected(1)}>↓</button><button disabled={selected.protected} onClick={duplicateSelected}>⧉</button><button onClick={copyStyle}>Copiar estilo</button><button disabled={!styleClipboardRef.current} onClick={pasteStyle}>Colar estilo</button></div>
 
-            {selected.protected ? <div className="ln-studio-protected-note">A lógica deste componente é protegida. Você pode mover o bloco, mudar dimensões e espaçamento, mas não alterar a lógica de pagamento, simulador ou dados do Google.</div> : null}
+            <div className="ln-studio-flow-actions">
+              <button type="button" onClick={selectParent}>Selecionar bloco pai</button>
+              <button type="button" onClick={() => moveSelected(-1)}>↑ Subir</button>
+              <button type="button" onClick={() => moveSelected(1)}>↓ Descer</button>
+              <button type="button" disabled={selected.protected} onClick={duplicateSelected}>⧉ Duplicar</button>
+            </div>
 
-            {selected.isText && !selected.protected ? <InspectorGroup title="Conteúdo"><label>Texto<textarea rows={5} value={selected.text} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(event) => updateSelectedText(event.target.value)}/></label>{selected.tag === "a" ? <label>Link<input value={selected.href} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(event) => updateAttribute("href", event.target.value)}/></label> : null}</InspectorGroup> : null}
+            {selected.protected ? <div className="ln-studio-protected-note">A lógica interna deste componente fica protegida. Você ainda pode reposicionar o bloco no fluxo e ajustar largura/espaçamento sem mexer no Asaas, simulador ou dados do Google.</div> : null}
+
+            {selected.isText && !selected.protected ? <InspectorGroup title="Texto"><label>Conteúdo<textarea rows={5} value={selected.text} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(event) => updateSelectedText(event.target.value)}/></label>{selected.tag === "a" ? <label>Link<input value={selected.href} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(event) => updateAttribute("href", event.target.value)}/></label> : null}</InspectorGroup> : null}
 
             {selected.isImage && !selected.protected ? <InspectorGroup title="Imagem"><label>Arquivo / URL<input value={selected.src} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(event) => updateAttribute("src", event.target.value)}/></label><label>Descrição ALT<input value={selected.alt} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(event) => updateAttribute("alt", event.target.value)}/></label></InspectorGroup> : null}
 
-            <InspectorGroup title={`Tipografia · ${device}`}>
-              <StyleInput label="Tamanho" placeholder="ex.: 48px ou clamp(...)" value={styleValue("fontSize")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("fontSize", v)}/>
-              <div className="ln-studio-two"><StyleInput label="Peso" placeholder="700" value={styleValue("fontWeight")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("fontWeight", v)}/><StyleInput label="Entrelinha" placeholder="1.2" value={styleValue("lineHeight")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("lineHeight", v)}/></div>
-              <div className="ln-studio-two"><StyleInput label="Cor" placeholder="#ffffff" value={styleValue("color")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("color", v)}/><StyleSelect label="Alinhar" value={styleValue("textAlign")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("textAlign", v)} options={["", "left", "center", "right", "justify"]}/></div>
-              <StyleInput label="Família" placeholder="Georgia, serif" value={styleValue("fontFamily")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("fontFamily", v)}/>
+            {!selected.isImage ? <InspectorGroup title={`Aparência do texto · ${device}`}>
+              <div className="ln-studio-quick-row"><button type="button" onClick={() => changeFontSize(-2)}>A−</button><span>{styleValue("fontSize") || selected.computedFontSize}</span><button type="button" onClick={() => changeFontSize(2)}>A+</button></div>
+              <ColorControl label="Cor" value={rgbToHex(styleValue("color") || selected.computedColor)} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(value) => setStyleValue("color", value)}/>
+              <div className="ln-studio-align-buttons"><button type="button" onClick={() => alignSelected("left")}>Esquerda</button><button type="button" className={(styleValue("textAlign") || selected.computedTextAlign) === "center" ? "active" : ""} onClick={() => alignSelected("center")}>Centralizar</button><button type="button" onClick={() => alignSelected("right")}>Direita</button></div>
+              <div className="ln-studio-two"><StyleSelect label="Peso" value={styleValue("fontWeight")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("fontWeight", v)} options={["", "400", "500", "600", "700", "800", "900"]}/><StyleSelect label="Estilo" value={styleValue("fontStyle")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("fontStyle", v)} options={["", "normal", "italic"]}/></div>
+            </InspectorGroup> : null}
+
+            <InspectorGroup title={`Largura e posição no fluxo · ${device}`}>
+              <div className="ln-studio-width-buttons"><button type="button" onClick={() => setFlowWidth("auto")}>Auto</button><button type="button" onClick={() => setFlowWidth("50%")}>50%</button><button type="button" onClick={() => setFlowWidth("75%")}>75%</button><button type="button" onClick={() => setFlowWidth("100%")}>100%</button></div>
+              <div className="ln-studio-align-buttons"><button type="button" onClick={() => alignSelected("left")}>←</button><button type="button" onClick={() => alignSelected("center")}>Centralizar no bloco</button><button type="button" onClick={() => alignSelected("right")}>→</button></div>
+              <div className="ln-studio-two"><StyleInput label="Espaço acima" placeholder="0px" value={styleValue("marginTop")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("marginTop", v)}/><StyleInput label="Espaço abaixo" placeholder="0px" value={styleValue("marginBottom")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("marginBottom", v)}/></div>
+              <p className="ln-studio-help">Para mover, selecione o elemento e arraste-o antes/depois de outro elemento do mesmo bloco. Nada usa posição absoluta.</p>
             </InspectorGroup>
 
-            <InspectorGroup title={`Dimensões e espaçamento · ${device}`}>
-              <div className="ln-studio-two"><StyleInput label="Largura" placeholder="auto / 100% / 420px" value={styleValue("width")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("width", v)}/><StyleInput label="Máx. largura" placeholder="1180px" value={styleValue("maxWidth")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("maxWidth", v)}/></div>
-              <div className="ln-studio-four"><StyleInput label="MT" value={styleValue("marginTop")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("marginTop", v)}/><StyleInput label="MR" value={styleValue("marginRight")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("marginRight", v)}/><StyleInput label="MB" value={styleValue("marginBottom")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("marginBottom", v)}/><StyleInput label="ML" value={styleValue("marginLeft")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("marginLeft", v)}/></div>
-              <div className="ln-studio-four"><StyleInput label="PT" value={styleValue("paddingTop")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("paddingTop", v)}/><StyleInput label="PR" value={styleValue("paddingRight")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("paddingRight", v)}/><StyleInput label="PB" value={styleValue("paddingBottom")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("paddingBottom", v)}/><StyleInput label="PL" value={styleValue("paddingLeft")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("paddingLeft", v)}/></div>
-              <div className="ln-studio-two"><StyleInput label="Fundo" placeholder="#071722" value={styleValue("backgroundColor")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("backgroundColor", v)}/><StyleInput label="Raio" placeholder="20px" value={styleValue("borderRadius")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("borderRadius", v)}/></div>
-            </InspectorGroup>
+            <details className="ln-studio-advanced"><summary>Opções avançadas</summary>
+              <InspectorGroup title={`Estilo · ${device}`}>
+                <div className="ln-studio-two"><StyleInput label="Tamanho" placeholder="48px" value={styleValue("fontSize")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("fontSize", v)}/><StyleInput label="Entrelinha" placeholder="1.2" value={styleValue("lineHeight")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("lineHeight", v)}/></div>
+                <StyleInput label="Família" placeholder="Georgia, serif" value={styleValue("fontFamily")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("fontFamily", v)}/>
+                <div className="ln-studio-two"><StyleInput label="Largura" placeholder="auto / 100% / 420px" value={styleValue("width")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("width", v)}/><StyleInput label="Máx. largura" placeholder="1180px" value={styleValue("maxWidth")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("maxWidth", v)}/></div>
+                <div className="ln-studio-four"><StyleInput label="PT" value={styleValue("paddingTop")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("paddingTop", v)}/><StyleInput label="PR" value={styleValue("paddingRight")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("paddingRight", v)}/><StyleInput label="PB" value={styleValue("paddingBottom")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("paddingBottom", v)}/><StyleInput label="PL" value={styleValue("paddingLeft")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("paddingLeft", v)}/></div>
+                <div className="ln-studio-two"><StyleInput label="Fundo" placeholder="#071722" value={styleValue("backgroundColor")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("backgroundColor", v)}/><StyleInput label="Raio" placeholder="20px" value={styleValue("borderRadius")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("borderRadius", v)}/></div>
+              </InspectorGroup>
+              <InspectorGroup title={`Organização do bloco · ${device}`}>
+                <StyleSelect label="Display" value={styleValue("display")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("display", v)} options={["", "block", "flex", "grid", "inline-flex", "none"]}/>
+                <div className="ln-studio-two"><StyleSelect label="Direção" value={styleValue("flexDirection")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("flexDirection", v)} options={["", "row", "column", "row-reverse", "column-reverse"]}/><StyleInput label="Gap" placeholder="20px" value={styleValue("gap")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("gap", v)}/></div>
+                <div className="ln-studio-two"><StyleSelect label="Horizontal" value={styleValue("justifyContent")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("justifyContent", v)} options={["", "flex-start", "center", "flex-end", "space-between", "space-around"]}/><StyleSelect label="Vertical" value={styleValue("alignItems")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("alignItems", v)} options={["", "stretch", "flex-start", "center", "flex-end"]}/></div>
+                <StyleInput label="Colunas do grid" placeholder="repeat(3, 1fr)" value={styleValue("gridTemplateColumns")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("gridTemplateColumns", v)}/>
+              </InspectorGroup>
+            </details>
 
-            <InspectorGroup title={`Layout · ${device}`}>
-              <StyleSelect label="Display" value={styleValue("display")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("display", v)} options={["", "block", "flex", "grid", "inline-flex", "none"]}/>
-              <div className="ln-studio-two"><StyleSelect label="Direção" value={styleValue("flexDirection")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("flexDirection", v)} options={["", "row", "column", "row-reverse", "column-reverse"]}/><StyleInput label="Gap" placeholder="20px" value={styleValue("gap")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("gap", v)}/></div>
-              <div className="ln-studio-two"><StyleSelect label="Horizontal" value={styleValue("justifyContent")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("justifyContent", v)} options={["", "flex-start", "center", "flex-end", "space-between", "space-around"]}/><StyleSelect label="Vertical" value={styleValue("alignItems")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("alignItems", v)} options={["", "stretch", "flex-start", "center", "flex-end"]}/></div>
-              <StyleInput label="Colunas do grid" placeholder="repeat(3, 1fr)" value={styleValue("gridTemplateColumns")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("gridTemplateColumns", v)}/>
-              {!selected.protected ? <button className={styleValue("position") === "absolute" ? "ln-studio-free active" : "ln-studio-free"} onClick={toggleFreePosition}>{styleValue("position") === "absolute" ? "✓ Posição livre ativa" : "Ativar posição livre"}</button> : null}
-              {styleValue("position") === "absolute" ? <><p className="ln-studio-help">Segure <b>ALT</b> e arraste no canvas. A posição é salva apenas em <b>{device}</b>.</p><div className="ln-studio-two"><StyleInput label="X / left" value={styleValue("left")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("left", v)}/><StyleInput label="Y / top" value={styleValue("top")} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(v) => setStyleValue("top", v)}/></div></> : null}
-            </InspectorGroup>
+            <div className="ln-studio-mini-actions"><button type="button" onClick={copyStyle}>Copiar estilo</button><button type="button" disabled={!styleClipboardRef.current} onClick={pasteStyle}>Colar estilo</button><button type="button" onClick={resetSelectedDeviceStyles}>Restaurar estilo</button></div>
           </>}
 
           <div className="ln-studio-system-actions"><button disabled={busy} onClick={() => void resetBase()}>Reimportar layout-base</button><button disabled={busy} className="danger" onClick={() => void disableStudio()}>Publicar layout original</button><a href="/" target="_blank" rel="noopener noreferrer">Abrir landing ↗</a></div>
@@ -758,4 +891,8 @@ function StyleInput({ label, value, placeholder = "", onChange, onFocus, onBlur 
 
 function StyleSelect({ label, value, options, onChange, onFocus, onBlur }: { label: string; value: string; options: string[]; onChange: (value: string) => void; onFocus?: () => void; onBlur?: () => void }) {
   return <label>{label}<select value={value} onFocus={onFocus} onBlur={onBlur} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option || "inherit"} value={option}>{option || "Herdar do layout"}</option>)}</select></label>;
+}
+function ColorControl({ label, value, onChange, onFocus, onBlur }: { label: string; value: string; onChange: (value: string) => void; onFocus?: () => void; onBlur?: () => void }) {
+  const safe = /^#[0-9a-f]{6}$/i.test(value) ? value : "#ffffff";
+  return <label className="ln-studio-color-control">{label}<span><input type="color" value={safe} onFocus={onFocus} onBlur={onBlur} onChange={(event) => onChange(event.target.value)}/><input value={value} placeholder="#ffffff" onFocus={onFocus} onBlur={onBlur} onChange={(event) => onChange(event.target.value)}/></span></label>;
 }

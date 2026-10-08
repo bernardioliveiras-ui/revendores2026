@@ -353,7 +353,7 @@ const allowedStudioStyleKeys = new Set([
   "backgroundColor", "opacity", "display", "flexDirection", "flexWrap", "justifyContent", "alignItems", "alignContent", "gap", "columnGap", "rowGap",
   "gridTemplateColumns", "gridTemplateRows", "gridColumn", "gridRow", "width", "minWidth", "maxWidth", "height", "minHeight", "maxHeight",
   "marginTop", "marginRight", "marginBottom", "marginLeft", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft",
-  "borderWidth", "borderStyle", "borderColor", "borderRadius", "boxShadow", "position", "top", "right", "bottom", "left", "zIndex",
+  "borderWidth", "borderStyle", "borderColor", "borderRadius", "boxShadow",
   "objectFit", "objectPosition", "overflow", "order", "alignSelf", "justifySelf", "cursor",
 ]);
 
@@ -400,7 +400,7 @@ function sanitizeStudioConfig(value: unknown) {
   if (!html) return null;
   return {
     enabled: source.enabled === true,
-    version: "1.0",
+    version: "1.1",
     html,
     styles: sanitizeStudioStyles(source.styles),
   };

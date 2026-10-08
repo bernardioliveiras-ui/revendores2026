@@ -20,7 +20,7 @@ export function buildStudioCss(styles: StyleMap | undefined) {
   const mobile: string[] = [];
   const make = (id: string, values: Record<string, string> | undefined) => {
     if (!values || !Object.keys(values).length) return "";
-    const body = Object.entries(values).map(([property, value]) => `${kebab(property)}:${value}`).join(";");
+    const body = Object.entries(values).map(([property, value]) => `${kebab(property)}:${value}!important`).join(";");
     return `[data-studio-id="${id}"]{${body}}`;
   };
   for (const [id, devices] of Object.entries(styles)) {
