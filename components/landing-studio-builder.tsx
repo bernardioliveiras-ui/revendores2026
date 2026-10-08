@@ -118,7 +118,7 @@ function cloneStyles(value: StyleMap): StyleMap {
   return JSON.parse(JSON.stringify(value || {})) as StyleMap;
 }
 
-const flowBlockedProperties = new Set(["position", "left", "top", "right", "bottom", "zIndex"]);
+const flowBlockedProperties = new Set(["position", "left", "top", "right", "bottom", "zIndex", "order", "minWidth", "height", "minHeight", "maxHeight", "gridColumn", "gridRow", "alignSelf", "justifySelf"]);
 
 function normalizeFlowStyles(value: StyleMap): StyleMap {
   const next = cloneStyles(value || {});
@@ -468,7 +468,7 @@ export function LandingStudioBuilder() {
               ? `Studio Parity reparou automaticamente: ${repaired.repaired.map(criticalLabel).join(", ")}. Revise e salve o rascunho.`
               : "O Studio detectou um bloco funcional ausente. Use Reimportar layout-base antes de publicar.");
           } else {
-            setNotice("Studio Parity carregado. Edite somente Computador e Celular; checkout e funções críticas continuam protegidos.");
+            setNotice("Studio Visual Stable carregado. Computador e Celular usam regras separadas; checkout e funções críticas continuam protegidos.");
           }
           setInitialHtml(studioHtml);
           setStyles(normalizeFlowStyles(loaded.draft.studio.styles || {}));
@@ -890,7 +890,7 @@ export function LandingStudioBuilder() {
     try {
       const draft: LandingDraft = {
         ...currentDoc.draft,
-        studio: { enabled: true, version: "1.4", html, styles: normalizeFlowStyles(stylesRef.current) },
+        studio: { enabled: true, version: "1.5", html, styles: normalizeFlowStyles(stylesRef.current) },
       };
       const patch = await fetch("/api/admin/cms/landing", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ draft }) });
       const patched = await patch.json();
@@ -976,12 +976,12 @@ export function LandingStudioBuilder() {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [frameDocument, refreshSelected]);
 
-  if (loading) return <section className="portal-card ln-studio-loading"><h2>LORDNUTRI Studio Parity 1.4</h2><p>{notice}</p></section>;
+  if (loading) return <section className="portal-card ln-studio-loading"><h2>LORDNUTRI Studio Visual Stable 1.5</h2><p>{notice}</p></section>;
 
   return (
     <section className="ln-studio-app ln-studio-flow">
       <header className="ln-studio-toolbar">
-        <div className="ln-studio-title"><strong>LORDNUTRI Studio Parity Flow</strong><span>1.4 · Computador + Celular · preview = publicado</span></div>
+        <div className="ln-studio-title"><strong>LORDNUTRI Studio Visual Stable Flow</strong><span>1.5 · Computador + Celular · layout estabilizado</span></div>
         <div className="ln-studio-toolgroup">
           <button onClick={() => addElement("text")}>+ Texto</button><button onClick={() => addElement("title")}>+ Título</button><button onClick={() => addElement("highlight")}>+ Destaque</button><button onClick={() => addElement("button")}>+ Botão</button><button onClick={() => addElement("image")}>+ Imagem</button><button onClick={() => addElement("block")}>+ Bloco</button><button onClick={() => addElement("section")}>+ Seção</button>
         </div>

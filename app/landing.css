@@ -554,3 +554,188 @@
 .lnr-page .cms-free-move:active{cursor:grabbing}
 .lnr-page [data-cms-image-editable="1"]{cursor:pointer}
 .lnr-page [data-cms-image-editable="1"]:hover:not(.cms-selected){outline:1px dashed rgba(216,179,95,.78);outline-offset:3px}
+
+/* 1.5.0 — VISUAL STABLE
+   Acabamento final da LP: elimina deriva horizontal, animações que dão sensação
+   de desalinhamento e regras conflitantes acumuladas nas revisões anteriores.
+   Não altera copy. */
+.lnr-page{
+  width:100%;
+  max-width:100%;
+  overflow-x:clip;
+}
+.lnr-page .lnr-shell{
+  width:min(1120px,calc(100% - 48px))!important;
+  max-width:1120px!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  padding-left:0!important;
+  padding-right:0!important;
+}
+.lnr-page :is(section,header,footer,.lnr-proof-section){max-width:100%;}
+.lnr-page :is(img,video,iframe,svg){max-width:100%;}
+.lnr-page :is(h1,h2,h3,h4,p,span,strong,small,dt,dd,a,button){overflow-wrap:anywhere;}
+.lnr-page :is(.lnr-step,.lnr-scenario,.lnr-kit,.lnr-reasons>details,.simulator-result,.lnr-product-pillars>details,.lnr-anvisa,.lnr-hero-metrics>div,.lnr-care-band,.lnr-people-visual,.lnr-product-visual,.lnr-faq-list>details,.lnr-trust-card,.lnr-benefit-card){
+  animation:none!important;
+  transform:none!important;
+}
+
+/* Ritmo vertical e alinhamento consistentes. */
+.lnr-page .lnr-section{padding:64px 0!important;}
+.lnr-page .lnr-section-head{max-width:760px!important;margin:0 auto 32px!important;text-align:center!important;}
+.lnr-page .lnr-inline-action{margin-top:30px!important;}
+.lnr-page .lnr-hero-inner{max-width:920px!important;margin-inline:auto!important;padding:48px 0 44px!important;}
+.lnr-page .lnr-hero-opportunity{width:min(100%,700px)!important;margin-inline:auto!important;}
+.lnr-page .lnr-hero-actions{display:flex!important;flex-direction:column!important;align-items:center!important;gap:10px!important;width:100%!important;}
+.lnr-page .lnr-hero-cta{width:min(100%,520px)!important;min-width:0!important;}
+
+/* LORD NUTRI: composição estável, sem margens negativas. */
+.lnr-page .lnr-opportunity-intro{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr)!important;
+  align-items:center!important;
+  gap:44px!important;
+  min-height:0!important;
+  padding:0!important;
+}
+.lnr-page .lnr-brand-story-copy{max-width:620px!important;}
+.lnr-page .lnr-people-visual{
+  position:relative!important;
+  inset:auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:390px!important;
+  margin:0!important;
+  border-radius:24px!important;
+  overflow:hidden!important;
+  opacity:1!important;
+  pointer-events:none;
+}
+.lnr-page .lnr-people-visual::after{
+  background:linear-gradient(90deg,rgba(8,24,16,.66),rgba(8,24,16,.12) 44%,rgba(8,24,16,.04)),linear-gradient(180deg,rgba(8,24,16,.10),transparent 60%,rgba(8,24,16,.38))!important;
+}
+.lnr-page .lnr-people-visual img{
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  opacity:.58!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+}
+
+/* Produto, benefícios e cards com eixos previsíveis. */
+.lnr-page .lnr-product-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr)!important;
+  align-items:center!important;
+  gap:52px!important;
+}
+.lnr-page .lnr-product-copy{min-width:0!important;}
+.lnr-page .lnr-product-visual{min-width:0!important;width:100%!important;margin:0!important;}
+.lnr-page .lnr-product-visual img{width:min(100%,330px)!important;height:auto!important;margin-inline:auto!important;}
+.lnr-page .lnr-product-facts{width:100%!important;}
+.lnr-page .lnr-benefit-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:14px!important;}
+.lnr-page .lnr-trust-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px!important;}
+.lnr-page :is(.lnr-trust-card,.lnr-benefit-card,.lnr-scenario,.lnr-kit,.simulator-result){height:100%;}
+
+/* Modelo e faixa de relacionamento sem elementos saindo do shell. */
+.lnr-page .lnr-model-facts{width:100%!important;}
+.lnr-page .lnr-steps{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important;}
+.lnr-page .lnr-care-band{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(320px,.85fr)!important;
+  min-height:330px!important;
+  margin:40px 0 0!important;
+  border-radius:22px!important;
+  overflow:hidden!important;
+  background:linear-gradient(105deg,#081810,#0b1b12)!important;
+}
+.lnr-page .lnr-care-band img{
+  position:relative!important;
+  inset:auto!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:330px!important;
+  opacity:.48!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+}
+.lnr-page .lnr-care-band>div{
+  position:relative!important;
+  inset:auto!important;
+  width:auto!important;
+  margin:0!important;
+  padding:48px 38px!important;
+  align-self:center!important;
+}
+
+/* Prova social e checkout alinhados à mesma largura visual. */
+.lnr-page .ln-reviews{width:min(1120px,calc(100% - 48px))!important;max-width:1120px!important;margin-inline:auto!important;}
+.lnr-page .lnr-checkout-layout{
+  grid-template-columns:minmax(250px,.72fr) minmax(0,1.28fr)!important;
+  gap:48px!important;
+  align-items:start!important;
+}
+.lnr-page .checkout-card{width:100%!important;max-width:100%!important;margin:0!important;}
+.lnr-page .lnr-kit-grid{width:min(100%,980px)!important;max-width:980px!important;margin-inline:auto!important;}
+.lnr-page .lnr-faq-layout{align-items:start!important;}
+
+/* Studio publicado: o DOM intermediário não deve criar um eixo diferente. */
+.lnr-studio-published>.lnr-studio-document{display:contents!important;}
+.lnr-studio-published [data-ln-protected="checkout"],
+.lnr-studio-published [data-ln-protected="simulator"]{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+}
+.lnr-studio-published [data-ln-protected="checkout"]>.checkout-card,
+.lnr-studio-published [data-ln-protected="simulator"]>.simulator-grid{width:100%!important;}
+.lnr-runtime-recovery{width:100%;}
+
+@media(max-width:1050px){
+  .lnr-page .lnr-benefit-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+  .lnr-page .lnr-product-grid{gap:34px!important;}
+}
+
+@media(max-width:700px){
+  .lnr-page .lnr-shell,
+  .lnr-page .ln-reviews{width:calc(100% - 32px)!important;max-width:none!important;}
+  .lnr-page .lnr-section{padding:46px 0!important;}
+  .lnr-page .lnr-section-head{margin-bottom:24px!important;}
+  .lnr-page .lnr-hero-inner{padding:32px 0 34px!important;}
+  .lnr-page .lnr-opportunity-intro,
+  .lnr-page .lnr-product-grid,
+  .lnr-page .lnr-care-band,
+  .lnr-page .lnr-checkout-layout{grid-template-columns:1fr!important;gap:24px!important;}
+  .lnr-page .lnr-opportunity-intro{display:grid!important;padding:0!important;}
+  .lnr-page .lnr-people-visual{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;height:auto!important;min-height:250px!important;margin:0!important;}
+  .lnr-page .lnr-people-visual img{height:250px!important;opacity:.5!important;}
+  .lnr-page .lnr-brand-story-copy h2{font-size:clamp(38px,11vw,46px)!important;}
+  .lnr-page .lnr-trust-grid,
+  .lnr-page .lnr-benefit-grid,
+  .lnr-page .lnr-steps,
+  .lnr-page .lnr-scenarios,
+  .lnr-page .lnr-kit-grid,
+  .lnr-page .ln-review-grid{grid-template-columns:1fr!important;}
+  .lnr-page .lnr-product-visual{order:0!important;}
+  .lnr-page .lnr-product-visual img{width:min(76vw,260px)!important;}
+  .lnr-page .lnr-care-band{display:grid!important;min-height:0!important;}
+  .lnr-page .lnr-care-band img{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:250px!important;min-height:0!important;opacity:.42!important;}
+  .lnr-page .lnr-care-band>div{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;width:auto!important;padding:28px 22px 32px!important;}
+  .lnr-page .lnr-model-facts{grid-template-columns:1fr!important;gap:0!important;}
+  .lnr-page .lnr-model-facts>div{padding:14px 0;border-bottom:1px solid #66512855;}
+  .lnr-page .lnr-model-facts>div:last-child{border-bottom:0;}
+  .lnr-page .lnr-checkout-layout{gap:20px!important;}
+  .lnr-page .checkout-card{padding:20px 16px!important;}
+}
+/* Fallback funcional fica antes do rodapé mesmo se um portal crítico falhar. */
+.lnr-studio-published{display:flex;flex-direction:column;}
+.lnr-studio-published .lnr-footer{order:100;}
+.lnr-studio-published [data-ln-runtime-recovery="checkout"]{order:90;}

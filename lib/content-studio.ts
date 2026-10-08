@@ -382,10 +382,10 @@ function assertStudioCriticalIntegrity(value: unknown) {
 const allowedStudioStyleKeys = new Set([
   "fontFamily", "fontSize", "fontWeight", "fontStyle", "color", "textAlign", "letterSpacing", "lineHeight", "textTransform", "textDecoration",
   "backgroundColor", "opacity", "display", "flexDirection", "flexWrap", "justifyContent", "alignItems", "alignContent", "gap", "columnGap", "rowGap",
-  "gridTemplateColumns", "gridTemplateRows", "gridColumn", "gridRow", "width", "minWidth", "maxWidth", "height", "minHeight", "maxHeight",
+  "gridTemplateColumns", "gridTemplateRows", "width", "maxWidth",
   "marginTop", "marginRight", "marginBottom", "marginLeft", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft",
   "borderWidth", "borderStyle", "borderColor", "borderRadius", "boxShadow",
-  "objectFit", "objectPosition", "overflow", "order", "alignSelf", "justifySelf", "cursor",
+  "objectFit", "objectPosition", "overflow", "cursor",
 ]);
 
 function sanitizeStudioHtml(value: unknown) {
@@ -431,7 +431,7 @@ function sanitizeStudioConfig(value: unknown) {
   if (!html) return null;
   return {
     enabled: source.enabled === true,
-    version: "1.4",
+    version: "1.5",
     html,
     styles: sanitizeStudioStyles(source.styles),
   };
