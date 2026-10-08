@@ -57,7 +57,7 @@ function isFlowContainer(el: HTMLElement | null) {
 
 function canAcceptFlowChild(parent: HTMLElement | null, child: HTMLElement, root: HTMLElement) {
   if (!parent || !isFlowContainer(parent) || parent === child || child.contains(parent)) return false;
-  if (parent.closest("[data-ln-protected]") || isStructureLocked(parent)) return false;
+  if (parent.closest("[data-ln-protected]")) return false;
   if (child.tagName === "SECTION" && parent !== root) return false;
   return true;
 }
@@ -190,7 +190,11 @@ function buildSrcDoc(html: string, baseCss: string, styles: StyleMap, origin: st
 
 function isEditableText(el: HTMLElement) {
   if (!textTags.has(el.tagName) || el.closest("[data-ln-protected]")) return false;
-  const complexChildren = Array.from(el.children).filter((child) => !child.classList.contains("lnr-lord-name") && !child.classList.contains("lnr-mix-name") && !child.closest(".lnr-mix-name"));
+  const inlineSafeTags = new Set(["BR", "SPAN", "STRONG", "EM", "B", "I", "SMALL", "U", "MARK"]);
+  const complexChildren = Array.from(el.children).filter((child) => {
+    if (child.classList.contains("lnr-lord-name") || child.classList.contains("lnr-mix-name") || child.closest(".lnr-mix-name")) return false;
+    return !inlineSafeTags.has(child.tagName);
+  });
   return complexChildren.length === 0 || el.tagName === "A" || el.tagName === "BUTTON";
 }
 
@@ -557,7 +561,7 @@ export function LandingStudioBuilder() {
     doc.addEventListener("dragover", (event) => {
       if (!flowDrag) return;
       const target = selectFromTarget(event.target);
-      if (!target || target === flowDrag.el || isStructureLocked(target) || flowDrag.el.contains(target)) return;
+      if (!target || target === flowDrag.el || target.closest("[data-ln-protected]") || flowDrag.el.contains(target)) return;
 
       const rect = target.getBoundingClientRect();
       const targetIsContainer = isFlowContainer(target);
@@ -807,7 +811,7 @@ export function LandingStudioBuilder() {
     const selectedEl = currentElement();
     if (!root) return null;
     if (!selectedEl) return root.querySelector<HTMLElement>(".lnr-shell") || root;
-    if (isStructureLocked(selectedEl)) return selectedEl.closest<HTMLElement>("section")?.parentElement || root;
+    if (selectedEl.closest("[data-ln-protected]")) return selectedEl.closest<HTMLElement>("section")?.parentElement || root;
     if (selectedEl.tagName === "SECTION") {
       const directShell = Array.from(selectedEl.children as HTMLCollectionOf<HTMLElement>).find((child) => child.classList.contains("lnr-shell"));
       if (directShell instanceof (frameDocument()?.defaultView?.HTMLElement || HTMLElement)) return directShell as HTMLElement;
@@ -859,6 +863,39 @@ export function LandingStudioBuilder() {
     setNotice(kind === "section" ? "Nova seção adicionada." : "Elemento adicionado dentro do bloco selecionado.");
   }, [frameDocument, media, recordBeforeAction, refreshLayers, refreshSelected, resolveInsertTarget, studioRoot]);
 
+  const clearEditableContents = useCallback(() => {
+    const el = currentElement();
+    if (!el || selected?.protected) return;
+    if (!window.confirm("Limpar os textos e elementos editáveis deste bloco? Funções protegidas como checkout, simulador e avaliações serão preservadas.")) return;
+    recordBeforeAction();
+    const removedIds: string[] = [];
+    const HTMLElementCtor = frameDocument()?.defaultView?.HTMLElement || HTMLElement;
+    const prune = (node: HTMLElement) => {
+      for (const child of Array.from(node.children)) {
+        if (!(child instanceof HTMLElementCtor)) continue;
+        const childEl = child as HTMLElement;
+        if (childEl.hasAttribute("data-ln-protected")) continue;
+        if (protectedDescendant(childEl)) { prune(childEl); continue; }
+        for (const item of [childEl, ...Array.from(childEl.querySelectorAll<HTMLElement>("[data-studio-id]"))]) {
+          const id = item.getAttribute("data-studio-id");
+          if (id) removedIds.push(id);
+        }
+        childEl.remove();
+      }
+    };
+    prune(el);
+    if (removedIds.length) {
+      setStyles((current) => {
+        const next = cloneStyles(current);
+        for (const id of removedIds) delete next[id];
+        return next;
+      });
+    }
+    refreshLayers();
+    refreshSelected(el);
+    setNotice("Bloco limpo. Funções críticas foram preservadas; agora você pode montar essa área de novo.");
+  }, [currentElement, frameDocument, recordBeforeAction, refreshLayers, refreshSelected, selected?.protected]);
+
   const copyStyle = useCallback(() => {
     if (!selected) return;
     styleClipboardRef.current = cloneStyles({ x: styles[selected.id] || {} }).x;
@@ -890,7 +927,7 @@ export function LandingStudioBuilder() {
     try {
       const draft: LandingDraft = {
         ...currentDoc.draft,
-        studio: { enabled: true, version: "1.5", html, styles: normalizeFlowStyles(stylesRef.current) },
+        studio: { enabled: true, version: "1.6", html, styles: normalizeFlowStyles(stylesRef.current) },
       };
       const patch = await fetch("/api/admin/cms/landing", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ draft }) });
       const patched = await patch.json();
@@ -976,12 +1013,12 @@ export function LandingStudioBuilder() {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [frameDocument, refreshSelected]);
 
-  if (loading) return <section className="portal-card ln-studio-loading"><h2>LORDNUTRI Studio Visual Stable 1.5</h2><p>{notice}</p></section>;
+  if (loading) return <section className="portal-card ln-studio-loading"><h2>LORDNUTRI Studio Editable Safe 1.6</h2><p>{notice}</p></section>;
 
   return (
     <section className="ln-studio-app ln-studio-flow">
       <header className="ln-studio-toolbar">
-        <div className="ln-studio-title"><strong>LORDNUTRI Studio Visual Stable Flow</strong><span>1.5 · Computador + Celular · layout estabilizado</span></div>
+        <div className="ln-studio-title"><strong>LORDNUTRI Studio Editable Safe</strong><span>1.6 · Computador + Celular · edição ampla com funções protegidas</span></div>
         <div className="ln-studio-toolgroup">
           <button onClick={() => addElement("text")}>+ Texto</button><button onClick={() => addElement("title")}>+ Título</button><button onClick={() => addElement("highlight")}>+ Destaque</button><button onClick={() => addElement("button")}>+ Botão</button><button onClick={() => addElement("image")}>+ Imagem</button><button onClick={() => addElement("block")}>+ Bloco</button><button onClick={() => addElement("section")}>+ Seção</button>
         </div>
@@ -1029,9 +1066,10 @@ export function LandingStudioBuilder() {
               <button type="button" disabled={selected.lockedStructure} onClick={duplicateSelected}>⧉ Duplicar</button>
             </div>
 
-            {selected.isContainer && !selected.lockedStructure ? <InspectorGroup title="Adicionar dentro deste bloco">
-              <div className="ln-studio-insert-buttons"><button type="button" onClick={() => addElement("text")}>+ Texto</button><button type="button" onClick={() => addElement("highlight")}>+ Destaque</button><button type="button" onClick={() => addElement("button")}>+ Botão</button><button type="button" onClick={() => addElement("image")}>+ Imagem</button><button type="button" onClick={() => addElement("block")}>+ Bloco</button></div>
-              <p className="ln-studio-help">O novo item nasce dentro do card/bloco selecionado. Você também pode arrastar elementos de outros blocos para cá.</p>
+            {selected.isContainer && !selected.protected ? <InspectorGroup title="Adicionar dentro deste bloco">
+              <div className="ln-studio-insert-buttons"><button type="button" onClick={() => addElement("text")}>+ Texto</button><button type="button" onClick={() => addElement("title")}>+ Título</button><button type="button" onClick={() => addElement("highlight")}>+ Destaque</button><button type="button" onClick={() => addElement("button")}>+ Botão</button><button type="button" onClick={() => addElement("image")}>+ Imagem</button><button type="button" onClick={() => addElement("block")}>+ Bloco</button></div>
+              <button type="button" className="ln-studio-clear-block" onClick={clearEditableContents}>Limpar conteúdo editável deste bloco</button>
+              <p className="ln-studio-help">O novo item nasce dentro do bloco selecionado. Você também pode limpar a área e reconstruí-la; checkout, simulador e Google ficam preservados.</p>
             </InspectorGroup> : null}
 
             {selected.lockedStructure ? <div className="ln-studio-protected-note">Este bloco contém uma função crítica. Texto e aparência externa podem ser ajustados quando aplicável, mas excluir, duplicar, desmontar ou arrastar a estrutura fica bloqueado. Isso impede checkout, simulador e avaliações de sumirem.</div> : null}

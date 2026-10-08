@@ -739,3 +739,20 @@
 .lnr-studio-published{display:flex;flex-direction:column;}
 .lnr-studio-published .lnr-footer{order:100;}
 .lnr-studio-published [data-ln-runtime-recovery="checkout"]{order:90;}
+
+/* 1.6.0 — guardrails finais de publicação: eixo único e checkout impossível de ocultar por estilos antigos. */
+.lnr-studio-published{overflow-x:clip!important}
+.lnr-studio-published .lnr-studio-document{max-width:100%!important;min-width:0!important}
+.lnr-studio-published .lnr-section,.lnr-studio-published .lnr-shell{box-sizing:border-box!important;min-width:0!important}
+.lnr-studio-published #checkout,
+.lnr-studio-published #checkout .lnr-shell,
+.lnr-studio-published #checkout .lnr-checkout-layout,
+.lnr-studio-published [data-ln-protected="checkout"]{
+  visibility:visible!important;opacity:1!important;width:100%!important;max-width:100%!important;
+  min-width:0!important;height:auto!important;transform:none!important;
+}
+.lnr-studio-published #checkout{display:block!important}
+.lnr-studio-published #checkout .lnr-shell{display:block!important}
+.lnr-studio-published #checkout .lnr-checkout-layout{display:grid!important}
+.lnr-studio-published [data-ln-protected="checkout"]{display:block!important}
+.lnr-studio-published [data-ln-protected="checkout"]>.checkout-card{display:block!important;width:100%!important;max-width:100%!important;visibility:visible!important;opacity:1!important}

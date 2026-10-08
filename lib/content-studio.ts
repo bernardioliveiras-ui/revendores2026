@@ -431,7 +431,7 @@ function sanitizeStudioConfig(value: unknown) {
   if (!html) return null;
   return {
     enabled: source.enabled === true,
-    version: "1.5",
+    version: "1.6",
     html,
     styles: sanitizeStudioStyles(source.styles),
   };

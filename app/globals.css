@@ -995,3 +995,10 @@ body { overflow-x: clip; }
 
 /* 1.4.0 · Studio Parity + vídeo de boas-vindas */
 .cms-welcome-video-config{display:grid;gap:14px;padding:18px;border:1px solid #ded6c8;border-radius:14px;background:#fbf8f1;margin-bottom:16px}.cms-welcome-video-config h3{margin:4px 0;font-size:22px}.cms-welcome-video-config p{margin:0;color:#66747d;line-height:1.55}.cms-welcome-video-config label{display:grid;gap:6px;font-weight:800}.cms-welcome-video-config input{width:100%;border:1px solid #cfc8ba;border-radius:9px;padding:10px;background:#fff}.cms-welcome-video-preview{max-width:720px}.cms-welcome-video-preview .welcome-video{margin:0;border-radius:16px}.cms-media-grid video{width:100%;aspect-ratio:4/3;object-fit:contain;border-radius:7px;background:#071d31}.cms-media-grid .secondary-button{width:100%;font-size:10px;padding:8px}.ln-studio-scale-shell{transition:width .18s ease,height .18s ease}.ln-studio-device-frame{will-change:transform}.ln-studio-flow .ln-studio-devices button{min-width:88px}
+
+/* 1.6.0 — EDITABLE SAFE: edição ampla sem sacrificar os slots funcionais. */
+.ln-studio-clear-block{
+  width:100%;margin-top:8px;border:1px dashed #b88a32;background:#fffaf0;color:#6f531c;
+  border-radius:9px;padding:9px 10px;font-size:10px;font-weight:900;cursor:pointer;
+}
+.ln-studio-clear-block:hover{background:#fff3cf;border-style:solid}
