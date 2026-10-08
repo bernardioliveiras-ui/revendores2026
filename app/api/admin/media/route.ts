@@ -18,11 +18,14 @@ export async function POST(request: Request) {
   try {
     await requireAdmin(request); await ensure();
     const form = await request.formData(); const file = form.get("file");
-    if (!(file instanceof File)) return Response.json({error:"Selecione uma imagem."},{status:400});
-    if (!file.type.startsWith("image/")) return Response.json({error:"Envie um arquivo de imagem."},{status:400});
-    if (file.size > 8*1024*1024) return Response.json({error:"A imagem deve ter no máximo 8 MB."},{status:400});
+    if (!(file instanceof File)) return Response.json({error:"Selecione uma imagem ou vídeo."},{status:400});
+    const isImage=file.type.startsWith("image/");
+    const isVideo=["video/mp4","video/webm","video/ogg"].includes(file.type);
+    if (!isImage&&!isVideo) return Response.json({error:"Envie uma imagem ou vídeo MP4/WebM/Ogg."},{status:400});
+    const max=isImage?8*1024*1024:12*1024*1024;
+    if (file.size > max) return Response.json({error:isImage?"A imagem deve ter no máximo 8 MB.":"O vídeo enviado ao servidor deve ter no máximo 12 MB. Para arquivos maiores, use um link do YouTube, Vimeo ou MP4 hospedado."},{status:400});
     const id=randomUUID(); const bytes=Buffer.from(await file.arrayBuffer());
     await getMysqlPool().execute("INSERT INTO media_assets (id,name,mime_type,bytes,size_bytes,created_at) VALUES (?,?,?,?,?,?)",[id,file.name.slice(0,255),file.type,bytes,file.size,new Date().toISOString()]);
-    return Response.json({id,name:file.name,mimeType:file.type,sizeBytes:file.size,url:`/api/media/${id}`});
-  } catch (error) { const m=error instanceof Error?error.message:""; return Response.json({error:m==="UNAUTHORIZED"?"Faça login novamente.":m==="FORBIDDEN"?"Acesso restrito ao BKO.":"Não foi possível enviar a imagem."},{status:m==="UNAUTHORIZED"?401:m==="FORBIDDEN"?403:500}); }
+    return Response.json({id,name:file.name,mimeType:file.type,sizeBytes:file.size,url:`/api/media/${id}`,kind:isVideo?"video":"image"});
+  } catch (error) { const m=error instanceof Error?error.message:""; return Response.json({error:m==="UNAUTHORIZED"?"Faça login novamente.":m==="FORBIDDEN"?"Acesso restrito ao BKO.":"Não foi possível enviar a mídia."},{status:m==="UNAUTHORIZED"?401:m==="FORBIDDEN"?403:500}); }
 }

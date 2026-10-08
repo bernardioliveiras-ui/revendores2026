@@ -29,21 +29,21 @@ test('editor exposes a ready-made revenue highlight and reusable block', async (
   assert.match(builder, /ln-studio-block/);
 });
 
-test('protected business components can move as whole blocks but internals stay protected', async () => {
+test('protected business components stay mounted and their structure is locked', async () => {
   const builder = await read('components/landing-studio-builder.tsx');
   const renderer = await read('components/studio-published-landing.tsx');
-  assert.match(builder, /actual\.setAttribute\("draggable", "true"\)/);
+  assert.match(builder, /isStructureLocked/);
   assert.match(builder, /selected\.protected/);
   assert.match(renderer, /<CheckoutForm/);
   assert.match(renderer, /<ProfitSimulator/);
   assert.match(renderer, /<GoogleReviewsDynamic/);
 });
 
-test('Studio document is persisted as version 1.2 and free positioning remains blocked', async () => {
+test('Studio document is persisted as version 1.3 and free positioning remains blocked', async () => {
   const builder = await read('components/landing-studio-builder.tsx');
   const server = await read('lib/content-studio.ts');
-  assert.match(builder, /version: "1\.2"/);
-  assert.match(server, /version: "1\.2"/);
+  assert.match(builder, /version: "1\.4"/);
+  assert.match(server, /version: "1\.4"/);
   const studioAllowed = server.slice(server.indexOf('const allowedStudioStyleKeys'), server.indexOf('function sanitizeStudioHtml'));
   assert.doesNotMatch(studioAllowed, /"position"/);
   assert.doesNotMatch(studioAllowed, /"left"/);

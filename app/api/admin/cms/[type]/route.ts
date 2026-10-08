@@ -25,7 +25,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ type:
     return Response.json(await saveStudioDraft(type, (body as {draft: unknown}).draft));
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    return Response.json({ error: message === "UNAUTHORIZED" ? "Faça login novamente." : message === "FORBIDDEN" ? "Acesso restrito ao BKO." : "Não foi possível salvar o rascunho." }, { status: message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" ? 403 : 500 });
+    return Response.json({ error: message === "UNAUTHORIZED" ? "Faça login novamente." : message === "FORBIDDEN" ? "Acesso restrito ao BKO." : message.startsWith("Studio bloqueou") ? message : "Não foi possível salvar o rascunho." }, { status: message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" ? 403 : message.startsWith("Studio bloqueou") ? 400 : 500 });
   }
 }
 
@@ -39,6 +39,6 @@ export async function POST(request: Request, context: { params: Promise<{ type: 
     return Response.json(await publishStudioDoc(type));
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    return Response.json({ error: message === "UNAUTHORIZED" ? "Faça login novamente." : message === "FORBIDDEN" ? "Acesso restrito ao BKO." : "Não foi possível publicar." }, { status: message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" ? 403 : 500 });
+    return Response.json({ error: message === "UNAUTHORIZED" ? "Faça login novamente." : message === "FORBIDDEN" ? "Acesso restrito ao BKO." : message.startsWith("Studio bloqueou") ? message : "Não foi possível publicar." }, { status: message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" ? 403 : message.startsWith("Studio bloqueou") ? 400 : 500 });
   }
 }

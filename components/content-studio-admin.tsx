@@ -1,5 +1,6 @@
 "use client";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { WelcomeVideo } from "@/components/welcome-video";
 
 type DocType = "landing"|"manual"|"products"|"media";
 type StudioDoc = {type:DocType;draft:any;published:any;updatedAt?:string|null;publishedAt?:string|null};
@@ -26,7 +27,7 @@ type EditorSelection = {
 };
 type TextItem = {key:string;value:string;originalValue:string;mode?:string;sectionId?:string;sectionLabel?:string;legacyKeys?:string[]};
 type BuilderSection = {id:string;label:string};
-type MediaAsset = {id:string;name:string;mime_type?:string;mimeType?:string;size_bytes?:number;sizeBytes?:number;created_at?:string;url?:string};
+type MediaAsset = {id:string;name:string;mime_type?:string;mimeType?:string;size_bytes?:number;sizeBytes?:number;created_at?:string;url?:string;kind?:"image"|"video"};
 
 async function api(url:string, init:RequestInit={}) {
   const response=await fetch(url,{...init,headers:{...(init.body instanceof FormData?{}:{"content-type":"application/json"}),...(init.headers||{})},cache:"no-store"});
@@ -493,7 +494,15 @@ export function ContentStudioAdmin() {
 
   async function uploadMedia(event:FormEvent<HTMLFormElement>){
     event.preventDefault();const form=event.currentTarget;const data=new FormData(form);setBusy(true);setNotice("");
-    try{const item=await api("/api/admin/media",{method:"POST",body:data});setMedia(current=>[{...item,mime_type:item.mimeType,size_bytes:item.sizeBytes},...current]);form.reset();setNotice("Imagem enviada e pronta para uso.");}
+    try{
+      const item=await api("/api/admin/media",{method:"POST",body:data});
+      setMedia(current=>[{...item,mime_type:item.mimeType,size_bytes:item.sizeBytes},...current]);
+      if(String(item.mimeType||"").startsWith("video/")){
+        mutate(draft=>{draft.welcomeVideo={...(draft.welcomeVideo||{}),sourceUrl:item.url};return draft;});
+        setNotice("Vídeo enviado e selecionado para a aba Boas Vindas. Clique em Publicar para liberar aos revendedores.");
+      }else setNotice("Imagem enviada e pronta para uso.");
+      form.reset();
+    }
     catch(error){setNotice(error instanceof Error?error.message:"Falha no upload.");}
     finally{setBusy(false);}
   }
@@ -552,6 +561,15 @@ export function ContentStudioAdmin() {
 
     {doc&&tab==="products"?<div className="cms-product-grid">{(doc.draft?.products||[]).map((product:any,index:number)=><article key={product.id}><img src={product.image} alt=""/><label>Nome<input value={product.name||""} onChange={(event:ChangeEvent<HTMLInputElement>)=>mutate(draft=>{draft.products[index].name=event.target.value;return draft})}/></label><label>Descrição<input value={product.subtitle||""} onChange={(event:ChangeEvent<HTMLInputElement>)=>mutate(draft=>{draft.products[index].subtitle=event.target.value;return draft})}/></label>{product.price!==undefined?<label>Preço exibido<input value={product.price||""} onChange={(event:ChangeEvent<HTMLInputElement>)=>mutate(draft=>{draft.products[index].price=event.target.value;return draft})}/></label>:null}<label>Imagem<input value={product.image||""} onChange={(event:ChangeEvent<HTMLInputElement>)=>mutate(draft=>{draft.products[index].image=event.target.value;return draft})}/></label>{product.anvisa!==undefined?<label>Processo ANVISA<input value={product.anvisa||""} readOnly/><small>Bloqueado para preservar exatamente 2535115572620267.</small></label>:null}</article>)}</div>:null}
 
-    {doc&&tab==="media"?<div><form className="cms-upload" onSubmit={uploadMedia}><label>Enviar nova foto<input name="file" type="file" accept="image/*" required/></label><button className="primary-button" disabled={busy}>Enviar imagem</button></form><div className="cms-media-grid">{media.map(item=><article key={item.id}><img src={item.url||`/api/media/${item.id}`} alt={item.name}/><strong>{item.name}</strong><code>{item.url||`/api/media/${item.id}`}</code></article>)}</div></div>:null}
+    {doc&&tab==="media"?<div className="cms-media-workspace">
+      <section className="cms-welcome-video-config">
+        <div><span className="section-kicker">PORTAL DO REVENDEDOR</span><h3>Vídeo da aba Boas Vindas</h3><p>Cole um link do YouTube, Vimeo ou MP4. Para vídeo curto, você também pode enviar MP4/WebM de até 12 MB. A alteração só entra para os revendedores quando você clicar em <strong>Publicar</strong>.</p></div>
+        <label>Link do vídeo<input value={String(doc.draft?.welcomeVideo?.sourceUrl||"")} placeholder="https://youtu.be/... ou https://.../video.mp4" onChange={(event:ChangeEvent<HTMLInputElement>)=>mutate(draft=>{draft.welcomeVideo={...(draft.welcomeVideo||{}),sourceUrl:event.target.value};return draft;})}/></label>
+        <div className="cms-welcome-video-preview"><WelcomeVideo sourceUrl={String(doc.draft?.welcomeVideo?.sourceUrl||"")}/></div>
+        <div className="cms-element-actions"><button type="button" onClick={()=>mutate(draft=>{draft.welcomeVideo={...(draft.welcomeVideo||{}),sourceUrl:""};return draft;})}>Remover vídeo</button></div>
+      </section>
+      <form className="cms-upload" onSubmit={uploadMedia}><label>Enviar imagem ou vídeo<input name="file" type="file" accept="image/*,video/mp4,video/webm,video/ogg" required/></label><button className="primary-button" disabled={busy}>Enviar mídia</button></form>
+      <div className="cms-media-grid">{media.map(item=>{const url=item.url||`/api/media/${item.id}`;const isVideo=String(item.mime_type||item.mimeType||"").startsWith("video/");return <article key={item.id}>{isVideo?<video src={url} controls preload="metadata"/>:<img src={url} alt={item.name}/>}<strong>{item.name}</strong><code>{url}</code>{isVideo?<button type="button" className="secondary-button compact" onClick={()=>mutate(draft=>{draft.welcomeVideo={...(draft.welcomeVideo||{}),sourceUrl:url};return draft;})}>Usar em Boas Vindas</button>:null}</article>})}</div>
+    </div>:null}
   </section>;
 }

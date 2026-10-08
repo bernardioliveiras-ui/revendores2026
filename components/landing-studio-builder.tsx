@@ -3,26 +3,53 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { buildStudioCss } from "@/components/studio-published-landing";
 
-type Device = "desktop" | "tablet" | "mobile";
+type Device = "desktop" | "mobile";
 type DeviceStyles = Partial<Record<Device, Record<string, string>>>;
 type StyleMap = Record<string, DeviceStyles>;
 type StudioConfig = { enabled: boolean; version: string; html: string; styles: StyleMap };
 type LandingDraft = { overrides?: Record<string, string>; fontScales?: Record<string, number>; freeElements?: unknown[]; studio?: StudioConfig };
 type LandingDoc = { type: "landing"; draft: LandingDraft; published: LandingDraft; updatedAt?: string | null; publishedAt?: string | null };
-type SelectedInfo = { id: string; tag: string; label: string; text: string; src: string; alt: string; href: string; protected: boolean; isImage: boolean; isText: boolean; isContainer: boolean; computedColor: string; computedBackgroundColor: string; computedBorderColor: string; computedFontSize: string; computedTextAlign: string };
-type LayerItem = { id: string; depth: number; label: string; protected: boolean };
+type SelectedInfo = { id: string; tag: string; label: string; text: string; src: string; alt: string; href: string; protected: boolean; lockedStructure: boolean; isImage: boolean; isText: boolean; isContainer: boolean; computedColor: string; computedBackgroundColor: string; computedBorderColor: string; computedFontSize: string; computedTextAlign: string };
+type LayerItem = { id: string; depth: number; label: string; protected: boolean; lockedStructure: boolean };
 type Snapshot = { html: string; styles: StyleMap };
 type MediaAsset = { id: string; label: string; url: string; kind: string };
 
-const devices: Array<{ id: Device; label: string; width: string }> = [
-  { id: "desktop", label: "Desktop", width: "100%" },
-  { id: "tablet", label: "Tablet", width: "820px" },
-  { id: "mobile", label: "Celular", width: "390px" },
+const devices: Array<{ id: Device; label: string; viewport: number }> = [
+  { id: "desktop", label: "Computador", viewport: 1366 },
+  { id: "mobile", label: "Celular", viewport: 390 },
 ];
 
 const textTags = new Set(["H1", "H2", "H3", "H4", "H5", "H6", "P", "SPAN", "STRONG", "SMALL", "A", "BUTTON", "DT", "DD", "LI", "B", "EM"]);
 const containerTags = new Set(["MAIN", "SECTION", "DIV", "ARTICLE", "HEADER", "FOOTER", "NAV", "ASIDE"]);
 type FlowDropMode = "before" | "after" | "inside";
+
+const criticalKinds = ["checkout", "simulator", "google-dynamic"] as const;
+type CriticalKind = typeof criticalKinds[number];
+
+function protectedDescendant(el: HTMLElement | null) {
+  return Boolean(el?.querySelector("[data-ln-protected]"));
+}
+
+function isStructureLocked(el: HTMLElement | null) {
+  return Boolean(el && (el.hasAttribute("data-ln-protected") || protectedDescendant(el)));
+}
+
+function criticalStatusFromRoot(root: ParentNode) {
+  const missing: CriticalKind[] = [];
+  const duplicated: CriticalKind[] = [];
+  for (const kind of criticalKinds) {
+    const count = root.querySelectorAll(`[data-ln-protected="${kind}"]`).length;
+    if (count === 0) missing.push(kind);
+    if (count > 1) duplicated.push(kind);
+  }
+  return { missing, duplicated, ok: missing.length === 0 && duplicated.length === 0 };
+}
+
+function criticalLabel(kind: CriticalKind) {
+  if (kind === "checkout") return "Checkout Asaas";
+  if (kind === "simulator") return "Simulador";
+  return "Avaliações Google";
+}
 
 function isFlowContainer(el: HTMLElement | null) {
   return Boolean(el && containerTags.has(el.tagName) && !el.hasAttribute("data-ln-protected"));
@@ -30,9 +57,45 @@ function isFlowContainer(el: HTMLElement | null) {
 
 function canAcceptFlowChild(parent: HTMLElement | null, child: HTMLElement, root: HTMLElement) {
   if (!parent || !isFlowContainer(parent) || parent === child || child.contains(parent)) return false;
-  if (parent.closest("[data-ln-protected]")) return false;
+  if (parent.closest("[data-ln-protected]") || isStructureLocked(parent)) return false;
   if (child.tagName === "SECTION" && parent !== root) return false;
   return true;
+}
+
+function criticalStatusFromHtml(html: string) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<main id="ln-check">${html}</main>`, "text/html");
+  return criticalStatusFromRoot(doc.getElementById("ln-check") || doc.body);
+}
+
+function repairCriticalHtml(currentHtml: string, safeHtml: string) {
+  const parser = new DOMParser();
+  const currentDoc = parser.parseFromString(`<main id="ln-current">${currentHtml}</main>`, "text/html");
+  const safeDoc = parser.parseFromString(`<main id="ln-safe">${safeHtml}</main>`, "text/html");
+  const currentRoot = currentDoc.getElementById("ln-current") as HTMLElement | null;
+  const safeRoot = safeDoc.getElementById("ln-safe") as HTMLElement | null;
+  if (!currentRoot || !safeRoot) return { html: currentHtml, repaired: [] as CriticalKind[] };
+
+  const repaired: CriticalKind[] = [];
+  const restoreRegion = (kind: CriticalKind, currentSelector: string, safeSelector: string, beforeSelector?: string) => {
+    if (currentRoot.querySelector(`[data-ln-protected="${kind}"]`)) return;
+    const safeRegion = safeRoot.querySelector<HTMLElement>(safeSelector);
+    if (!safeRegion) return;
+    const imported = currentDoc.importNode(safeRegion, true) as HTMLElement;
+    const existing = currentRoot.querySelector<HTMLElement>(currentSelector);
+    if (existing) existing.replaceWith(imported);
+    else {
+      const before = beforeSelector ? currentRoot.querySelector(beforeSelector) : null;
+      if (before) currentRoot.insertBefore(imported, before);
+      else currentRoot.appendChild(imported);
+    }
+    repaired.push(kind);
+  };
+
+  restoreRegion("google-dynamic", ".lnr-proof-section", ".lnr-proof-section", "#modelo");
+  restoreRegion("simulator", "#simulador", "#simulador", "#kits");
+  restoreRegion("checkout", "#checkout", "#checkout", "footer");
+  return { html: currentRoot.innerHTML, repaired };
 }
 
 function makeId() {
@@ -60,7 +123,7 @@ const flowBlockedProperties = new Set(["position", "left", "top", "right", "bott
 function normalizeFlowStyles(value: StyleMap): StyleMap {
   const next = cloneStyles(value || {});
   for (const [id, byDevice] of Object.entries(next)) {
-    for (const device of ["desktop", "tablet", "mobile"] as const) {
+    for (const device of ["desktop", "mobile"] as const) {
       const raw = byDevice?.[device];
       if (!raw) continue;
       for (const property of flowBlockedProperties) delete raw[property];
@@ -144,6 +207,7 @@ function writePlainText(el: HTMLElement, value: string) {
 
 export function LandingStudioBuilder() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const canvasStageRef = useRef<HTMLDivElement>(null);
   const sourceFrameRef = useRef<HTMLIFrameElement | null>(null);
   const docRef = useRef<LandingDoc | null>(null);
   const stylesRef = useRef<StyleMap>({});
@@ -168,13 +232,29 @@ export function LandingStudioBuilder() {
   const [canvasKey, setCanvasKey] = useState(0);
   const [historyTick, setHistoryTick] = useState(0);
   const [showLayers, setShowLayers] = useState(true);
+  const [canvasScale, setCanvasScale] = useState(1);
 
   stylesRef.current = styles;
   deviceRef.current = device;
   selectedIdRef.current = selected?.id || "";
 
-  const frameWidth = useMemo(() => devices.find((item) => item.id === device)?.width || "100%", [device]);
+  const frameViewport = useMemo(() => devices.find((item) => item.id === device)?.viewport || 1366, [device]);
+  const frameHeight = device === "desktop" ? 860 : 780;
   const srcDoc = useMemo(() => initialHtml && baseCss && typeof window !== "undefined" ? buildSrcDoc(initialHtml, baseCss, styles, window.location.origin) : "", [initialHtml, baseCss, canvasKey]);
+
+  useEffect(() => {
+    const stage = canvasStageRef.current;
+    if (!stage) return;
+    const recalc = () => {
+      const available = Math.max(320, stage.clientWidth - 36);
+      const next = Math.min(1, available / frameViewport);
+      setCanvasScale(Math.max(device === "mobile" ? .82 : .42, next));
+    };
+    recalc();
+    const observer = new ResizeObserver(recalc);
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [device, frameViewport]);
 
   const frameDocument = useCallback(() => iframeRef.current?.contentDocument || null, []);
   const studioRoot = useCallback(() => frameDocument()?.getElementById("ln-studio-root") || null, [frameDocument]);
@@ -197,11 +277,13 @@ export function LandingStudioBuilder() {
       if (depth > 4 || output.length > 420) return;
       for (const child of Array.from(parent.children)) {
         if (!(child instanceof (frameDocument()?.defaultView?.HTMLElement || HTMLElement))) continue;
-        const id = child.getAttribute("data-studio-id");
+        const childEl = child as HTMLElement;
+        const id = childEl.getAttribute("data-studio-id");
         if (!id) continue;
-        const protectedBlock = child.hasAttribute("data-ln-protected");
-        output.push({ id, depth, label: labelFor(child), protected: protectedBlock });
-        if (!protectedBlock && child.children.length && (depth < 2 || containerTags.has(child.tagName))) walk(child, depth + 1);
+        const protectedBlock = childEl.hasAttribute("data-ln-protected");
+        const lockedStructure = isStructureLocked(childEl);
+        output.push({ id, depth, label: labelFor(childEl), protected: protectedBlock, lockedStructure });
+        if (!protectedBlock && childEl.children.length && (depth < 2 || containerTags.has(childEl.tagName))) walk(childEl, depth + 1);
       }
     };
     walk(root, 0);
@@ -220,7 +302,8 @@ export function LandingStudioBuilder() {
     doc.querySelectorAll("[data-studio-selected]").forEach((node) => node.removeAttribute("data-studio-selected"));
     doc.querySelectorAll("[draggable=\"true\"]").forEach((node) => node.removeAttribute("draggable"));
     actual.setAttribute("data-studio-selected", "1");
-    actual.setAttribute("draggable", "true");
+    const lockedStructure = isStructureLocked(actual);
+    if (!lockedStructure) actual.setAttribute("draggable", "true");
     const isImage = actual.tagName === "IMG";
     const isText = isEditableText(actual);
     const computed = doc.defaultView?.getComputedStyle(actual);
@@ -233,6 +316,7 @@ export function LandingStudioBuilder() {
       alt: isImage ? actual.getAttribute("alt") || "" : "",
       href: actual.tagName === "A" ? actual.getAttribute("href") || "" : "",
       protected: actual.hasAttribute("data-ln-protected"),
+      lockedStructure,
       isImage,
       isText,
       isContainer: isFlowContainer(actual),
@@ -374,9 +458,20 @@ export function LandingStudioBuilder() {
         setBaseCss(css);
         setMedia(Array.isArray(mediaDoc?.draft?.assets) ? mediaDoc.draft.assets : []);
         if (loaded.draft?.studio?.html) {
-          setInitialHtml(loaded.draft.studio.html);
+          let studioHtml = loaded.draft.studio.html;
+          const status = criticalStatusFromHtml(studioHtml);
+          if (!status.ok) {
+            const safeHtml = await seedFromBase();
+            const repaired = repairCriticalHtml(studioHtml, safeHtml);
+            studioHtml = repaired.html;
+            setNotice(repaired.repaired.length
+              ? `Studio Parity reparou automaticamente: ${repaired.repaired.map(criticalLabel).join(", ")}. Revise e salve o rascunho.`
+              : "O Studio detectou um bloco funcional ausente. Use Reimportar layout-base antes de publicar.");
+          } else {
+            setNotice("Studio Parity carregado. Edite somente Computador e Celular; checkout e funções críticas continuam protegidos.");
+          }
+          setInitialHtml(studioHtml);
           setStyles(normalizeFlowStyles(loaded.draft.studio.styles || {}));
-          setNotice("Studio Nested Flow carregado. Você pode mover elementos para dentro de cards e seções sem usar X/Y.");
         } else {
           const html = await seedFromBase();
           if (!active) return;
@@ -445,7 +540,7 @@ export function LandingStudioBuilder() {
 
     doc.addEventListener("dragstart", (event) => {
       const el = selectFromTarget(event.target);
-      if (!el || el.getAttribute("data-studio-selected") !== "1") {
+      if (!el || el.getAttribute("data-studio-selected") !== "1" || isStructureLocked(el)) {
         event.preventDefault();
         return;
       }
@@ -462,7 +557,7 @@ export function LandingStudioBuilder() {
     doc.addEventListener("dragover", (event) => {
       if (!flowDrag) return;
       const target = selectFromTarget(event.target);
-      if (!target || target === flowDrag.el || target.hasAttribute("data-ln-protected") || flowDrag.el.contains(target)) return;
+      if (!target || target === flowDrag.el || isStructureLocked(target) || flowDrag.el.contains(target)) return;
 
       const rect = target.getBoundingClientRect();
       const targetIsContainer = isFlowContainer(target);
@@ -652,7 +747,10 @@ export function LandingStudioBuilder() {
 
   const duplicateSelected = useCallback(() => {
     const el = currentElement();
-    if (!el || selected?.protected) return;
+    if (!el || selected?.lockedStructure) {
+      if (selected?.lockedStructure) setNotice("Bloco funcional protegido: não é possível duplicar checkout, simulador, avaliações ou um container que os contenha.");
+      return;
+    }
     recordBeforeAction();
     const clone = el.cloneNode(true) as HTMLElement;
     const sourceNodes = [el, ...Array.from(el.querySelectorAll<HTMLElement>("[data-studio-id]"))];
@@ -677,21 +775,25 @@ export function LandingStudioBuilder() {
     refreshLayers();
     refreshSelected(clone);
     setNotice("Elemento duplicado com formatação própria, sem compartilhar IDs com o original.");
-  }, [currentElement, recordBeforeAction, refreshLayers, refreshSelected, selected?.protected]);
+  }, [currentElement, recordBeforeAction, refreshLayers, refreshSelected, selected?.lockedStructure]);
 
   const deleteSelected = useCallback(() => {
     const el = currentElement();
-    if (!el || selected?.protected) return;
+    if (!el || selected?.lockedStructure) {
+      if (selected?.lockedStructure) setNotice("Esse bloco contém uma função crítica e não pode ser excluído.");
+      return;
+    }
     if (!window.confirm("Excluir este elemento da landing? Você pode desfazer com Ctrl+Z.")) return;
     recordBeforeAction();
     el.remove();
     setSelected(null);
     refreshLayers();
-  }, [currentElement, recordBeforeAction, refreshLayers, selected?.protected]);
+  }, [currentElement, recordBeforeAction, refreshLayers, selected?.lockedStructure]);
 
   const moveSelected = useCallback((direction: -1 | 1) => {
     const el = currentElement();
     if (!el?.parentElement) return;
+    if (isStructureLocked(el)) { setNotice("Bloco funcional protegido: a posição estrutural dele fica fixa para evitar sumir checkout/simulador."); return; }
     const sibling = direction < 0 ? el.previousElementSibling : el.nextElementSibling;
     if (!sibling) return;
     recordBeforeAction();
@@ -705,9 +807,9 @@ export function LandingStudioBuilder() {
     const selectedEl = currentElement();
     if (!root) return null;
     if (!selectedEl) return root.querySelector<HTMLElement>(".lnr-shell") || root;
-    if (selectedEl.hasAttribute("data-ln-protected")) return selectedEl.parentElement || root;
+    if (isStructureLocked(selectedEl)) return selectedEl.closest<HTMLElement>("section")?.parentElement || root;
     if (selectedEl.tagName === "SECTION") {
-      const directShell = Array.from(selectedEl.children).find((child) => child.classList.contains("lnr-shell"));
+      const directShell = Array.from(selectedEl.children as HTMLCollectionOf<HTMLElement>).find((child) => child.classList.contains("lnr-shell"));
       if (directShell instanceof (frameDocument()?.defaultView?.HTMLElement || HTMLElement)) return directShell as HTMLElement;
     }
     if (isFlowContainer(selectedEl)) return selectedEl;
@@ -771,14 +873,24 @@ export function LandingStudioBuilder() {
 
   const save = useCallback(async (publish = false) => {
     const currentDoc = docRef.current;
+    const root = studioRoot();
     const html = serialize();
-    if (!currentDoc || !html) return;
+    if (!currentDoc || !html || !root) return;
+    const critical = criticalStatusFromRoot(root);
+    if (!critical.ok) {
+      const problems = [
+        ...critical.missing.map((kind) => `${criticalLabel(kind)} ausente`),
+        ...critical.duplicated.map((kind) => `${criticalLabel(kind)} duplicado`),
+      ];
+      setNotice(`Publicação bloqueada por segurança: ${problems.join("; ")}. Use Reimportar layout-base ou Desfazer.`);
+      return;
+    }
     setBusy(true);
     setNotice(publish ? "Salvando e publicando…" : "Salvando rascunho…");
     try {
       const draft: LandingDraft = {
         ...currentDoc.draft,
-        studio: { enabled: true, version: "1.2", html, styles: normalizeFlowStyles(stylesRef.current) },
+        studio: { enabled: true, version: "1.4", html, styles: normalizeFlowStyles(stylesRef.current) },
       };
       const patch = await fetch("/api/admin/cms/landing", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ draft }) });
       const patched = await patch.json();
@@ -789,12 +901,12 @@ export function LandingStudioBuilder() {
         const published = await response.json();
         if (!response.ok) throw new Error(published.error || "Não foi possível publicar.");
         docRef.current = published;
-        setNotice("Publicado. A landing pública agora usa o Studio Nested Flow 1.2.");
+        setNotice("Publicado. O que você vê em Computador/Celular agora usa os mesmos breakpoints da landing pública.");
       } else setNotice("Rascunho salvo.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Falha ao salvar.");
     } finally { setBusy(false); }
-  }, [serialize]);
+  }, [serialize, studioRoot]);
 
   const resetBase = useCallback(async () => {
     if (!window.confirm("Reimportar a landing-base? O rascunho atual do Studio será substituído, mas a versão publicada só muda quando você clicar em Publicar.")) return;
@@ -837,6 +949,7 @@ export function LandingStudioBuilder() {
     const dragged = doc?.querySelector<HTMLElement>(`[data-studio-id="${draggedId}"]`);
     const target = doc?.querySelector<HTMLElement>(`[data-studio-id="${targetId}"]`);
     if (!root || !dragged || !target || dragged.contains(target)) return;
+    if (isStructureLocked(dragged)) { setNotice("Bloco funcional protegido: não pode ser arrastado pela árvore."); return; }
 
     const before = capture();
     if (canAcceptFlowChild(target, dragged, root)) {
@@ -863,18 +976,18 @@ export function LandingStudioBuilder() {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [frameDocument, refreshSelected]);
 
-  if (loading) return <section className="portal-card ln-studio-loading"><h2>LORDNUTRI Studio Nested Flow 1.2</h2><p>{notice}</p></section>;
+  if (loading) return <section className="portal-card ln-studio-loading"><h2>LORDNUTRI Studio Parity 1.4</h2><p>{notice}</p></section>;
 
   return (
     <section className="ln-studio-app ln-studio-flow">
       <header className="ln-studio-toolbar">
-        <div className="ln-studio-title"><strong>LORDNUTRI Studio Nested Flow</strong><span>1.2 · arraste entre blocos sem posição livre</span></div>
+        <div className="ln-studio-title"><strong>LORDNUTRI Studio Parity Flow</strong><span>1.4 · Computador + Celular · preview = publicado</span></div>
         <div className="ln-studio-toolgroup">
           <button onClick={() => addElement("text")}>+ Texto</button><button onClick={() => addElement("title")}>+ Título</button><button onClick={() => addElement("highlight")}>+ Destaque</button><button onClick={() => addElement("button")}>+ Botão</button><button onClick={() => addElement("image")}>+ Imagem</button><button onClick={() => addElement("block")}>+ Bloco</button><button onClick={() => addElement("section")}>+ Seção</button>
         </div>
         <div className="ln-studio-toolgroup">
           <button disabled={!undoRef.current.length} onClick={undo}>↶ Desfazer</button><button disabled={!redoRef.current.length} onClick={redo}>↷ Refazer</button>
-          <button disabled={!selected || selected.protected} onClick={duplicateSelected}>⧉ Duplicar</button><button disabled={!selected || selected.protected} onClick={deleteSelected}>Excluir</button>
+          <button disabled={!selected || selected.lockedStructure} onClick={duplicateSelected}>⧉ Duplicar</button><button disabled={!selected || selected.lockedStructure} onClick={deleteSelected}>Excluir</button>
         </div>
         <div className="ln-studio-toolgroup ln-studio-devices">
           {devices.map((item) => <button key={item.id} className={device === item.id ? "active" : ""} onClick={() => setDevice(item.id)}>{item.label}</button>)}
@@ -891,35 +1004,37 @@ export function LandingStudioBuilder() {
         <aside className="ln-studio-left">
           <div className="ln-studio-panel-title"><strong>Estrutura da LP</strong><button onClick={() => setShowLayers((value) => !value)}>{showLayers ? "←" : "→"}</button></div>
           {showLayers ? <div className="ln-studio-layers">
-            {layers.map((layer) => <button key={layer.id} draggable onDragStart={() => { draggedLayerRef.current = layer.id; }} onDragOver={(event) => event.preventDefault()} onDrop={() => layerDrop(layer.id)} onClick={() => selectLayer(layer.id)} className={selected?.id === layer.id ? "active" : ""} style={{ paddingLeft: 10 + layer.depth * 14 }}><span>{layer.protected ? "🔒" : "⋮⋮"}</span><em>{layer.label}</em></button>)}
+            {layers.map((layer) => <button key={layer.id} draggable={!layer.lockedStructure} onDragStart={() => { if (!layer.lockedStructure) draggedLayerRef.current = layer.id; }} onDragOver={(event) => event.preventDefault()} onDrop={() => layerDrop(layer.id)} onClick={() => selectLayer(layer.id)} className={selected?.id === layer.id ? "active" : ""} style={{ paddingLeft: 10 + layer.depth * 14 }}><span>{layer.lockedStructure ? "🔒" : "⋮⋮"}</span><em>{layer.label}</em></button>)}
           </div> : null}
           <div className="ln-studio-library"><strong>Imagens</strong><div className="ln-studio-library-grid">{media.slice(0, 12).map((asset) => <button key={asset.id} onClick={() => addElement("image", asset.url)}><img src={asset.url} alt=""/><span>{asset.label}</span></button>)}</div></div>
         </aside>
 
-        <div className="ln-studio-canvas-stage">
-          <div className="ln-studio-ruler">{device === "desktop" ? "Desktop · fluxo responsivo" : device === "tablet" ? "Tablet · 820 px" : "Celular · 390 px"} · clique para selecionar · arraste entre cards, blocos e seções</div>
-          <div className="ln-studio-device-frame" style={{ width: frameWidth }}>
-            {srcDoc ? <iframe key={canvasKey} ref={iframeRef} className="ln-studio-iframe" title="Editor visual da landing" srcDoc={srcDoc} onLoad={onFrameLoad}/> : null}
+        <div className="ln-studio-canvas-stage" ref={canvasStageRef}>
+          <div className="ln-studio-ruler">{device === "desktop" ? "Computador · viewport real 1366 px" : "Celular · viewport real 390 px"} · o mesmo breakpoint é usado depois de publicar</div>
+          <div className="ln-studio-scale-shell" style={{ width: `${Math.round(frameViewport * canvasScale)}px`, height: `${Math.round(frameHeight * canvasScale)}px` }}>
+            <div className="ln-studio-device-frame" style={{ width: `${frameViewport}px`, transform: `scale(${canvasScale})`, transformOrigin: "top left" }}>
+              {srcDoc ? <iframe key={canvasKey} ref={iframeRef} className="ln-studio-iframe" style={{ width: `${frameViewport}px`, height: `${frameHeight}px` }} title="Editor visual da landing" srcDoc={srcDoc} onLoad={onFrameLoad}/> : null}
+            </div>
           </div>
         </div>
 
         <aside className="ln-studio-inspector">
-          {!selected ? <div className="ln-studio-empty"><strong>Selecione algo na landing</strong><p>Clique no texto, imagem, botão, card ou seção. O editor trabalha em <b>fluxo responsivo</b>: sem X/Y e sem posição absoluta.</p><p>Depois de selecionar, você pode editar, mudar cor/tamanho, duplicar e arrastar para dentro de outro card, bloco ou seção.</p></div> : <>
-            <div className="ln-studio-selection-head"><span>{selected.protected ? "🔒 componente protegido" : selected.tag}</span><strong>{selected.label}</strong></div>
+          {!selected ? <div className="ln-studio-empty"><strong>Selecione algo na landing</strong><p>Clique no texto, imagem, botão, card ou seção. O editor trabalha em <b>fluxo responsivo</b>: sem X/Y e sem posição absoluta.</p><p>Você pode editar, mudar cor/tamanho, duplicar e reorganizar blocos comuns. Checkout, simulador e avaliações ficam travados estruturalmente para nunca sumirem.</p></div> : <>
+            <div className="ln-studio-selection-head"><span>{selected.lockedStructure ? "🔒 estrutura protegida" : selected.tag}</span><strong>{selected.label}</strong></div>
 
             <div className="ln-studio-flow-actions">
               <button type="button" onClick={selectParent}>Selecionar bloco pai</button>
-              <button type="button" onClick={() => moveSelected(-1)}>↑ Subir</button>
-              <button type="button" onClick={() => moveSelected(1)}>↓ Descer</button>
-              <button type="button" disabled={selected.protected} onClick={duplicateSelected}>⧉ Duplicar</button>
+              <button type="button" disabled={selected.lockedStructure} onClick={() => moveSelected(-1)}>↑ Subir</button>
+              <button type="button" disabled={selected.lockedStructure} onClick={() => moveSelected(1)}>↓ Descer</button>
+              <button type="button" disabled={selected.lockedStructure} onClick={duplicateSelected}>⧉ Duplicar</button>
             </div>
 
-            {selected.isContainer && !selected.protected ? <InspectorGroup title="Adicionar dentro deste bloco">
+            {selected.isContainer && !selected.lockedStructure ? <InspectorGroup title="Adicionar dentro deste bloco">
               <div className="ln-studio-insert-buttons"><button type="button" onClick={() => addElement("text")}>+ Texto</button><button type="button" onClick={() => addElement("highlight")}>+ Destaque</button><button type="button" onClick={() => addElement("button")}>+ Botão</button><button type="button" onClick={() => addElement("image")}>+ Imagem</button><button type="button" onClick={() => addElement("block")}>+ Bloco</button></div>
               <p className="ln-studio-help">O novo item nasce dentro do card/bloco selecionado. Você também pode arrastar elementos de outros blocos para cá.</p>
             </InspectorGroup> : null}
 
-            {selected.protected ? <div className="ln-studio-protected-note">A lógica interna deste componente fica protegida. Você ainda pode reposicionar o bloco no fluxo e ajustar largura/espaçamento sem mexer no Asaas, simulador ou dados do Google.</div> : null}
+            {selected.lockedStructure ? <div className="ln-studio-protected-note">Este bloco contém uma função crítica. Texto e aparência externa podem ser ajustados quando aplicável, mas excluir, duplicar, desmontar ou arrastar a estrutura fica bloqueado. Isso impede checkout, simulador e avaliações de sumirem.</div> : null}
 
             {selected.isText && !selected.protected ? <InspectorGroup title="Texto"><label>Conteúdo<textarea rows={5} value={selected.text} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(event) => updateSelectedText(event.target.value)}/></label>{selected.tag === "a" ? <label>Link<input value={selected.href} onFocus={beginFieldEdit} onBlur={endFieldEdit} onChange={(event) => updateAttribute("href", event.target.value)}/></label> : null}</InspectorGroup> : null}
 

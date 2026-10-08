@@ -184,7 +184,7 @@ function OriginalLanding() {
 }
 
 type LandingStudioData = {
-  studio?: { enabled?: boolean; html?: string; styles?: Record<string, Partial<Record<"desktop" | "tablet" | "mobile", Record<string, string>>>> };
+  studio?: { enabled?: boolean; html?: string; styles?: Record<string, Partial<Record<"desktop" | "mobile", Record<string, string>>>> };
 };
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {

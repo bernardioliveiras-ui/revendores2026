@@ -12,7 +12,7 @@ const productDefaults = {
     { id: "kit50", name: "KIT50", subtitle: "50 caixas", image: "/brand/mix10-box-transparent-v3-web.webp", price: "R$ 3.495,00", active: true },
   ],
 };
-const mediaDefaults = { assets: [
+const mediaDefaults = { welcomeVideo: { sourceUrl: "" }, assets: [
   { id:"lordnutri-logo", label:"Logo LORD NUTRI", url:"/brand/lordnutri-logo-gold-v3-web.webp", kind:"image" },
   { id:"mix10-box", label:"Caixa MIX10 PRO", url:"/brand/mix10-box-transparent-v3-web.webp", kind:"image" },
   { id:"people-revenda", label:"Foto revenda", url:"/brand/conversa-revenda-1280-v4.webp", kind:"image" },
@@ -348,6 +348,37 @@ function sanitizeFreeElements(value: unknown) {
 }
 
 
+
+const requiredStudioProtectedSlots = ["checkout", "simulator", "google-dynamic"] as const;
+
+function studioProtectedSlotProblems(html: string) {
+  const missing: string[] = [];
+  const duplicated: string[] = [];
+  for (const kind of requiredStudioProtectedSlots) {
+    const pattern = new RegExp(`data-ln-protected=["']${kind}["']`, "g");
+    const count = (html.match(pattern) || []).length;
+    if (count === 0) missing.push(kind);
+    if (count > 1) duplicated.push(kind);
+  }
+  return { missing, duplicated, ok: missing.length === 0 && duplicated.length === 0 };
+}
+
+function assertStudioCriticalIntegrity(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return;
+  const studio = (value as Record<string, unknown>).studio;
+  if (!studio || typeof studio !== "object" || Array.isArray(studio)) return;
+  const config = studio as Record<string, unknown>;
+  if (config.enabled !== true || typeof config.html !== "string") return;
+  const problems = studioProtectedSlotProblems(config.html);
+  if (!problems.ok) {
+    const parts = [
+      ...problems.missing.map((kind) => `${kind} ausente`),
+      ...problems.duplicated.map((kind) => `${kind} duplicado`),
+    ];
+    throw new Error(`Studio bloqueou a operação por segurança: ${parts.join(", ")}. Repare o layout no Studio antes de publicar.`);
+  }
+}
+
 const allowedStudioStyleKeys = new Set([
   "fontFamily", "fontSize", "fontWeight", "fontStyle", "color", "textAlign", "letterSpacing", "lineHeight", "textTransform", "textDecoration",
   "backgroundColor", "opacity", "display", "flexDirection", "flexWrap", "justifyContent", "alignItems", "alignContent", "gap", "columnGap", "rowGap",
@@ -376,7 +407,7 @@ function sanitizeStudioStyles(value: unknown) {
   for (const [id, rawDevices] of Object.entries(value as Record<string, unknown>)) {
     if (!/^[a-zA-Z0-9_-]{1,100}$/.test(id) || !rawDevices || typeof rawDevices !== "object" || Array.isArray(rawDevices)) continue;
     const cleanDevices: Record<string, Record<string, string>> = {};
-    for (const device of ["desktop", "tablet", "mobile"] as const) {
+    for (const device of ["desktop", "mobile"] as const) {
       const rawStyles = (rawDevices as Record<string, unknown>)[device];
       if (!rawStyles || typeof rawStyles !== "object" || Array.isArray(rawStyles)) continue;
       const clean: Record<string, string> = {};
@@ -400,7 +431,7 @@ function sanitizeStudioConfig(value: unknown) {
   if (!html) return null;
   return {
     enabled: source.enabled === true,
-    version: "1.2",
+    version: "1.4",
     html,
     styles: sanitizeStudioStyles(source.styles),
   };
@@ -454,12 +485,19 @@ export async function saveStudioDraft(type: StudioDocType, value: unknown) {
   await ensureContentStudioSchema();
   const now = new Date().toISOString();
   const safeValue = type === "landing" ? sanitizeLandingDraft(value) : value;
+  if (type === "landing") assertStudioCriticalIntegrity(safeValue);
   await getMysqlPool().execute("UPDATE content_studio SET draft_json=?,updated_at=? WHERE doc_type=?", [JSON.stringify(safeValue), now, type]);
   return getStudioDoc(type);
 }
 
 export async function publishStudioDoc(type: StudioDocType) {
   await ensureContentStudioSchema();
+  if (type === "landing") {
+    const [rows] = await getMysqlPool().execute("SELECT draft_json FROM content_studio WHERE doc_type=? LIMIT 1", [type]);
+    const row = (rows as Array<{ draft_json?: string }>)[0];
+    const draft = sanitizeLandingDraft(parse(row?.draft_json, defaults.landing));
+    assertStudioCriticalIntegrity(draft);
+  }
   const now = new Date().toISOString();
   await getMysqlPool().execute("UPDATE content_studio SET published_json=draft_json,published_at=?,updated_at=? WHERE doc_type=?", [now, now, type]);
   return getStudioDoc(type);
