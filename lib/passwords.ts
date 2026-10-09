@@ -13,12 +13,14 @@ export async function hashPassword(password: string) {
 
 export async function verifyPassword(password: string, encoded?: string | null) {
   if (!encoded) return false;
-  const [algorithm, saltValue, hashValue] = encoded.split("$");
-  if (algorithm !== "scrypt" || !saltValue || !hashValue) return false;
+  const parts = encoded.split("$");
+  const [algorithm, saltValue, hashValue] = parts;
+  if (parts.length !== 3 || algorithm !== "scrypt" || !saltValue || !hashValue) return false;
   try {
     const salt = Buffer.from(saltValue, "base64url");
     const expected = Buffer.from(hashValue, "base64url");
-    const actual = (await scrypt(password, salt, expected.length)) as Buffer;
+    if (salt.length !== 16 || expected.length !== KEY_LENGTH) return false;
+    const actual = (await scrypt(password, salt, KEY_LENGTH)) as Buffer;
     return actual.length === expected.length && timingSafeEqual(actual, expected);
   } catch { return false; }
 }

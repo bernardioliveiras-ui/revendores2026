@@ -29,13 +29,13 @@ export async function GET(request:Request){
       return new Response(new Uint8Array(pdf),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Length":String(pdf.byteLength),"Content-Disposition":'inline; filename="Manual_do_Revendedor_LORD_NUTRI_BASE.pdf"'}});
     }
     const studio=await getStudioDoc("manual");
-    const pages=(studio.published as {pages:any[]}).pages||[];
+    const pages=(studio.published as {pages?:Parameters<typeof buildManualPdf>[0]}).pages||[];
     const pageImages=await Promise.all(pages.map((_:unknown,index:number)=>readFile(join(process.cwd(),"private","manual","pages",`page-${String(index+1).padStart(2,"0")}.jpg`))));
     const pdf=buildManualPdf(pages,pageImages);
     return new Response(new Uint8Array(pdf),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Length":String(pdf.byteLength),"Content-Disposition":'inline; filename="Manual_do_Revendedor_LORD_NUTRI_Publicado.pdf"'}});
   }catch(error){
     const m=error instanceof Error?error.message:"";
-    const status=m==="UNAUTHORIZED"?401:403;
+    const status=m==="UNAUTHORIZED"?401:["PASSWORD_REQUIRED","FORBIDDEN_MANUAL"].includes(m)?403:503;
     return Response.json({error:m==="UNAUTHORIZED"?"Entre no portal para acessar o material.":m==="PASSWORD_REQUIRED"?"Atualize sua senha para acessar o material.":m==="FORBIDDEN_MANUAL"?"Material exclusivo para compradores de kit com pagamento confirmado e acesso liberado.":"Não foi possível abrir o manual."},{status,headers:privateHeaders});
   }
 }

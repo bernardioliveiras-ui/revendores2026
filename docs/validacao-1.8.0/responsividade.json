@@ -1,0 +1,167 @@
+[
+  {
+    "width": 320,
+    "scrollWidth": 320,
+    "height": 13776,
+    "checkout": 1,
+    "images": [
+      {
+        "src": "/brand/lordnutri-logo-gold-v3.png",
+        "w": 1275
+      },
+      {
+        "src": "/brand/conversa-pessoas-1.8.webp",
+        "w": 1536
+      },
+      {
+        "src": "/brand/mix10-box-transparent-v3-web.webp",
+        "w": 800
+      },
+      {
+        "src": "/brand/caminhada-pessoas-1.8.webp",
+        "w": 1536
+      },
+      {
+        "src": "/brand/lordnutri-logo-gold-v3.png",
+        "w": 1275
+      }
+    ],
+    "missingCopy": [],
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "width": 390,
+    "scrollWidth": 390,
+    "height": 12976,
+    "checkout": 1,
+    "images": [
+      {
+        "src": "/brand/lordnutri-logo-gold-v3.png",
+        "w": 1275
+      },
+      {
+        "src": "/brand/conversa-pessoas-1.8.webp",
+        "w": 1536
+      },
+      {
+        "src": "/brand/mix10-box-transparent-v3-web.webp",
+        "w": 800
+      },
+      {
+        "src": "/brand/caminhada-pessoas-1.8.webp",
+        "w": 1536
+      },
+      {
+        "src": "/brand/lordnutri-logo-gold-v3.png",
+        "w": 1275
+      }
+    ],
+    "missingCopy": [],
+    "overflow": [],
+    "errors": [],
+    "skipAfterScroll": {
+      "top": -69.3499984741211,
+      "bottom": -19.756248474121094,
+      "focused": false
+    }
+  },
+  {
+    "width": 768,
+    "scrollWidth": 768,
+    "height": 9342,
+    "checkout": 1,
+    "images": [
+      {
+        "src": "/brand/lordnutri-logo-gold-v3.png",
+        "w": 1275
+      },
+      {
+        "src": "/brand/conversa-pessoas-1.8.webp",
+        "w": 1536
+      },
+      {
+        "src": "/brand/mix10-box-transparent-v3-web.webp",
+        "w": 800
+      },
+      {
+        "src": "/brand/caminhada-pessoas-1.8.webp",
+        "w": 1536
+      },
+      {
+        "src": "/brand/lordnutri-logo-gold-v3.png",
+        "w": 1275
+      }
+    ],
+    "missingCopy": [],
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "width": 1024,
+    "scrollWidth": 1024,
+    "height": 9298,
+    "checkout": 1,
+    "images": [
+      {
+        "src": "/brand/lordnutri-logo-gold-v3.png",
+        "w": 1275
+      },
+      {
+        "src": "/brand/conversa-pessoas-1.8.webp",
+        "w": 1536
+      },
+      {
+        "src": "/brand/mix10-box-transparent-v3-web.webp",
+        "w": 800
+      },
+      {
+        "src": "/brand/caminhada-pessoas-1.8.webp",
+        "w": 1536
+      },
+      {
+        "src": "/brand/lordnutri-logo-gold-v3.png",
+        "w": 1275
+      }
+    ],
+    "missingCopy": [],
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "scrollWidth": 1440,
+    "height": 9312,
+    "checkout": 1,
+    "images": [
+      {
+        "src": "/brand/lordnutri-logo-gold-v3.png",
+        "w": 1275
+      },
+      {
+        "src": "/brand/conversa-pessoas-1.8.webp",
+        "w": 1536
+      },
+      {
+        "src": "/brand/mix10-box-transparent-v3-web.webp",
+        "w": 800
+      },
+      {
+        "src": "/brand/caminhada-pessoas-1.8.webp",
+        "w": 1536
+      },
+      {
+        "src": "/brand/lordnutri-logo-gold-v3.png",
+        "w": 1275
+      }
+    ],
+    "missingCopy": [],
+    "overflow": [],
+    "errors": [],
+    "skipAfterScroll": {
+      "top": -69.3499984741211,
+      "bottom": -19.756248474121094,
+      "focused": false
+    }
+  }
+]

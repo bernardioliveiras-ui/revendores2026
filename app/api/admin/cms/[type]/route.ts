@@ -7,6 +7,7 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
   try {
     await requireAdmin(request);
     const { type } = await context.params;
+    if (type === "landing") return Response.json({ error: "O Studio da landing foi removido. O conteúdo da LP agora é mantido no código." }, { status: 410 });
     if (!isStudioDocType(type)) return Response.json({ error: "Área inválida." }, { status: 404 });
     return Response.json(await getStudioDoc(type), { headers: { "cache-control": "no-store" } });
   } catch (error) {
@@ -19,6 +20,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ type:
   try {
     await requireAdmin(request);
     const { type } = await context.params;
+    if (type === "landing") return Response.json({ error: "O Studio da landing foi removido. O conteúdo da LP agora é mantido no código." }, { status: 410 });
     if (!isStudioDocType(type)) return Response.json({ error: "Área inválida." }, { status: 404 });
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object" || !("draft" in body)) return Response.json({ error: "Rascunho inválido." }, { status: 400 });
@@ -33,6 +35,7 @@ export async function POST(request: Request, context: { params: Promise<{ type: 
   try {
     await requireAdmin(request);
     const { type } = await context.params;
+    if (type === "landing") return Response.json({ error: "O Studio da landing foi removido. O conteúdo da LP agora é mantido no código." }, { status: 410 });
     if (!isStudioDocType(type)) return Response.json({ error: "Área inválida." }, { status: 404 });
     const body = await request.json().catch(() => ({})) as { action?: string };
     if (body.action !== "publish") return Response.json({ error: "Ação inválida." }, { status: 400 });

@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/reseller/manual": ["./private/manual/*.pdf"],
   },
+  async headers() {
+    return [
+      { source: "/:path*", headers: [{ key: "Referrer-Policy", value: "origin" }] },
+      ...["/api/:path*", "/painel/:path*", "/entrar/:path*", "/trocar-senha/:path*", "/comprar/:path*", "/r/:path*", "/manual/:path*", "/studio/:path*"].map((source) => ({ source, headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }] })),
+    ];
+  },
   async redirects() {
     return [{ source: "/manual/:path*", destination: "/api/reseller/manual", permanent: false }];
   },

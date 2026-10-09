@@ -10,7 +10,7 @@ function escapeHtml(value: string) {
   return value.replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char] || char));
 }
 
-async function sendViaResend(input: { name: string; email: string; orderNumber: string; portalUrl: string; temporaryPassword: string | null }) {
+async function sendViaResend(input: { name: string; email: string; orderNumber: string; portalUrl: string; temporaryPassword: string | null; idempotencyKey: string }) {
   const apiKey = getOptionalEnv("RESEND_API_KEY");
   const from = getOptionalEnv("WELCOME_EMAIL_FROM") || getOptionalEnv("EMAIL_FROM");
   if (!apiKey || !from) return false;
@@ -21,7 +21,7 @@ async function sendViaResend(input: { name: string; email: string; orderNumber: 
     : `<p>Seu acesso já existia. Use sua senha atual para entrar.</p>`;
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST", signal: AbortSignal.timeout(15000),
-    headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+    headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}`, "Idempotency-Key": input.idempotencyKey },
     body: JSON.stringify({
       from, to: [input.email], subject: "Bem-vindo à LORDNUTRI - seu acesso ao Portal do Revendedor",
       html: `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#0b2540"><h1>Bem-vindo à LORDNUTRI, ${safeName}!</h1><p>Seu pagamento do pedido <strong>${escapeHtml(input.orderNumber)}</strong> foi confirmado e seu acesso ao Portal do Revendedor está liberado.</p>${passwordBlock}<p><a href="${safePortal}" style="display:inline-block;padding:12px 18px;background:#0b2540;color:white;text-decoration:none;border-radius:8px">Acessar o portal</a></p><p>No portal você acompanha estoque, vendas, Manual do Revendedor e andamento dos pedidos.</p><p>Equipe LORDNUTRI</p></div>`,
@@ -54,7 +54,7 @@ export async function sendWelcome(purchaseId: string) {
       if (!response.ok) throw new Error("WELCOME_DELIVERY_FAILED");
       sent = true;
     } else {
-      sent = await sendViaResend({ name: p.name, email: p.email, orderNumber: p.orderNumber, portalUrl, temporaryPassword });
+      sent = await sendViaResend({ name: p.name, email: p.email, orderNumber: p.orderNumber, portalUrl, temporaryPassword, idempotencyKey: welcomeKey(p.id, p.welcomeIv || "existing-account") });
     }
 
     if (!sent) return { sent: false, reason: "not_configured" };

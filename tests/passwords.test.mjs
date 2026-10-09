@@ -2,6 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { hashPassword, verifyPassword, generateTemporaryPassword } from '../lib/passwords.ts';
 
+test('hash corrompido com digest vazio não autentica qualquer senha', async () => {
+  const salt=Buffer.alloc(16,1).toString('base64url');
+  assert.equal(await verifyPassword('qualquer senha',`scrypt$${salt}$!`),false);
+});
+
 test('senha é armazenada com scrypt e verificada sem plaintext', async () => {
   const encoded = await hashPassword('Senha@123');
   assert.match(encoded, /^scrypt\$/);

@@ -1,4 +1,4 @@
-import { index, int, mysqlTable, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { index, int, mysqlTable, uniqueIndex, varchar, text } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: varchar("id", { length: 80 }).primaryKey(),
@@ -173,6 +173,28 @@ export const affiliateClicks = mysqlTable("affiliate_clicks", {
 export const asaasEvents = mysqlTable("asaas_events", {
   eventId: varchar("event_id", { length: 180 }).primaryKey(),
   eventType: varchar("event_type", { length: 100 }).notNull(),
+  purchaseId: varchar("purchase_id", { length: 80 }),
   paymentId: varchar("payment_id", { length: 120 }),
   receivedAt: varchar("received_at", { length: 40 }).notNull(),
 }, (table) => [index("idx_asaas_event_payment").on(table.paymentId)]);
+
+export const purchaseMeasurement = mysqlTable("purchase_measurement", {
+  purchaseId: varchar("purchase_id", { length: 80 }).primaryKey(),
+  snapshot: text("snapshot").notNull(),
+  withdrawalTokenHash: varchar("withdrawal_token_hash", { length: 64 }),
+  activatedAt: varchar("activated_at", { length: 40 }),
+  confirmedAt: varchar("confirmed_at", { length: 40 }),
+  expiresAt: varchar("expires_at", { length: 40 }).notNull(),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+}, table => [index("idx_measurement_expiry").on(table.expiresAt)]);
+export const measurementOutbox = mysqlTable("measurement_outbox", {
+  id: varchar("id", { length: 120 }).primaryKey(),
+  purchaseId: varchar("purchase_id", { length: 80 }).notNull(),
+  provider: varchar("provider", { length: 8 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  attempts: int("attempts").notNull().default(0),
+  nextAttemptAt: varchar("next_attempt_at", { length: 40 }).notNull(),
+  sentAt: varchar("sent_at", { length: 40 }),
+  lastError: varchar("last_error", { length: 80 }),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+}, table => [uniqueIndex("idx_measurement_purchase_provider").on(table.purchaseId, table.provider), index("idx_measurement_due").on(table.status, table.nextAttemptAt)]);

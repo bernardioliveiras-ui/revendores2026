@@ -3,23 +3,15 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const read=(p)=>readFile(new URL(`../${p}`,import.meta.url),'utf8');
 
-test('BKO exposes draft/publish studio for landing, manual, products and media', async()=>{
+test('BKO keeps draft and publication for manual, products and media', async()=>{
   const portal=await read('app/painel/portal-client.tsx');
   const studio=await read('components/content-studio-admin.tsx');
   const api=await read('app/api/admin/cms/[type]/route.ts');
   assert.match(portal,/Conteúdo/);
-  for(const word of ['Landing Page','Manual','Produtos','Mídia','Salvar rascunho','Publicar']) assert.match(studio,new RegExp(word));
+  for(const word of ['Manual','Produtos','Mídia','Salvar rascunho','Publicar']) assert.match(studio,new RegExp(word));
   assert.match(api,/publishStudioDoc/);
 });
 
-test('landing has runtime editable text/images and locked ANVISA process', async()=>{
-  const runtime=await read('components/content-runtime.tsx');
-  const page=await read('app/page.tsx');
-  assert.match(runtime,/data\.cmsKey|dataset\.cmsKey/);
-  assert.match(runtime,/imageOverrides/);
-  assert.match(runtime,/2535115572620267/);
-  assert.match(page,/2535115572620267/);
-});
 
 test('manual source has 22 editable pages and dynamic published PDF route', async()=>{
   const raw=JSON.parse(await read('data/manual-fields.json'));
@@ -28,4 +20,18 @@ test('manual source has 22 editable pages and dynamic published PDF route', asyn
   assert.ok(raw.fieldCount>400);
   assert.match(route,/buildManualPdf/);
   assert.match(route,/getStudioDoc\("manual"\)/);
+});
+
+test('BKO accepts welcome video and portal reads published media config', async () => {
+  const admin = await read('components/content-studio-admin.tsx');
+  const mediaRoute = await read('app/api/admin/media/route.ts');
+  const portalPage = await read('app/painel/page.tsx');
+  const video = await read('components/welcome-video.tsx');
+  assert.match(admin, /Vídeo da aba Boas Vindas/);
+  assert.match(admin, /Usar em Boas Vindas/);
+  assert.match(mediaRoute, /video\/mp4/);
+  assert.match(portalPage, /welcomeVideoUrl/);
+  assert.match(portalPage, /getStudioDoc\("media"\)/);
+  assert.match(video, /youtube-nocookie\.com\/embed/);
+  assert.match(video, /player\.vimeo\.com\/video/);
 });

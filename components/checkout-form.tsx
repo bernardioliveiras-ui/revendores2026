@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { KitId } from "@/lib/kits";
+import { checkoutAttribution, checkoutMeasurement, rememberCheckoutMeasurement, trackCheckout } from "@/lib/measurement-browser";
 
 type Installment = {
   installments: number;
@@ -141,28 +142,30 @@ export function CheckoutForm() {
     submitInFlight.current = true;
     setBusy(true);
     const form = new FormData(event.currentTarget);
-    let attribution: Record<string, string> = {};
-    try { attribution = JSON.parse(localStorage.getItem("mix10_attribution") || "{}") || {}; } catch {}
-    const params = new URLSearchParams(window.location.search);
+    const attribution = checkoutAttribution();
+    trackCheckout("begin_checkout", { kit, totalCents: selected.totalCents });
     const payload = {
       ...Object.fromEntries(form.entries()),
       shippingType,
       paymentMethod,
       installments: paymentMethod === "credit" ? installments : 1,
-      utmSource: params.get("utm_source") || attribution.utmSource || "",
-      utmMedium: params.get("utm_medium") || attribution.utmMedium || "",
-      utmCampaign: params.get("utm_campaign") || attribution.utmCampaign || "",
-      utmContent: params.get("utm_content") || attribution.utmContent || "",
+      utmSource: attribution.utmSource || "",
+      utmMedium: attribution.utmMedium || "",
+      utmCampaign: attribution.utmCampaign || "",
+      utmContent: attribution.utmContent || "",
     };
     try {
+      const measurement = await checkoutMeasurement();
       const response = await fetch("/api/public/checkout", {
         method: "POST",
         signal: AbortSignal.timeout(75000),
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, measurement }),
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Não foi possível iniciar o pagamento.");
+      rememberCheckoutMeasurement(body.measurement);
+      trackCheckout("order_created", { kit, totalCents: finalCents, orderNumber: body.orderNumber });
       window.location.href = body.invoiceUrl;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível iniciar o pagamento.");

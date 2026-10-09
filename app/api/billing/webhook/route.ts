@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { enqueueConfirmedPurchase, runPurchaseMeasurementQueue } from "@/lib/purchase-measurement";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { asaasEvents, purchases, stockMovements, users } from "@/db/schema";
@@ -53,7 +55,7 @@ export async function POST(request: Request) {
       const [known]=await tx.select().from(asaasEvents).where(eq(asaasEvents.eventId,eventId)).limit(1);
       if(known && (known.paymentId!==paymentId || known.eventType!==eventType)) throw new Error("EVENT_CONFLICT");
       if(known) return {id:purchase.id,paid:purchase.paymentStatus==="paid",duplicate:true};
-      await tx.insert(asaasEvents).values({eventId,eventType,paymentId,receivedAt:new Date().toISOString()});
+      await tx.insert(asaasEvents).values({eventId,eventType,paymentId,purchaseId:purchase.id,receivedAt:new Date().toISOString()});
       if(status==="paid" && purchase.paymentStatus==="cancelled") return {id:purchase.id,paid:false,duplicate:false};
       const physicallyDispatched = ["shipped", "delivered"].includes(purchase.shippingStatus);
       if (status === "cancelled" && purchase.userId && !physicallyDispatched) {
@@ -70,7 +72,14 @@ export async function POST(request: Request) {
     });
     // A retry repairs a failed provisioning/notification even if the payment
     // event has already committed. Both operations are individually idempotent.
-    if(result.paid){await provisionPaidPurchase(result.id);await sendWelcome(result.id);}
+    if(result.paid){
+      // Optional measurement is independent of access/notification failures.
+      try {
+        await enqueueConfirmedPurchase(result.id);
+        after(async () => { try { await runPurchaseMeasurementQueue(2); } catch { console.error("purchase_measurement_worker_pending"); } });
+      } catch { console.error("purchase_measurement_deferred"); }
+      await provisionPaidPurchase(result.id);await sendWelcome(result.id);
+    }
     return Response.json({received:true,duplicate:result.duplicate,ignored:result.ignored || false});
   } catch(error) {
     if(error instanceof Error && ["EVENT_CONFLICT","PAYMENT_CONFLICT"].includes(error.message)) return Response.json({error:"Evento divergente."},{status:409});

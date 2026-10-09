@@ -4,6 +4,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function GET(request: Request, context: { params: Promise<{ type: string }> }) {
   const { type } = await context.params;
+  if (type === "landing") return Response.json({ error: "O Studio da landing foi removido. O conteúdo da LP agora é mantido no código." }, { status: 410 });
+  if (type === "manual") return Response.json({ error: "O manual é acessível pelo portal autenticado." }, { status: 410, headers: { "cache-control": "private, no-store" } });
   if (!isStudioDocType(type)) return Response.json({ error: "Área inválida." }, { status: 404 });
   try {
     const doc = await getStudioDoc(type);

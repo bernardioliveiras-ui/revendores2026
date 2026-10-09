@@ -17,6 +17,6 @@ test('BKO portal exposes access release, logistics and metrics without reseller-
 });
 
 test('legal pages exist and checkout footer links to them',async()=>{
-  const terms=await read('app/termos-de-uso/page.tsx');const privacy=await read('app/politica-de-privacidade/page.tsx');const home=await read('app/page.tsx');
+  const terms=await read('app/termos-de-uso/page.tsx');const privacy=await read('app/politica-de-privacidade/page.tsx');const home=await read('components/landing-sections.tsx');
   assert.match(terms,/Termos de Uso/);assert.match(privacy,/Política de Privacidade/);assert.match(home,/\/termos-de-uso/);assert.match(home,/\/politica-de-privacidade/);
 });

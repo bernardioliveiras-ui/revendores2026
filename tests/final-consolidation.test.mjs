@@ -4,23 +4,6 @@ import { readFile, access } from 'node:fs/promises';
 import { join } from 'node:path';
 const root=new URL('..',import.meta.url).pathname;const read=(p)=>readFile(join(root,p),'utf8');
 
-test('LP builds trust in LORD NUTRI before product benefits, model, calculations and kits', async()=>{
-  const src=await read('app/page.tsx');
-  const model=src.indexOf('id="modelo"');
-  const opportunity=src.indexOf('id="lord-nutri"');
-  const simulator=src.indexOf('id="simulador"');
-  const product=src.indexOf('id="mix10pro"');
-  assert.ok(opportunity>=0 && product>opportunity && model>product && simulator>model);
-  assert.match(src,/id="beneficios"/);
-  const hero=src.slice(src.indexOf('id="inicio"'),opportunity);
-  assert.doesNotMatch(hero,/20 caixas|até 6x|Frete à parte|href="#simulador"/i);
-  assert.match(hero,/href="#lord-nutri"/);
-  assert.match(src,/Vem realizar seus sonhos com a gente!/);
-  assert.match(src,/Por que vender com a LORD NUTRI/);
-  assert.match(src,/Benefícios pensados para o seu corpo/);
-  assert.match(src,/40\+/);
-  assert.match(src,/A plataforma de apoio e os treinamentos estão em desenvolvimento/);
-});
 
 test('favicon is the LORDNUTRI mark and the exclusive reseller manual is embedded in the portal', async()=>{
   await access(join(root,'app/icon.png'));

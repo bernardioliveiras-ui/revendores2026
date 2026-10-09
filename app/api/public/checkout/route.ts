@@ -1,3 +1,4 @@
+import { capturePurchaseMeasurement } from "@/lib/purchase-measurement";
 import { lookupPostalCode, PostalLookupError } from "@/lib/postal-code";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
@@ -9,6 +10,12 @@ import { calculateInstallment, calculateShipping, MAX_CARD_INSTALLMENTS, type Pa
 function clean(value: unknown, max = 180) { return typeof value === "string" ? value.trim().slice(0, max) : ""; }
 function digits(value: unknown, max = 20) { return clean(value, 40).replace(/\D/g, "").slice(0, max); }
 function email(value: unknown) { const result = clean(value, 254).toLowerCase(); return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(result) ? result : ""; }
+function landingPage(request: Request) {
+  try {
+    const url = new URL(request.headers.get("referer") || "");
+    return ["http:", "https:"].includes(url.protocol) ? `${url.origin}${url.pathname}`.slice(0, 500) : "";
+  } catch { return ""; }
+}
 function dueDate() { const d = new Date(); d.setUTCDate(d.getUTCDate() + 3); return d.toISOString().slice(0, 10); }
 function orderNumber() { return `MIX${Date.now().toString(36).toUpperCase()}${crypto.randomUUID().slice(0, 4).toUpperCase()}`; }
 
@@ -69,10 +76,11 @@ export async function POST(request: Request) {
       interestCents: payment.interestCents,
       totalCents: chargedTotalCents,
       paymentStatus: "payment_pending", shippingStatus: "awaiting_payment",
-      utmSource: clean(payload.utmSource, 120), utmMedium: clean(payload.utmMedium, 120), utmCampaign: clean(payload.utmCampaign, 180), utmContent: clean(payload.utmContent, 180), landingPage: request.headers.get("referer")?.slice(0, 500) || "",
+      utmSource: clean(payload.utmSource, 120), utmMedium: clean(payload.utmMedium, 120), utmCampaign: clean(payload.utmCampaign, 180), utmContent: clean(payload.utmContent, 180), landingPage: landingPage(request),
       createdAt: now, updatedAt: now,
     });
 
+    const measurement = await capturePurchaseMeasurement(purchaseId, payload.measurement, request).catch(() => null);
     const customer = await createCheckoutCustomer({ purchaseId, name: data.name, cpfCnpj: data.cpfCnpj, email: data.email, phone: data.phone });
     const asaasPayment = await createPayment({
       customerId: customer.id,
@@ -85,7 +93,7 @@ export async function POST(request: Request) {
     });
     if (!asaasPayment.id || !asaasPayment.invoiceUrl) throw new Error("O Asaas não retornou o link de pagamento.");
     await db.update(purchases).set({ asaasCustomerId: customer.id, asaasPaymentId: asaasPayment.id, asaasInstallmentId: asaasPayment.installment || null, asaasInvoiceUrl: asaasPayment.invoiceUrl, updatedAt: new Date().toISOString() }).where(eq(purchases.id, purchaseId));
-    return Response.json({ invoiceUrl: asaasPayment.invoiceUrl, orderNumber: number });
+    return Response.json({ invoiceUrl: asaasPayment.invoiceUrl, orderNumber: number, ...(measurement ? { measurement } : {}) });
   } catch (error) {
     if (purchaseId) {
       try { await getDb().update(purchases).set({ paymentStatus: "payment_error", updatedAt: new Date().toISOString() }).where(and(eq(purchases.id, purchaseId), eq(purchases.paymentStatus, "payment_pending"))); } catch { /* keep original error */ }

@@ -23,7 +23,9 @@ async function keyedHash(purpose: string, value: string) {
 function cookieValue(request: Request, name: string) {
   for (const item of (request.headers.get("cookie") || "").split(";")) {
     const i = item.indexOf("="); if (i < 0) continue;
-    if (item.slice(0,i).trim() === name) return decodeURIComponent(item.slice(i+1).trim());
+    if (item.slice(0,i).trim() === name) {
+      try { return decodeURIComponent(item.slice(i+1).trim()); } catch { return null; }
+    }
   }
   return null;
 }

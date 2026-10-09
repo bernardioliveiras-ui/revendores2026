@@ -1,3 +1,5 @@
+import { privatePageMetadata } from "@/lib/seo";
+export const metadata = { ...privatePageMetadata, title: 'Escolha seu kit' };
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { LegalFooter } from "@/components/legal-footer";

@@ -1,6 +1,6 @@
-# Guia atualizado — LORDNUTRI 0.2.0
+# Guia atualizado — LORD NUTRI 1.8.0
 
-Consulte [LEIA-ME-PRIMEIRO.md](LEIA-ME-PRIMEIRO.md), [AUTOMACOES.md](AUTOMACOES.md) e [VALIDACAO-LORDNUTRI.md](VALIDACAO-LORDNUTRI.md).
+Consulte [LEIA-ME-PRIMEIRO.md](LEIA-ME-PRIMEIRO.md), [AUTOMACOES.md](AUTOMACOES.md) e [validação 1.8.0](docs/VALIDACAO-1.8.0.md).
 
 A versão anterior deste documento está arquivada em docs/historico.
 
