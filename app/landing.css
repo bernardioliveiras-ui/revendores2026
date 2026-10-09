@@ -756,3 +756,86 @@
 .lnr-studio-published #checkout .lnr-checkout-layout{display:grid!important}
 .lnr-studio-published [data-ln-protected="checkout"]{display:block!important}
 .lnr-studio-published [data-ln-protected="checkout"]>.checkout-card{display:block!important;width:100%!important;max-width:100%!important;visibility:visible!important;opacity:1!important}
+
+/* ========================================================================== 
+   1.7.0 — LAYOUT RECOVERY
+   Fonte única de geometria para a landing pública. O Studio pode continuar
+   editando conteúdo/ordem, mas não consegue mais publicar escala, X/Y ou
+   dimensões que façam a página sair do eixo. Desktop >700px / mobile <=700px.
+   ========================================================================== */
+html,body{max-width:100%;overflow-x:hidden}
+.lnr-page{width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:clip!important}
+.lnr-page,.lnr-page *{box-sizing:border-box}
+.lnr-page>header,.lnr-page>section,.lnr-page>footer{width:100%;min-width:0;max-width:100%}
+.lnr-page .lnr-shell{width:min(1120px,calc(100% - 48px))!important;max-width:1120px!important;min-width:0!important;margin-inline:auto!important;padding-inline:0!important}
+.lnr-page :is(img,video,iframe,svg,canvas){max-width:100%!important}
+.lnr-page :is(.lnr-step,.lnr-scenario,.lnr-kit,.lnr-trust-card,.lnr-benefit-card,.simulator-result,.lnr-product-visual,.lnr-people-visual,.lnr-care-band,.lnr-faq-list>details){transform:none!important;animation:none!important}
+
+/* ritmo visual */
+.lnr-page .lnr-section{padding:64px 0!important}
+.lnr-page .lnr-section-head{width:min(100%,760px)!important;margin:0 auto 32px!important}
+.lnr-page .lnr-header-inner{width:100%;min-width:0}
+.lnr-page .lnr-hero-inner{width:min(100%,920px)!important;max-width:920px!important;margin-inline:auto!important;padding:48px 0 44px!important}
+.lnr-page .lnr-hero-opportunity{width:min(100%,700px)!important;margin-inline:auto!important}
+.lnr-page .lnr-hero-actions{display:flex!important;flex-direction:column!important;align-items:center!important;gap:10px!important;width:100%!important}
+.lnr-page .lnr-hero-cta{width:min(100%,520px)!important;min-width:0!important}
+
+/* marca */
+.lnr-page .lnr-opportunity-intro{display:grid!important;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr)!important;align-items:center!important;gap:44px!important;min-height:0!important;padding:0!important}
+.lnr-page .lnr-brand-story-copy{min-width:0!important;max-width:620px!important}
+.lnr-page .lnr-people-visual{position:relative!important;inset:auto!important;width:100%!important;height:390px!important;min-height:390px!important;margin:0!important;border-radius:24px!important;overflow:hidden!important;opacity:1!important}
+.lnr-page .lnr-people-visual img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;opacity:.58!important;mask-image:none!important;-webkit-mask-image:none!important}
+
+/* produto */
+.lnr-page .lnr-product-grid{display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr)!important;gap:52px!important;align-items:center!important}
+.lnr-page .lnr-product-grid>*{min-width:0!important}
+.lnr-page .lnr-product-visual{width:100%!important;min-height:0!important;margin:0!important}
+.lnr-page .lnr-product-visual img{display:block!important;width:min(100%,330px)!important;height:auto!important;margin-inline:auto!important}
+.lnr-page .lnr-product-facts{width:100%!important;max-width:100%!important}
+
+/* grids */
+.lnr-page .lnr-trust-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px!important}
+.lnr-page .lnr-benefit-grid{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:14px!important}
+.lnr-page .lnr-steps{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important}
+.lnr-page .lnr-scenarios{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important}
+.lnr-page .lnr-kit-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:22px!important;width:min(100%,980px)!important;max-width:980px!important;margin-inline:auto!important}
+.lnr-page :is(.lnr-trust-card,.lnr-benefit-card,.lnr-step,.lnr-scenario,.lnr-kit){min-width:0!important;max-width:100%!important}
+
+/* faixa visual */
+.lnr-page .lnr-care-band{position:relative!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(320px,.85fr)!important;gap:0!important;min-height:330px!important;margin:40px 0 0!important;border-radius:22px!important;overflow:hidden!important;background:linear-gradient(105deg,#081810,#0b1b12)!important}
+.lnr-page .lnr-care-band img{position:relative!important;inset:auto!important;width:100%!important;height:330px!important;min-height:330px!important;object-fit:cover!important;object-position:center!important;opacity:.48!important;mask-image:none!important;-webkit-mask-image:none!important}
+.lnr-page .lnr-care-band>div{position:relative!important;inset:auto!important;width:auto!important;margin:0!important;padding:48px 38px!important;align-self:center!important}
+
+/* checkout é sempre React e nunca depende do Studio */
+.lnr-page #checkout,.lnr-page .lnr-runtime-checkout{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;transform:none!important}
+.lnr-page #checkout .lnr-checkout-layout{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:0!important;width:100%!important;max-width:100%!important;min-width:0!important}
+.lnr-page #checkout .checkout-card{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;visibility:visible!important;opacity:1!important}
+.lnr-page .lnr-faq-layout{grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr)!important;align-items:start!important}
+
+/* conteúdo criado no Studio recebe aparência previsível */
+.lnr-page .ln-studio-block{width:100%!important;max-width:100%!important;min-width:0!important}
+.lnr-page .ln-studio-highlight{display:block!important;width:100%!important;max-width:100%!important;text-align:center!important;color:var(--lnr-gold)!important;font-weight:800!important;font-size:clamp(24px,3vw,36px)!important;line-height:1.08!important;margin:16px 0!important}
+
+@media(max-width:1050px){
+ .lnr-page .lnr-benefit-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ .lnr-page .lnr-product-grid{gap:34px!important}
+}
+
+@media(max-width:700px){
+ .lnr-page .lnr-shell{width:calc(100% - 32px)!important;max-width:none!important}
+ .lnr-page .lnr-section{padding:46px 0!important}
+ .lnr-page .lnr-section-head{margin-bottom:24px!important}
+ .lnr-page .lnr-hero-inner{padding:32px 0 34px!important}
+ .lnr-page .lnr-opportunity-intro,.lnr-page .lnr-product-grid,.lnr-page .lnr-care-band,.lnr-page .lnr-faq-layout,.lnr-page .lnr-checkout-layout{grid-template-columns:1fr!important;gap:24px!important}
+ .lnr-page .lnr-people-visual{height:250px!important;min-height:250px!important}
+ .lnr-page .lnr-people-visual img{height:250px!important;opacity:.5!important}
+ .lnr-page .lnr-trust-grid,.lnr-page .lnr-benefit-grid,.lnr-page .lnr-steps,.lnr-page .lnr-scenarios,.lnr-page .lnr-kit-grid{grid-template-columns:1fr!important}
+ .lnr-page .lnr-product-visual img{width:min(76vw,260px)!important}
+ .lnr-page .lnr-care-band{min-height:0!important}
+ .lnr-page .lnr-care-band img{width:100%!important;height:250px!important;min-height:250px!important}
+ .lnr-page .lnr-care-band>div{padding:28px 22px 32px!important}
+ .lnr-page .lnr-model-facts{grid-template-columns:1fr!important;gap:0!important}
+ .lnr-page #checkout .lnr-checkout-layout{grid-template-columns:1fr!important}
+ .lnr-page #checkout .checkout-card{padding:20px 16px!important}
+ .lnr-page .ln-studio-highlight{font-size:clamp(24px,8vw,34px)!important}
+}

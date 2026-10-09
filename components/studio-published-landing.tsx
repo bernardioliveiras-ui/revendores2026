@@ -1,24 +1,28 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckoutForm } from "@/components/checkout-form";
 import { ProfitSimulator } from "@/components/profit-simulator";
 
-
 type Device = "desktop" | "mobile";
 type StyleMap = Record<string, Partial<Record<Device, Record<string, string>>>>;
-type RuntimeTargets = Partial<Record<"google-dynamic" | "simulator" | "checkout", HTMLElement>>;
-type RuntimeReady = { google: boolean; simulator: boolean; checkout: boolean };
+type RuntimeTargets = Partial<Record<"simulator", HTMLElement>>;
 
 function kebab(value: string) {
   return value.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`);
 }
 
+/*
+ * O Studio continua usando estes estilos no PREVIEW do editor.
+ * A página pública, porém, não injeta mais esses overrides de geometria.
+ * Isso mantém a edição disponível sem permitir que um layout antigo quebre
+ * largura, escala, posição ou checkout em produção.
+ */
 const studioBlockedLayoutProps = new Set([
   "position", "left", "top", "right", "bottom", "zIndex", "order",
   "minWidth", "height", "minHeight", "maxHeight", "gridColumn", "gridRow",
-  "alignSelf", "justifySelf",
+  "alignSelf", "justifySelf", "transform", "translate", "scale", "rotate", "zoom",
 ]);
 const geometryProps = new Set([
   "width", "maxWidth", "marginTop", "marginRight", "marginBottom", "marginLeft",
@@ -64,139 +68,98 @@ export function buildStudioCss(styles: StyleMap | undefined) {
   ].filter(Boolean).join("\n");
 }
 
-/*
- * 1.6: CSS de segurança é injetado DEPOIS dos estilos do Studio.
- * Assim um rascunho antigo nunca consegue manter checkout/simulador ocultos
- * com display:none, opacity:0, width:0 etc.
- */
-const criticalSafetyCss = `
-.lnr-studio-published{overflow-x:clip!important}
+const recoveryCss = `
+.lnr-studio-published{display:flex!important;flex-direction:column!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:clip!important}
+.lnr-studio-published>.lnr-studio-document{display:contents!important}
+.lnr-studio-published .lnr-studio-document #checkout{display:none!important}
 .lnr-studio-published .lnr-proof-section{display:none!important}
-.lnr-studio-published #checkout .lnr-checkout-layout{grid-template-columns:minmax(0,1fr)!important}
-.lnr-studio-published .lnr-studio-document{min-width:0!important;max-width:100%!important}
-.lnr-studio-published .lnr-section,.lnr-studio-published .lnr-shell{box-sizing:border-box!important;min-width:0!important}
-.lnr-studio-published img{max-width:100%!important}
-.lnr-studio-published #checkout,
-.lnr-studio-published #checkout .lnr-shell,
-.lnr-studio-published #checkout .lnr-checkout-layout,
-.lnr-studio-published [data-ln-protected="checkout"]{
-  display:block!important;visibility:visible!important;opacity:1!important;
-  width:100%!important;max-width:100%!important;min-width:0!important;
-  height:auto!important;min-height:0!important;transform:none!important;
+.lnr-studio-published .lnr-section,.lnr-studio-published .lnr-shell{box-sizing:border-box!important;min-width:0!important;max-width:100%}
+.lnr-studio-published img,.lnr-studio-published video,.lnr-studio-published iframe{max-width:100%!important}
+.lnr-studio-published [data-ln-protected="simulator"]{visibility:visible!important;opacity:1!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;transform:none!important}
+.lnr-studio-published .lnr-runtime-checkout{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;order:90!important}
+.lnr-studio-published .lnr-runtime-checkout .lnr-shell{width:min(1120px,calc(100% - 48px))!important;max-width:1120px!important;margin-inline:auto!important}
+.lnr-studio-published .lnr-runtime-checkout .lnr-checkout-layout{display:grid!important;grid-template-columns:minmax(0,1fr)!important;width:100%!important;max-width:100%!important}
+.lnr-studio-published .lnr-runtime-checkout .checkout-card{display:block!important;width:100%!important;max-width:100%!important;visibility:visible!important;opacity:1!important}
+.lnr-studio-published .lnr-footer{order:100!important}
+.lnr-studio-published .ln-studio-highlight{display:block;width:100%;text-align:center;font-weight:800;color:#d7a83f;line-height:1.08}
+.lnr-studio-published .ln-studio-block{min-width:0;max-width:100%}
+@media(max-width:700px){
+ .lnr-studio-published .lnr-runtime-checkout .lnr-shell{width:calc(100% - 32px)!important}
+ .lnr-studio-published .lnr-runtime-checkout .lnr-checkout-layout{grid-template-columns:1fr!important}
 }
-.lnr-studio-published #checkout .lnr-checkout-layout{display:grid!important}
-.lnr-studio-published [data-ln-protected="checkout"]>.checkout-card{display:block!important;width:100%!important;max-width:100%!important;opacity:1!important;visibility:visible!important}
-.lnr-studio-published #simulador,
-.lnr-studio-published [data-ln-protected="simulator"]{visibility:visible!important;opacity:1!important;min-width:0!important;max-width:100%!important}
-.lnr-studio-published [data-ln-protected="google-dynamic"]{visibility:visible!important;opacity:1!important;max-width:100%!important}
-@media(max-width:700px){.lnr-studio-published #checkout .lnr-checkout-layout{grid-template-columns:1fr!important}}
 `;
 
-function makeProtectedTarget(root: HTMLElement, kind: "google-dynamic" | "simulator" | "checkout") {
-  const existing = root.querySelector<HTMLElement>(`[data-ln-protected="${kind}"]`);
+function sanitizePublishedDom(root: HTMLElement) {
+  root.querySelectorAll("script,style,noscript,.lnr-proof-section,#checkout").forEach((node) => node.remove());
+  root.querySelectorAll<HTMLElement>("*").forEach((el) => {
+    el.removeAttribute("style");
+    el.removeAttribute("hidden");
+    el.removeAttribute("contenteditable");
+    el.removeAttribute("draggable");
+    el.removeAttribute("data-studio-selected");
+    el.removeAttribute("data-studio-drop");
+    el.removeAttribute("data-studio-dragging");
+  });
+
+  // Se versões antigas colocaram uma seção dentro de outra, devolve a seção ao fluxo principal.
+  const footer = root.querySelector<HTMLElement>("footer.lnr-footer");
+  const nestedSections = Array.from(root.querySelectorAll<HTMLElement>("section.lnr-section section.lnr-section"));
+  for (const section of nestedSections) {
+    if (footer) root.insertBefore(section, footer); else root.appendChild(section);
+  }
+  if (footer) root.appendChild(footer);
+}
+
+function ensureSimulatorTarget(root: HTMLElement | null): HTMLElement | undefined {
+  if (!root) return undefined;
+  const existing = root.querySelector<HTMLElement>('[data-ln-protected="simulator"]');
   if (existing) return existing;
-
-  const doc = root.ownerDocument;
-  const marker = doc.createElement("div");
-  marker.setAttribute("data-ln-protected", kind);
+  const host = root.querySelector<HTMLElement>("#simulador-calculo") || root.querySelector<HTMLElement>("#simulador .lnr-shell");
+  if (!host) return undefined;
+  const marker = root.ownerDocument.createElement("div");
+  marker.setAttribute("data-ln-protected", "simulator");
   marker.setAttribute("data-ln-runtime-created", "1");
-
-  if (kind === "checkout") {
-    let section = root.querySelector<HTMLElement>("#checkout");
-    if (!section) {
-      section = doc.createElement("section");
-      section.id = "checkout";
-      section.className = "lnr-section lnr-checkout lnr-runtime-recovery";
-      section.innerHTML = '<div class="lnr-shell lnr-checkout-layout"><div><span class="lnr-eyebrow">COMECE SUA REVENDA</span><h2>Escolha seu kit</h2><p>Antes de pagar, você vê o valor dos produtos, o frete e as condições de parcelamento.</p></div></div>';
-      const footer = root.querySelector("footer");
-      if (footer) root.insertBefore(section, footer); else root.appendChild(section);
-    }
-    const layout = section.querySelector<HTMLElement>(".lnr-checkout-layout") || section;
-    layout.appendChild(marker);
-    return marker;
-  }
-
-  if (kind === "simulator") {
-    const host = root.querySelector<HTMLElement>("#simulador-calculo") || root.querySelector<HTMLElement>("#simulador .lnr-shell");
-    if (host) { host.appendChild(marker); return marker; }
-    return null;
-  }
-
-  const reviewHost = root.querySelector<HTMLElement>(".lnr-proof-section .ln-reviews") || root.querySelector<HTMLElement>(".lnr-proof-section");
-  if (reviewHost) { reviewHost.appendChild(marker); return marker; }
-  return null;
+  host.appendChild(marker);
+  return marker;
 }
 
-function ensureTargets(root: HTMLElement | null): RuntimeTargets {
-  if (!root) return {};
-  const next: RuntimeTargets = {};
-  for (const kind of ["google-dynamic", "simulator", "checkout"] as const) {
-    const node = makeProtectedTarget(root, kind);
-    if (node) next[kind] = node;
-  }
-  return next;
-}
-
-function isVisible(el: HTMLElement | undefined) {
-  if (!el) return false;
-  const style = el.ownerDocument.defaultView?.getComputedStyle(el);
-  return Boolean(style && style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || "1") > 0 && el.getClientRects().length > 0);
-}
-
-export function StudioPublishedLanding({ html, styles }: { html: string; styles?: StyleMap }) {
+export function StudioPublishedLanding({ html, styles: _styles }: { html: string; styles?: StyleMap }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [targets, setTargets] = useState<RuntimeTargets>({});
   const [scanned, setScanned] = useState(false);
-  const [ready, setReady] = useState<RuntimeReady>({ google: false, simulator: false, checkout: false });
-  const [runtimeChecked, setRuntimeChecked] = useState(false);
-  const css = useMemo(() => buildStudioCss(styles), [styles]);
 
   useEffect(() => {
-    let cancelled = false;
     let raf1 = 0;
     let raf2 = 0;
     const run = () => {
-      if (cancelled) return;
-      rootRef.current?.querySelectorAll(".lnr-proof-section").forEach((node) => node.remove());
-      rootRef.current?.querySelectorAll("#checkout .lnr-checkout-layout > div:not([data-ln-protected])").forEach((node) => { if (!node.querySelector("form")) node.remove(); });
-      setTargets(ensureTargets(rootRef.current));
+      const root = rootRef.current;
+      if (!root) return;
+      sanitizePublishedDom(root);
+      setTargets({ simulator: ensureSimulatorTarget(root) });
       setScanned(true);
     };
     raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(run); });
-    return () => { cancelled = true; cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
+    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
   }, [html]);
 
-  useEffect(() => {
-    if (!scanned) return;
-    setRuntimeChecked(false);
-    const timer = window.setTimeout(() => {
-      setReady({
-        google: Boolean(targets["google-dynamic"]?.querySelector(".ln-google-score")) && isVisible(targets["google-dynamic"]),
-        simulator: Boolean(targets.simulator?.querySelector(".simulator-grid")) && isVisible(targets.simulator),
-        checkout: Boolean(targets.checkout?.querySelector("form.checkout-card")) && isVisible(targets.checkout),
-      });
-      setRuntimeChecked(true);
-    }, 220);
-    return () => window.clearTimeout(timer);
-  }, [scanned, targets]);
-
-  
-  const missingSimulator = scanned && runtimeChecked && (!targets.simulator || !ready.simulator);
-  const missingCheckout = scanned && runtimeChecked && (!targets.checkout || !ready.checkout);
+  const missingSimulator = scanned && !targets.simulator;
 
   return (
     <main className="lnr-page lnr-studio-published">
-      {css ? <style dangerouslySetInnerHTML={{ __html: css }} /> : null}
-      <style dangerouslySetInnerHTML={{ __html: criticalSafetyCss }} />
+      <style dangerouslySetInnerHTML={{ __html: recoveryCss }} />
       <div ref={rootRef} className="lnr-studio-document" dangerouslySetInnerHTML={{ __html: html }} />
 
-
       {targets.simulator ? createPortal(<ProfitSimulator />, targets.simulator) : null}
-      {targets.checkout ? createPortal(<CheckoutForm />, targets.checkout) : null}
+      {missingSimulator ? (
+        <section id="simulador-recuperado" className="lnr-section lnr-simulator lnr-runtime-recovery" data-ln-runtime-recovery="simulator">
+          <div className="lnr-shell"><ProfitSimulator /></div>
+        </section>
+      ) : null}
 
-
-      {missingSimulator ? <section id="simulador-recuperado" className="lnr-section lnr-simulator lnr-runtime-recovery" data-ln-runtime-recovery="simulator"><div className="lnr-shell"><ProfitSimulator /></div></section> : null}
-      {missingCheckout ? <section id="checkout-recuperado" className="lnr-section lnr-checkout lnr-runtime-recovery" data-ln-runtime-recovery="checkout"><div className="lnr-shell lnr-checkout-layout"><CheckoutForm /></div></section> : null}
+      {/* 1.7: checkout sai definitivamente do HTML editável do Studio. */}
+      <section id="checkout" className="lnr-section lnr-checkout lnr-runtime-checkout" data-ln-runtime-recovery="checkout">
+        <div className="lnr-shell lnr-checkout-layout"><CheckoutForm /></div>
+      </section>
     </main>
   );
 }

@@ -65,7 +65,7 @@ function OriginalLanding() {
         <div className="lnr-shell lnr-header-inner">
           <a href="#inicio" className="lnr-brand" aria-label="LORD NUTRI — início"><BrandLogo compact /></a>
           <nav aria-label="Navegação principal">
-            <a href="#lord-nutri">A marca</a><a href="#beneficios">Benefícios</a><a href="#avaliacoes">Avaliações</a><a href="#modelo">Como começar</a><a href="#kits">Kits</a>
+            <a href="#lord-nutri">A marca</a><a href="#beneficios">Benefícios</a><a href="#modelo">Como começar</a><a href="#kits">Kits</a>
           </nav>
           <Link href="/entrar" className="lnr-login">Entrar no portal </Link>
         </div>
