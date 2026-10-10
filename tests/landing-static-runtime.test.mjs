@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import {posix} from 'node:path';
 import ts from 'typescript';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 const require = createRequire(import.meta.url);
 const root = new URL('../', import.meta.url);
-function component(path, mocks = {}) {
+export function component(path, mocks = {}) {
   const code = ts.transpileModule(readFileSync(new URL(path, root), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
@@ -16,8 +17,9 @@ function component(path, mocks = {}) {
   new Function('require', 'exports', code)((id) => {
     if (Object.hasOwn(mocks, id)) return mocks[id];
     if (id.endsWith('.css')) return {};
-    if (id.startsWith('@/')) {
-      const base = id.slice(2);
+    if (id.startsWith('@/')||id.startsWith('.')) {
+      const base = id.startsWith('@/')?id.slice(2):posix.normalize(posix.join(posix.dirname(path),id));
+      if(base.endsWith('.json'))return {default:JSON.parse(readFileSync(new URL(base,root),'utf8'))};
       for (const ext of ['.tsx', '.ts']) {
         try { readFileSync(new URL(base + ext, root)); } catch { continue; }
         return component(base + ext, mocks);
@@ -29,9 +31,31 @@ function component(path, mocks = {}) {
   return exports;
 }
 
-test('a landing funciona sem consultar o banco ou aceitar o antigo HTML do Studio', async () => {
+test('texto publicado aparece no título preservando as seções da LP',async()=>{
+ const {default:Home}=component('app/page.tsx',{
+  '@/lib/landing-texts-store':{readPublishedLandingTexts:async()=>({'inicio.title':'Título que eu editei no Studio'})},
+  '@/components/checkout-form':{CheckoutForm:()=>React.createElement('form')},
+  '@/components/profit-simulator':{ProfitSimulator:()=>React.createElement('div')},
+ });
+ const html=renderToStaticMarkup(await Home());
+ assert.match(html,/Título que eu editei no Studio/);
+ for(const id of ['inicio','lord-nutri','mix10pro','modelo','simulador','kits','duvidas','checkout'])assert.ok(html.includes(`id="${id}"`));
+});
+
+test('sem edições o HTML da LP é idêntico ao ZIP 1.8.0, incluindo formulário e simulador',async()=>{
+ const {default:Home}=component('app/page.tsx',{'@/lib/landing-texts-store':{readPublishedLandingTexts:async()=>({})}});
+ assert.equal(renderToStaticMarkup(await Home()),readFileSync(new URL('tests/fixtures/landing-1.8.0-original.html',root),'utf8'));
+});
+
+test('texto editado é escapado e não substitui elementos ou estilos',async()=>{
+ const {default:Home}=component('app/page.tsx',{'@/lib/landing-texts-store':{readPublishedLandingTexts:async()=>({'inicio.title':'<img src=x onerror=alert(1)>'})}});
+ const html=renderToStaticMarkup(await Home());assert.match(html,/&lt;img src=x onerror=alert\(1\)&gt;/);assert.doesNotMatch(html,/<img src=x/);
+});
+
+test('a landing preserva o briefing e não aceita o antigo HTML do Studio', async () => {
   let studioCalls = 0;
   const { default: Home } = component('app/page.tsx', {
+    '@/lib/landing-texts-store': { readPublishedLandingTexts:async()=>({}) },
     '@/lib/content-studio': { getStudioDoc: async () => { studioCalls++; return { published: { studio: { enabled: true, html: '<p>CONTEUDO ANTIGO</p>' } } }; } },
     '@/components/content-runtime': { ContentRuntime: () => null },
     '@/components/studio-published-landing': { StudioPublishedLanding: () => React.createElement('p', null, 'CONTEUDO ANTIGO') },

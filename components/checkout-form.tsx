@@ -1,4 +1,5 @@
 "use client";
+import { landingText, type LandingTexts } from "@/lib/landing-texts";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { KitId } from "@/lib/kits";
@@ -35,7 +36,7 @@ const display = {
   kit50: { label: "KIT50", boxes: 50, totalCents: 349500, unitCents: 6990 },
 } as const;
 
-export function CheckoutForm() {
+export function CheckoutForm({texts={}}:{texts?:LandingTexts}={}) {
   const quoteSequence = useRef(0);
   const quoteController = useRef<AbortController | null>(null);
   const submitInFlight = useRef(false);
@@ -91,7 +92,7 @@ export function CheckoutForm() {
     const cleanPostalCode = rawPostalCode.replace(/\D/g, "").slice(0, 8);
     if (cleanPostalCode.length !== 8) {
       setQuote(null);
-      setQuoteError("Digite os 8 números do CEP para calcular o frete.");
+      setQuoteError(landingText(texts, "checkout.postalCodeIncomplete"));
       return;
     }
     setQuoteBusy(true);
@@ -104,7 +105,7 @@ export function CheckoutForm() {
         body: JSON.stringify({ postalCode: cleanPostalCode, kit: requestedKit }),
       });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "Não foi possível calcular o frete.");
+      if (!response.ok) throw new Error(body.error || landingText(texts, "checkout.quoteUnavailable"));
       if (sequence !== quoteSequence.current) return;
       setQuote(body as QuoteResponse);
       setAddress(body.address);
@@ -113,7 +114,7 @@ export function CheckoutForm() {
     } catch (cause) {
       if (sequence !== quoteSequence.current) return;
       setQuote(null);
-      setQuoteError(cause instanceof Error ? cause.message : "Não foi possível calcular o frete.");
+      setQuoteError(cause instanceof Error ? cause.message : landingText(texts, "checkout.quoteUnavailable"));
     } finally {
       if (sequence === quoteSequence.current) setQuoteBusy(false);
     }
@@ -132,11 +133,11 @@ export function CheckoutForm() {
     if (submitInFlight.current) return;
     setError("");
     if (!selectedShipping) {
-      setError("Calcule o frete pelo CEP e escolha uma modalidade de entrega antes de continuar.");
+      setError(landingText(texts, "checkout.shippingRequired"));
       return;
     }
     if (paymentMethod === "credit" && !selectedInstallment) {
-      setError("Escolha uma opção de parcelamento válida.");
+      setError(landingText(texts, "checkout.installmentRequired"));
       return;
     }
     submitInFlight.current = true;
@@ -163,12 +164,12 @@ export function CheckoutForm() {
         body: JSON.stringify({ ...payload, measurement }),
       });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "Não foi possível iniciar o pagamento.");
+      if (!response.ok) throw new Error(body.error || landingText(texts, "checkout.paymentUnavailable"));
       rememberCheckoutMeasurement(body.measurement);
       trackCheckout("order_created", { kit, totalCents: finalCents, orderNumber: body.orderNumber });
       window.location.href = body.invoiceUrl;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível iniciar o pagamento.");
+      setError(cause instanceof Error ? cause.message : landingText(texts, "checkout.paymentUnavailable"));
       setBusy(false);
       submitInFlight.current = false;
     }
@@ -176,39 +177,38 @@ export function CheckoutForm() {
 
   return (
     <form className="checkout-card" data-cms-text-protected="1" onSubmit={submit}>
-      <div className="section-kicker">Comece sua revenda</div>
-      <h3>Escolha o kit, o frete e o pagamento</h3>
+      <div className="section-kicker">{landingText(texts, "checkout.004")}</div>
+      <h3>{landingText(texts, "checkout.005")}</h3>
 
-      <div className="kit-toggle" role="group" aria-label="Escolha do kit">
+      <div className="kit-toggle" role="group" aria-label={landingText(texts, "checkout.006")}>
         {(Object.keys(display) as KitId[]).map((id) => (
           <button key={id} type="button" className={kit === id ? "active" : ""} onClick={() => chooseKit(id)}>
-            <strong>{display[id].label}</strong><span>{display[id].boxes} caixas · {money(display[id].unitCents)}/caixa</span>
+            <strong>{display[id].label}</strong><span>{display[id].boxes} {landingText(texts, "checkout.008")}{money(display[id].unitCents)}{landingText(texts, "checkout.009")}</span>
           </button>
         ))}
       </div>
       <input type="hidden" name="kit" value={kit} />
 
       <div className="checkout-summary checkout-breakdown" aria-live="polite">
-        <span>Produtos</span><strong>{money(selected.totalCents)}</strong>
-        <span>Frete</span><strong>{selectedShipping ? money(selectedShipping.priceCents) : "Calcule pelo CEP"}</strong>
-        <span>Taxa de parcelamento</span><strong>{selectedShipping ? money(feeCents) : "—"}</strong>
-        <span className="checkout-total-label">Total final</span><strong className="checkout-total-value">{selectedShipping ? money(finalCents) : "—"}</strong>
-        <small>O valor é recalculado no servidor antes da cobrança. PIX e cartão em até 6x.</small>
+        <span>{landingText(texts, "checkout.010")}</span><strong>{money(selected.totalCents)}</strong>
+        <span>{landingText(texts, "checkout.011")}</span><strong>{selectedShipping ? money(selectedShipping.priceCents) : landingText(texts, "checkout.012")}</strong>
+        <span>{landingText(texts, "checkout.013")}</span><strong>{selectedShipping ? money(feeCents) : landingText(texts, "checkout.014")}</strong>
+        <span className="checkout-total-label">{landingText(texts, "checkout.015")}</span><strong className="checkout-total-value">{selectedShipping ? money(finalCents) : landingText(texts, "checkout.016")}</strong>
+        <small>{landingText(texts, "checkout.017")}</small>
       </div>
 
       <div className="form-grid">
-        <label>Nome completo<input required name="name" autoComplete="name" /></label>
-        <label>E-mail<input required type="email" name="email" autoComplete="email" /></label>
-        <label>WhatsApp<input required name="phone" inputMode="tel" autoComplete="tel" /></label>
-        <label>CPF ou CNPJ<input required name="cpfCnpj" inputMode="numeric" /></label>
-        <label className="cep-field">CEP
-          <div className="cep-row">
+        <label>{landingText(texts, "checkout.018")}<input required name="name" autoComplete="name" /></label>
+        <label>{landingText(texts, "checkout.019")}<input required type="email" name="email" autoComplete="email" /></label>
+        <label>{landingText(texts, "checkout.020")}<input required name="phone" inputMode="tel" autoComplete="tel" /></label>
+        <label>{landingText(texts, "checkout.021")}<input required name="cpfCnpj" inputMode="numeric" /></label>
+        <label className="cep-field">{landingText(texts, "checkout.022")}<div className="cep-row">
             <input
               required
               name="postalCode"
               inputMode="numeric"
               autoComplete="postal-code"
-              placeholder="00000-000"
+              placeholder={landingText(texts, "checkout.023")}
               value={postalCode}
               onChange={(event) => {
                 const digits = event.target.value.replace(/\D/g, "").slice(0, 8);
@@ -220,22 +220,22 @@ export function CheckoutForm() {
               }}
               onBlur={() => { if (postalCode.replace(/\D/g, "").length === 8 && !quote) void loadQuote(postalCode); }}
             />
-            <button type="button" className="quote-button" disabled={quoteBusy} onClick={() => void loadQuote(postalCode)}>{quoteBusy ? "Calculando…" : "Calcular frete"}</button>
+            <button type="button" className="quote-button" disabled={quoteBusy} onClick={() => void loadQuote(postalCode)}>{quoteBusy ? landingText(texts, "checkout.024") : landingText(texts, "checkout.025")}</button>
           </div>
         </label>
-        <label>Rua / Avenida<input required name="street" value={address.street} onChange={event => setAddress(current => ({...current, street: event.target.value}))} autoComplete="address-line1" /></label>
-        <label>Número<input required name="number" /></label>
-        <label>Complemento<input name="complement" autoComplete="address-line2" /></label>
-        <label>Bairro<input required name="district" value={address.district} onChange={event => setAddress(current => ({...current, district: event.target.value}))} /></label>
-        <label>Cidade<input required name="city" value={address.city} onChange={event => setAddress(current => ({...current, city: event.target.value}))} autoComplete="address-level2" /></label>
-        <label>UF<input required name="state" value={address.state} onChange={event => setAddress(current => ({...current, state: event.target.value.toUpperCase()}))} maxLength={2} autoComplete="address-level1" /></label>
+        <label>{landingText(texts, "checkout.026")}<input required name="street" value={address.street} onChange={event => setAddress(current => ({...current, street: event.target.value}))} autoComplete="address-line1" /></label>
+        <label>{landingText(texts, "checkout.027")}<input required name="number" /></label>
+        <label>{landingText(texts, "checkout.028")}<input name="complement" autoComplete="address-line2" /></label>
+        <label>{landingText(texts, "checkout.029")}<input required name="district" value={address.district} onChange={event => setAddress(current => ({...current, district: event.target.value}))} /></label>
+        <label>{landingText(texts, "checkout.030")}<input required name="city" value={address.city} onChange={event => setAddress(current => ({...current, city: event.target.value}))} autoComplete="address-level2" /></label>
+        <label>{landingText(texts, "checkout.031")}<input required name="state" value={address.state} onChange={event => setAddress(current => ({...current, state: event.target.value.toUpperCase()}))} maxLength={2} autoComplete="address-level1" /></label>
       </div>
 
       {quoteError ? <div className="form-error quote-error">{quoteError}</div> : null}
 
       {activeQuote ? (
         <div className="checkout-choice-section">
-          <strong className="choice-title">1. Escolha o frete</strong>
+          <strong className="choice-title">{landingText(texts, "checkout.032")}</strong>
           <div className="shipping-options">
             {activeQuote.shippingOptions.map((option) => (
               <label key={option.id} className={`choice-card ${shippingType === option.id ? "active" : ""}`}>
@@ -246,38 +246,37 @@ export function CheckoutForm() {
             ))}
           </div>
 
-          <strong className="choice-title">2. Escolha o pagamento</strong>
+          <strong className="choice-title">{landingText(texts, "checkout.034")}</strong>
           <div className="payment-options">
             <label className={`choice-card ${paymentMethod === "pix" ? "active" : ""}`}>
               <input type="radio" checked={paymentMethod === "pix"} onChange={() => { setPaymentMethod("pix"); setInstallments(1); }} />
-              <span><b>PIX</b><small>À vista, sem taxa de parcelamento</small></span>
+              <span><b>{landingText(texts, "checkout.036")}</b><small>{landingText(texts, "checkout.037")}</small></span>
               <strong>{money(selectedShipping?.baseCents || 0)}</strong>
             </label>
             <label className={`choice-card ${paymentMethod === "credit" ? "active" : ""}`}>
               <input type="radio" checked={paymentMethod === "credit"} onChange={() => setPaymentMethod("credit")} />
-              <span><b>Cartão de crédito</b><small>De 1x a 6x</small></span>
-              <strong>até 6x</strong>
+              <span><b>{landingText(texts, "checkout.039")}</b><small>{landingText(texts, "checkout.040")}</small></span>
+              <strong>{landingText(texts, "checkout.041")}</strong>
             </label>
           </div>
 
           {paymentMethod === "credit" && selectedShipping ? (
-            <label className="installment-select">Parcelamento
-              <select value={installments} onChange={(event) => setInstallments(Number(event.target.value))}>
+            <label className="installment-select">{landingText(texts, "checkout.042")}<select value={installments} onChange={(event) => setInstallments(Number(event.target.value))}>
                 {selectedShipping.credit.map((option) => (
                   <option key={option.installments} value={option.installments}>
-                    {option.installments}x de {money(option.installmentValueCents)}{option.hasInterest ? ` · total ${money(option.chargedValueCents)}` : " · sem juros"}
+                    {option.installments}{landingText(texts, "checkout.043")}{money(option.installmentValueCents)}{option.hasInterest ? <>{landingText(texts,"checkout.installmentTotal")}{money(option.chargedValueCents)}</> : landingText(texts, "checkout.044")}
                   </option>
                 ))}
               </select>
-              {selectedInstallment?.hasInterest ? <small>Taxa calculada a 2,99% a.m. pela Tabela Price: {money(selectedInstallment.interestCents)}.</small> : <small>1x sem taxa de parcelamento.</small>}
+              {selectedInstallment?.hasInterest ? <small>{landingText(texts, "checkout.045")}{money(selectedInstallment.interestCents)}.</small> : <small>{landingText(texts, "checkout.046")}</small>}
             </label>
           ) : null}
         </div>
       ) : null}
 
-      <label className="consent"><input required type="checkbox" name="acceptedTerms" value="yes" /> Li e concordo com os Termos de Uso e a Política de Privacidade.</label>
+      <label className="consent"><input required type="checkbox" name="acceptedTerms" value="yes" /> {landingText(texts, "checkout.047")}</label>
       {error ? <div className="form-error">{error}</div> : null}
-      <button className="primary-button full" disabled={busy || quoteBusy || !selectedShipping}>{busy ? "Abrindo pagamento…" : selectedShipping ? `Ir para pagamento · ${money(finalCents)}` : "Calcule o frete para continuar"}</button>
+      <button className="primary-button full" disabled={busy || quoteBusy || !selectedShipping}>{busy ? landingText(texts, "checkout.048") : selectedShipping ? <>{landingText(texts,"checkout.paymentCta")} · {money(finalCents)}</> : landingText(texts, "checkout.049")}</button>
     </form>
   );
 }

@@ -1,6 +1,6 @@
-# Atualização LORD NUTRI 1.8.0
+# Atualização LORD NUTRI 1.8.1 · Studio de textos
 
-Esta é uma nova versão do projeto completo. O Studio da landing foi removido, mantendo os módulos operacionais do BKO e os registros já existentes. O briefing publicado da LP foi preservado. A página pública agora é mantida diretamente nos componentes React.
+Esta é uma nova versão do projeto completo. O Studio de textos volta ao BKO com rascunho, prévia e publicação, mantendo o layout da LP 1.8.0, os módulos operacionais e os registros existentes. O antigo construtor de HTML e estilos continua desativado. Consulte `STUDIO-TEXTOS-LEIA-PRIMEIRO.md` para usar o novo editor.
 
 ## 1. Preparar a atualização
 
@@ -38,7 +38,7 @@ Informe `NEXT_PUBLIC_APP_URL` com o domínio HTTPS definitivo **antes** do build
 1. Abra a landing no celular e no computador: marca, fotos, R$ 10.000 MÊS, âncoras, FAQ, simulador e kits.
 2. Teste um pedido no ambiente sandbox com CEP, frete e parcelamento; confira os totais no Asaas e a confirmação por webhook.
 3. Entre como revendedor de teste, troque a senha temporária, confira manual autorizado, estoque, vendas e acompanhamento do pedido.
-4. Entre no BKO com um administrador autorizado e confira acessos, expedição e Conteúdo → Manual/Produtos/Mídia. O Studio não deve aparecer.
+4. Entre no BKO com seu administrador atual e confira acessos, expedição e Conteúdo → Manual/Produtos/Mídia. Abra **Studio — Textos da LP**, edite um texto de teste, confira as duas prévias e salve o rascunho. A LP pública só muda ao clicar em **Publicar textos**. Restaure o texto original e publique quando terminar a conferência.
 5. Inspecione `/robots.txt`, `/sitemap.xml`, canonical e imagem de compartilhamento no domínio definitivo. Verifique a propriedade no Search Console e envie o sitemap.
 6. Configure e valide Google/Meta nas contas correspondentes conforme o guia. Verifique consentimento, recusa e eventos; não conte um pedido pendente como receita.
 

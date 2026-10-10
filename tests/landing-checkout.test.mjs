@@ -23,8 +23,9 @@ test('public checkout collects reseller data, calculates freight and never accep
   assert.match(form, /\/api\/public\/quote/);
   assert.match(form, /shippingType/);
   assert.match(form, /paymentMethod/);
-  assert.match(form, /Taxa de parcelamento/);
-  assert.match(form, /até 6x/i);
+  const textCatalog = await read('data/landing-texts.json');
+  assert.match(textCatalog, /Taxa de parcelamento/);
+  assert.match(textCatalog, /até 6x/i);
 
   const route = await read('app/api/public/checkout/route.ts');
   assert.match(route, /getKit\(payload\.kit\)/);

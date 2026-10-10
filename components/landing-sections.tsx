@@ -1,21 +1,22 @@
+import { landingText, type LandingTexts } from "@/lib/landing-texts";
 /* eslint-disable @next/next/no-img-element */
 // Conteúdo publicado em 09/10/2026, incorporado ao código sem dependência do Studio.
 import { BrandLogo } from '@/components/brand-logo';
 import { CheckoutForm } from '@/components/checkout-form';
 import { ProfitSimulator } from '@/components/profit-simulator';
-export function LandingSections() {
+export function LandingSections({texts={}}:{texts?:LandingTexts}={}) {
   return <>
 <section id={"lord-nutri"} className={"lnr-section lnr-opportunity"}>
         <div className={"lnr-shell"}>
           <div className={"lnr-opportunity-intro"}>
             <div className={"lnr-brand-story-copy"}>
-              <span className={"lnr-eyebrow"}>{"E QUEM ESTÁ POR TRÁS DE TUDO ISSO?"}</span>
-              <h2 className={"lnr-brand-story-lead"}>{"A marca por trás do programa de revendedores "}<span className={"lnr-lord-name"}>{"LORD NUTRI"}</span>{"."}</h2>
-              <p>{"Nossa trajetória passou por diferentes nichos até encontrarmos na suplementação um segmento alinhado ao nosso propósito."}</p>
-              <p>{"Em um cenário repleto de opções, escolhemos não ser apenas mais uma marca.Unimos propósito, qualidade e uma proposta diferenciada para oferecer ao mercado algo que realmente faça sentido."}</p>
+              <span className={"lnr-eyebrow"}>{landingText(texts, "lord-nutri.001")}</span>
+              <h2 className={"lnr-brand-story-lead"}>{landingText(texts, "lord-nutri.002")}<span className={"lnr-lord-name"}>{"LORD NUTRI"}</span>{"."}</h2>
+              <p>{landingText(texts, "lord-nutri.003")}</p>
+              <p>{landingText(texts, "lord-nutri.004")}</p>
             </div>
-            <figure className={"lnr-people-visual"} aria-label={"Pessoas conversando em um ambiente acolhedor"}>
-              <img src={"/brand/conversa-pessoas-1.8.webp"}  sizes={"(max-width: 700px) 100vw, 58vw"} alt={"Pessoas conversando sobre novas oportunidades"} width={"1536"} height={"1024"} loading={"lazy"} decoding={"async"} />
+            <figure className={"lnr-people-visual"} aria-label={landingText(texts, "lord-nutri.005")}>
+              <img src={"/brand/conversa-pessoas-1.8.webp"}  sizes={"(max-width: 700px) 100vw, 58vw"} alt={landingText(texts, "lord-nutri.006")} width={"1536"} height={"1024"} loading={"lazy"} decoding={"async"} />
             </figure>
           </div>
           <div className={"lnr-trust-grid"}>
@@ -37,8 +38,8 @@ export function LandingSections() {
                   
                 </path>
               </svg>
-              <h3>{"Uma marca por trás do produto"}</h3>
-              <p>{"Conheça a marca responsável pelo Mix10Pro e descubra o que existe por trás de um produto criado para se destacar em um mercado cheio de opções."}</p>
+              <h3>{landingText(texts, "lord-nutri.007")}</h3>
+              <p>{landingText(texts, "lord-nutri.008")}</p>
             </article>
             <article className={"lnr-trust-card"}>
               <svg xmlns={"http://www.w3.org/2000/svg"} width={"28"} height={"28"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"1.5"} strokeLinecap={"round"} strokeLinejoin={"round"} className={"lucide lucide-wallet-cards"} aria-hidden={"true"}>
@@ -52,8 +53,8 @@ export function LandingSections() {
                   
                 </rect>
               </svg>
-              <h3>{"Um produto que desperta curiosidade"}</h3>
-              <p>{"10 ATIVOS EM UMA ÚNICA FÓRMULA Uma proposta diferente que pode despertar o interesse por vários motivos — e tornar a conversa com o consumidor muito mais natural."}</p>
+              <h3>{landingText(texts, "lord-nutri.009")}</h3>
+              <p>{landingText(texts, "lord-nutri.010")}</p>
             </article>
             <article className={"lnr-trust-card"}>
               <svg xmlns={"http://www.w3.org/2000/svg"} width={"28"} height={"28"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"1.5"} strokeLinecap={"round"} strokeLinejoin={"round"} className={"lucide lucide-message-circle"} aria-hidden={"true"}>
@@ -61,13 +62,13 @@ export function LandingSections() {
                   
                 </path>
               </svg>
-              <h3>{"De cliente para indicação"}</h3>
-              <p>{"Quando o produto passa a fazer parte da rotina do consumidor, a experiência pode gerar novas conversas, indicações e oportunidades de recompra."}</p>
+              <h3>{landingText(texts, "lord-nutri.011")}</h3>
+              <p>{landingText(texts, "lord-nutri.012")}</p>
             </article>
           </div>
           <div className={"lnr-inline-action"}>
-            <a className={"lnr-button"} href={"#mix10pro"}><span>{"Não basta existir apenas um suplemento"}</span></a>
-            <a className={"lnr-button"} href={"#mix10pro"}><span>{"É preciso ter uma proposta que desperte interesse"}</span></a>
+            <a className={"lnr-button"} href={"#mix10pro"}><span>{landingText(texts, "lord-nutri.013")}</span></a>
+            <a className={"lnr-button"} href={"#mix10pro"}><span>{landingText(texts, "lord-nutri.014")}</span></a>
           </div>
         </div>
       </section>
@@ -75,34 +76,34 @@ export function LandingSections() {
         <div className={"lnr-shell"}>
           <div className={"lnr-product-grid"}>
             <div className={"lnr-product-copy"}>
-              <h2>{"Conhecendo o "}<span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span>{"."}</span></h2>
-              <p>{"O "}<span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span></span>{"   reúne 10 ativos em uma única fórmula, criando uma proposta diferente para pessoas que buscam complementar sua rotina de cuidados com o corpo, bem-estar e qualidade de vida."}</p>
+              <h2>{landingText(texts, "mix10pro.001")}<span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span>{"."}</span></h2>
+              <p>{landingText(texts, "mix10pro.002")}<span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span></span>{landingText(texts, "mix10pro.003")}</p>
               <div className={"lnr-product-facts"}>
                 <div>
                   <strong>{"10"}</strong>
-                  <span>{"ativos na fórmula"}</span>
+                  <span>{landingText(texts, "mix10pro.004")}</span>
                 </div>
                 <div>
                   <strong>{"30"}</strong>
-                  <span>{"cápsulas por caixa"}</span>
+                  <span>{landingText(texts, "mix10pro.005")}</span>
                 </div>
                 <div>
                   <strong>{"40+"}</strong>
-                  <span>{"cuidado diário"}</span>
+                  <span>{landingText(texts, "mix10pro.006")}</span>
                 </div>
               </div>
-              <p className={"lnr-anvisa"}><span>{"Processo de Notificação Anvisa N°                            "}<span>{"2535115572620267"}</span>{" "}</span><strong></strong></p>
+              <p className={"lnr-anvisa"}><span>{landingText(texts, "mix10pro.007")}<span>{"2535115572620267"}</span>{" "}</span><strong></strong></p>
             </div>
             <div className={"lnr-product-visual"}>
-              <img src={"/brand/mix10-box-transparent-v3-web.webp"} alt={"Caixa atualizada MIX10 PRO da LORD NUTRI, sem fundo branco"} loading={"lazy"} decoding={"async"} width={"800"} height={"1067"} />
-              <span>{"UMA ÚNICA FÓRMULA. UMA PROPOSTA DIFERENTE"}</span>
+              <img src={"/brand/mix10-box-transparent-v3-web.webp"} alt={landingText(texts, "mix10pro.008")} loading={"lazy"} decoding={"async"} width={"800"} height={"1067"} />
+              <span>{landingText(texts, "mix10pro.009")}</span>
             </div>
           </div>
           <div id={"beneficios"} className={"lnr-benefits"}>
             <div className={"lnr-section-head"}>
-              <span className={"lnr-eyebrow"}>{"BENEFÍCIOS"}</span>
-              <h2>{"Benefícios pensados para o seu corpo"}</h2>
-              <p>{"Uma abordagem completa para apoiar a sua rotina com leveza e movimento."}</p>
+              <span className={"lnr-eyebrow"}>{landingText(texts, "beneficios.001")}</span>
+              <h2>{landingText(texts, "beneficios.002")}</h2>
+              <p>{landingText(texts, "beneficios.003")}</p>
             </div>
             <div className={"lnr-benefit-grid"}>
               <article className={"lnr-benefit-card"}>
@@ -111,8 +112,8 @@ export function LandingSections() {
                     
                   </path>
                 </svg>
-                <h3>{"Mobilidade"}</h3>
-                <p>{"A vitamina D auxilia no funcionamento muscular, que faz parte da sua rotina de movimento."}</p>
+                <h3>{landingText(texts, "beneficios.004")}</h3>
+                <p>{landingText(texts, "beneficios.005")}</p>
               </article>
               <article className={"lnr-benefit-card"}>
                 <svg xmlns={"http://www.w3.org/2000/svg"} width={"28"} height={"28"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"1.5"} strokeLinecap={"round"} strokeLinejoin={"round"} className={"lucide lucide-heart"} aria-hidden={"true"}>
@@ -120,8 +121,8 @@ export function LandingSections() {
                     
                   </path>
                 </svg>
-                <h3>{"Conforto"}</h3>
-                <p>{"Um cuidado nutricional que se soma à alimentação e aos seus hábitos de bem-estar."}</p>
+                <h3>{landingText(texts, "beneficios.006")}</h3>
+                <p>{landingText(texts, "beneficios.007")}</p>
               </article>
               <article className={"lnr-benefit-card"}>
                 <svg xmlns={"http://www.w3.org/2000/svg"} width={"28"} height={"28"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"1.5"} strokeLinecap={"round"} strokeLinejoin={"round"} className={"lucide lucide-activity"} aria-hidden={"true"}>
@@ -129,8 +130,8 @@ export function LandingSections() {
                     
                   </path>
                 </svg>
-                <h3>{"Movimento"}</h3>
-                <p>{"O magnésio contribui para as funções muscular e neuromuscular."}</p>
+                <h3>{landingText(texts, "beneficios.008")}</h3>
+                <p>{landingText(texts, "beneficios.009")}</p>
               </article>
               <article className={"lnr-benefit-card"}>
                 <svg xmlns={"http://www.w3.org/2000/svg"} width={"28"} height={"28"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"1.5"} strokeLinecap={"round"} strokeLinejoin={"round"} className={"lucide lucide-sparkles lucide-stars"} aria-hidden={"true"}>
@@ -147,8 +148,8 @@ export function LandingSections() {
                     
                   </circle>
                 </svg>
-                <h3>{"Qualidade de vida"}</h3>
-                <p>{"Vitamina C e magnésio participam do metabolismo energético do organismo."}</p>
+                <h3>{landingText(texts, "beneficios.010")}</h3>
+                <p>{landingText(texts, "beneficios.011")}</p>
               </article>
               <article className={"lnr-benefit-card"}>
                 <svg xmlns={"http://www.w3.org/2000/svg"} width={"28"} height={"28"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"1.5"} strokeLinecap={"round"} strokeLinejoin={"round"} className={"lucide lucide-shield-check"} aria-hidden={"true"}>
@@ -159,295 +160,295 @@ export function LandingSections() {
                     
                   </path>
                 </svg>
-                <h3>{"Cuidado diário"}</h3>
-                <p>{"A vitamina C tem ação antioxidante e auxilia o funcionamento do sistema imune."}</p>
+                <h3>{landingText(texts, "beneficios.012")}</h3>
+                <p>{landingText(texts, "beneficios.013")}</p>
               </article>
             </div>
-            <p className={"lnr-note"}>{"As funções descritas se referem aos nutrientes da fórmula. Suplementação complementa a alimentação e acompanha hábitos saudáveis."}</p>
+            <p className={"lnr-note"}>{landingText(texts, "beneficios.014")}</p>
           </div>
           <div className={"lnr-product-detail-grid"}>
             <div>
-              <span className={"lnr-eyebrow"}>{"INFORMAÇÃO PARA APRESENTAR BEM"}</span>
-              <h3>{"Por que o "}<span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span></span>{"  é uma excelente escolha para começar a revender?"}</h3>
-              <p>{"Ele reúne características que facilitam a apresentação e a revenda: é um produto de posicionamento premium, com 10 ativos estratégicos, voltado para consumidores que valorizam mobilidade, bem-estar e qualidade de vida. A proposta é simples de explicar, o público é bem definido e o uso faz parte de uma rotina contínua de cuidados, o que pode favorecer recompra e relacionamento com os clientes. "}<span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span></span>{"  age de dentro para fora, oferecendo suporte contínuo para manter sua musculatura, ossos e articulações nutridos e prontos para qualquer atividade."}</p>
-              <p className={"lnr-note"}><span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span></span>{" é suplemento alimentar, não medicamento. Em caso de dúvidas de saúde ou uso de medicamentos, procure orientação profissional."}</p>
+              <span className={"lnr-eyebrow"}>{landingText(texts, "mix10pro.010")}</span>
+              <h3>{landingText(texts, "mix10pro.011")}<span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span></span>{landingText(texts, "mix10pro.012")}</h3>
+              <p>{landingText(texts, "mix10pro.013")}<span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span></span>{landingText(texts, "mix10pro.014")}</p>
+              <p className={"lnr-note"}><span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span></span>{landingText(texts, "mix10pro.015")}</p>
             </div>
             <div className={"lnr-product-pillars"}>
               <details className={"lnr-disclosure"}>
-                <summary><h3>{"Conheça os 10 ativos"}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
+                <summary><h3>{landingText(texts, "mix10pro.016")}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
                 <div className={"lnr-active-composition"}>
-                  <p>{"Quantidades por porção diária de 1 cápsula, conforme a embalagem atual."}</p>
+                  <p>{landingText(texts, "mix10pro.017")}</p>
                   <dl>
                     <div>
-                      <dt>{"Curcumina"}</dt>
-                      <dd>{"80 mg"}</dd>
+                      <dt>{landingText(texts, "mix10pro.018")}</dt>
+                      <dd>{landingText(texts, "mix10pro.019")}</dd>
                     </div>
                     <div>
-                      <dt>{"Colágeno tipo II"}</dt>
-                      <dd>{"35 mg"}</dd>
+                      <dt>{landingText(texts, "mix10pro.020")}</dt>
+                      <dd>{landingText(texts, "mix10pro.021")}</dd>
                     </div>
                     <div>
-                      <dt>{"Magnésio"}</dt>
-                      <dd>{"77 mg"}</dd>
+                      <dt>{landingText(texts, "mix10pro.022")}</dt>
+                      <dd>{landingText(texts, "mix10pro.023")}</dd>
                     </div>
                     <div>
-                      <dt>{"Cálcio"}</dt>
-                      <dd>{"180 mg"}</dd>
+                      <dt>{landingText(texts, "mix10pro.024")}</dt>
+                      <dd>{landingText(texts, "mix10pro.025")}</dd>
                     </div>
                     <div>
-                      <dt>{"Vitamina C"}</dt>
-                      <dd>{"45 mg"}</dd>
+                      <dt>{landingText(texts, "mix10pro.026")}</dt>
+                      <dd>{landingText(texts, "mix10pro.027")}</dd>
                     </div>
                     <div>
-                      <dt>{"Manganês"}</dt>
-                      <dd>{"2,3 mg"}</dd>
+                      <dt>{landingText(texts, "mix10pro.028")}</dt>
+                      <dd>{landingText(texts, "mix10pro.029")}</dd>
                     </div>
                     <div>
-                      <dt>{"MSM"}</dt>
-                      <dd>{"60 mg"}</dd>
+                      <dt>{landingText(texts, "mix10pro.030")}</dt>
+                      <dd>{landingText(texts, "mix10pro.031")}</dd>
                     </div>
                     <div>
-                      <dt>{"Sulfato de condroitina"}</dt>
-                      <dd>{"38 mg"}</dd>
+                      <dt>{landingText(texts, "mix10pro.032")}</dt>
+                      <dd>{landingText(texts, "mix10pro.033")}</dd>
                     </div>
                     <div>
-                      <dt>{"Vitamina D3"}</dt>
-                      <dd>{"38 µg"}</dd>
+                      <dt>{landingText(texts, "mix10pro.034")}</dt>
+                      <dd>{landingText(texts, "mix10pro.035")}</dd>
                     </div>
                     <div>
-                      <dt>{"Vitamina K (MK-7)"}</dt>
-                      <dd>{"92 µg"}</dd>
+                      <dt>{landingText(texts, "mix10pro.036")}</dt>
+                      <dd>{landingText(texts, "mix10pro.037")}</dd>
                     </div>
                   </dl>
                 </div>
               </details>
               <details className={"lnr-disclosure"}>
-                <summary><h3>{"Uso, conservação e cuidados"}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
+                <summary><h3>{landingText(texts, "mix10pro.038")}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
                 <div className={"lnr-product-guidance"}>
-                  <p><strong>{"Uso indicado:"}</strong><span>{"1 cápsula ao dia, para adultos a partir de 19 anos, conforme o rótulo vigente."}</span></p>
-                  <p><strong>{"Conservação:"}</strong><span>{"proteger de luz, calor e umidade. Após abrir, consumir em até 45 dias."}</span></p>
-                  <p><strong>{"Cuidados:"}</strong><span>{"não indicado para gestantes, lactantes e crianças. Não exceder a recomendação diária. Manter fora do alcance de crianças."}</span></p>
+                  <p><strong>{landingText(texts, "mix10pro.039")}</strong><span>{landingText(texts, "mix10pro.040")}</span></p>
+                  <p><strong>{landingText(texts, "mix10pro.041")}</strong><span>{landingText(texts, "mix10pro.042")}</span></p>
+                  <p><strong>{landingText(texts, "mix10pro.043")}</strong><span>{landingText(texts, "mix10pro.044")}</span></p>
                 </div>
               </details>
             </div>
           </div>
           <div className={"lnr-inline-action"}>
-            <a className={"lnr-button"} href={"#modelo"}><span>{"ENTENDER COMO COMEÇAR"}</span></a>
+            <a className={"lnr-button"} href={"#modelo"}><span>{landingText(texts, "mix10pro.045")}</span></a>
           </div>
         </div>
       </section>
 <section id={"modelo"} className={"lnr-section lnr-model"}>
         <div className={"lnr-shell"}>
           <div className={"lnr-section-head"}>
-            <span className={"lnr-eyebrow"}>{"MODELO DE NEGÓCIO"}</span>
-            <h2>{"Sua revenda "}<span className={"lnr-lord-name"}>{"LORD NUTRI"}</span>{" em 3 passos"}</h2>
-            <p>{"Comece pela sua rede de contatos e construa uma revenda com atendimento próximo."}</p>
+            <span className={"lnr-eyebrow"}>{landingText(texts, "modelo.001")}</span>
+            <h2>{landingText(texts, "modelo.002")}<span className={"lnr-lord-name"}>{"LORD NUTRI"}</span>{landingText(texts, "modelo.003")}</h2>
+            <p>{landingText(texts, "modelo.004")}</p>
           </div>
-          <div className={"lnr-model-facts"} aria-label={"Condições para começar"}>
+          <div className={"lnr-model-facts"} aria-label={landingText(texts, "modelo.005")}>
             <div>
-              <strong>{"20 ou 50"}</strong>
-              <span>{"caixas no kit"}</span>
+              <strong>{landingText(texts, "modelo.006")}</strong>
+              <span>{landingText(texts, "modelo.007")}</span>
             </div>
             <div>
-              <strong>{"até 6x"}</strong>
-              <span>{"no pagamento"}</span>
+              <strong>{landingText(texts, "modelo.008")}</strong>
+              <span>{landingText(texts, "modelo.009")}</span>
             </div>
             <div>
-              <strong>{"Revenda direta"}</strong>
-              <span>{"venda aos seus clientes"}</span>
+              <strong>{landingText(texts, "modelo.010")}</strong>
+              <span>{landingText(texts, "modelo.011")}</span>
             </div>
           </div>
           <div className={"lnr-steps"}>
             <article className={"lnr-step lnr-disclosure"}>
               <div className={"lnr-step-heading"}>
                 <span className={"lnr-number"}>{"01"}</span>
-                <h3>{"Escolha seu kit"}</h3>
+                <h3>{landingText(texts, "modelo.012")}</h3>
               </div>
-              <p>{"Comece com 20 ou 50 caixas. Confira valores, frete e parcelamento antes de pagar."}</p>
+              <p>{landingText(texts, "modelo.013")}</p>
             </article>
             <article className={"lnr-step lnr-disclosure"}>
               <div className={"lnr-step-heading"}>
                 <span className={"lnr-number"}>{"02"}</span>
-                <h3>{"Receba da "}<span className={"lnr-lord-name"}>{"LORD NUTRI"}</span></h3>
+                <h3>{landingText(texts, "modelo.014")}<span className={"lnr-lord-name"}>{"LORD NUTRI"}</span></h3>
               </div>
-              <p>{"Conclua seu pedido. A "}<span className={"lnr-lord-name"}>{"LORD NUTRI"}</span>{" envia o kit para seu endereço."}</p>
+              <p>{landingText(texts, "modelo.015")}<span className={"lnr-lord-name"}>{"LORD NUTRI"}</span>{landingText(texts, "modelo.016")}</p>
             </article>
             <article className={"lnr-step lnr-disclosure"}>
               <div className={"lnr-step-heading"}>
                 <span className={"lnr-number"}>{"03"}</span>
-                <h3>{"Comece suas vendas"}</h3>
+                <h3>{landingText(texts, "modelo.017")}</h3>
               </div>
-              <p>{"Apresente o produto, atenda e entregue. Seu resultado vem das vendas, descontados os custos."}</p>
+              <p>{landingText(texts, "modelo.018")}</p>
             </article>
           </div>
           <div className={"lnr-care-band"}>
-            <img src={"/brand/caminhada-pessoas-1.8.webp"}  sizes={"(max-width: 700px) calc(100vw - 32px), (max-width: 1199px) calc((100vw - 48px) / 2), 600px"} alt={"Casal em uma caminhada ao ar livre"} width={"1536"} height={"1024"} loading={"lazy"} decoding={"async"} />
+            <img src={"/brand/caminhada-pessoas-1.8.webp"}  sizes={"(max-width: 700px) calc(100vw - 32px), (max-width: 1199px) calc((100vw - 48px) / 2), 600px"} alt={landingText(texts, "modelo.019")} width={"1536"} height={"1024"} loading={"lazy"} decoding={"async"} />
             <div>
-              <span className={"lnr-eyebrow"}>{"RELACIONAMENTO QUE CONTINUA"}</span>
-              <h3>{"Clareza para apresentar."}<br />{"Cuidado para atender."}</h3>
-              <p>{"Comece pela sua rede e cresça com um atendimento próximo."}</p>
+              <span className={"lnr-eyebrow"}>{landingText(texts, "modelo.020")}</span>
+              <h3>{landingText(texts, "modelo.021")}<br />{landingText(texts, "modelo.022")}</h3>
+              <p>{landingText(texts, "modelo.023")}</p>
             </div>
           </div>
           <div className={"lnr-inline-action"}>
-            <a className={"lnr-button"} href={"#simulador"}><span>{"VER OS KITS E CALCULAR MEU CENÁRIO"}</span></a>
-            <p className={"lnr-note"}>{"Frete à parte. Juros e total do parcelamento aparecem antes do pagamento. A revenda exige dedicação e não há garantia de renda."}</p>
+            <a className={"lnr-button"} href={"#simulador"}><span>{landingText(texts, "modelo.024")}</span></a>
+            <p className={"lnr-note"}>{landingText(texts, "modelo.025")}</p>
           </div>
         </div>
       </section>
 <section id={"simulador"} className={"lnr-section lnr-simulator"}>
         <div className={"lnr-shell"}>
           <div className={"lnr-section-head"}>
-            <span className={"lnr-eyebrow"}>{"NÚMEROS E SIMULADOR"}</span>
-            <h2>{"Quanto você quer construir de ganho bruto por mês?"}</h2>
-            <p>{"Faturamento e ganho bruto são diferentes. Aqui, a conta considera o preço de venda menos o custo das caixas. Inclua suas despesas para refinar o resultado."}</p>
+            <span className={"lnr-eyebrow"}>{landingText(texts, "simulador.001")}</span>
+            <h2>{landingText(texts, "simulador.002")}</h2>
+            <p>{landingText(texts, "simulador.003")}</p>
           </div>
           <div className={"lnr-scenarios"}>
             <article className={"lnr-scenario"}>
-              <span className={"lnr-scenario-rhythm"}><b>{"1"}</b>{" "}<span>{"caixa por dia"}</span></span>
-              <p>{"26 caixas no mês · 26 dias"}</p>
+              <span className={"lnr-scenario-rhythm"}><b>{"1"}</b>{" "}<span>{landingText(texts, "simulador.004")}</span></span>
+              <p>{landingText(texts, "simulador.005")}</p>
               <dl>
                 <div>
-                  <dt>{"Ganho bruto · KIT20"}</dt>
+                  <dt>{landingText(texts, "simulador.006")}</dt>
                   <dd>{"R$ 910,00"}</dd>
                 </div>
                 <div>
-                  <dt>{"Ganho bruto · KIT50"}</dt>
+                  <dt>{landingText(texts, "simulador.007")}</dt>
                   <dd>{"R$ 1.040,00"}</dd>
                 </div>
               </dl>
             </article>
             <article className={"lnr-scenario"}>
-              <span className={"lnr-scenario-rhythm"}><b>{"2"}</b>{" "}<span>{"caixas por dia"}</span></span>
-              <p>{"52 caixas no mês · 26 dias"}</p>
+              <span className={"lnr-scenario-rhythm"}><b>{"2"}</b>{" "}<span>{landingText(texts, "simulador.008")}</span></span>
+              <p>{landingText(texts, "simulador.009")}</p>
               <dl>
                 <div>
-                  <dt>{"Ganho bruto · KIT20"}</dt>
+                  <dt>{landingText(texts, "simulador.010")}</dt>
                   <dd>{"R$ 1.820,00"}</dd>
                 </div>
                 <div>
-                  <dt>{"Ganho bruto · KIT50"}</dt>
+                  <dt>{landingText(texts, "simulador.011")}</dt>
                   <dd>{"R$ 2.080,00"}</dd>
                 </div>
               </dl>
             </article>
             <article className={"lnr-scenario"}>
-              <span className={"lnr-scenario-rhythm"}><b>{"3"}</b>{" "}<span>{"caixas por dia"}</span></span>
-              <p>{"78 caixas no mês · 26 dias"}</p>
+              <span className={"lnr-scenario-rhythm"}><b>{"3"}</b>{" "}<span>{landingText(texts, "simulador.012")}</span></span>
+              <p>{landingText(texts, "simulador.013")}</p>
               <dl>
                 <div>
-                  <dt>{"Ganho bruto · KIT20"}</dt>
+                  <dt>{landingText(texts, "simulador.014")}</dt>
                   <dd>{"R$ 2.730,00"}</dd>
                 </div>
                 <div>
-                  <dt>{"Ganho bruto · KIT50"}</dt>
+                  <dt>{landingText(texts, "simulador.015")}</dt>
                   <dd>{"R$ 3.120,00"}</dd>
                 </div>
               </dl>
             </article>
           </div>
-          <p className={"lnr-note"}>{"Simulações com preço de referência de R$ 109,90 por caixa. Valores brutos, antes de frete, taxas, juros, impostos, descontos e outras despesas. Vendas e resultados dependem da atuação de cada revendedor."}</p>
+          <p className={"lnr-note"}>{landingText(texts, "simulador.016")}</p>
           <div id={"simulador-calculo"}>
-            <ProfitSimulator />
+            <ProfitSimulator texts={texts} />
           </div>
           <div className={"lnr-inline-action"}>
-            <a href={"#kits"} className={"lnr-button"}><span>{"VER QUAL KIT ATENDE MINHA META"}</span></a>
+            <a href={"#kits"} className={"lnr-button"}><span>{landingText(texts, "simulador.017")}</span></a>
           </div>
         </div>
       </section>
 <section id={"kits"} className={"lnr-section lnr-kits"}>
         <div className={"lnr-shell"}>
           <div className={"lnr-section-head"}>
-            <span className={"lnr-eyebrow"}>{"OFERTA DOS KITS"}</span>
-            <h2>{"Escolha seu kit"}</h2>
+            <span className={"lnr-eyebrow"}>{landingText(texts, "kits.001")}</span>
+            <h2>{landingText(texts, "kits.002")}</h2>
           </div>
           <div className={"lnr-kit-grid"}>
             <article className={"lnr-kit"}>
-              <span className={"lnr-kit-badge"}>{"Menor investimento inicial"}</span>
+              <span className={"lnr-kit-badge"}>{landingText(texts, "kits.003")}</span>
               <div className={"lnr-kit-title"}>
                 <h3>{"KIT20"}</h3>
-                <span>{"20 caixas"}</span>
+                <span>{landingText(texts, "kits.004")}</span>
               </div>
-              <span className={"lnr-price-label"}>{"Investimento em produtos"}</span>
+              <span className={"lnr-price-label"}>{landingText(texts, "kits.005")}</span>
               <strong className={"lnr-price"}>{"R$ 1.498,00"}</strong>
               <dl>
                 <div>
-                  <dt>{"Custo por caixa"}</dt>
+                  <dt>{landingText(texts, "kits.006")}</dt>
                   <dd>{"R$ 74,90"}</dd>
                 </div>
                 <div>
-                  <dt>{"Venda de referência"}</dt>
+                  <dt>{landingText(texts, "kits.007")}</dt>
                   <dd>{"R$ 109,90"}</dd>
                 </div>
                 <div>
-                  <dt>{"Diferença bruta por caixa"}</dt>
+                  <dt>{landingText(texts, "kits.008")}</dt>
                   <dd>{"R$ 35,00"}</dd>
                 </div>
                 <div className={"lnr-kit-total"}>
-                  <dt>{"Diferença bruta se vender todo o kit"}</dt>
+                  <dt>{landingText(texts, "kits.009")}</dt>
                   <dd>{"R$ 700,00"}</dd>
                 </div>
               </dl>
-              <a href={"/?kit=kit20#checkout"} className={"lnr-button lnr-button-outline"}>{"QUERO COMEÇAR COM 20 CAIXAS"}</a>
+              <a href={"/?kit=kit20#checkout"} className={"lnr-button lnr-button-outline"}>{landingText(texts, "kits.010")}</a>
             </article>
             <article className={"lnr-kit lnr-kit-featured"}>
-              <span className={"lnr-kit-badge"}>{"Melhor custo por unidade"}</span>
+              <span className={"lnr-kit-badge"}>{landingText(texts, "kits.011")}</span>
               <div className={"lnr-kit-title"}>
                 <h3>{"KIT50"}</h3>
-                <span>{"50 caixas"}</span>
+                <span>{landingText(texts, "kits.012")}</span>
               </div>
-              <span className={"lnr-price-label"}>{"Investimento em produtos"}</span>
+              <span className={"lnr-price-label"}>{landingText(texts, "kits.013")}</span>
               <strong className={"lnr-price"}>{"R$ 3.495,00"}</strong>
               <dl>
                 <div>
-                  <dt>{"Custo por caixa"}</dt>
+                  <dt>{landingText(texts, "kits.014")}</dt>
                   <dd>{"R$ 69,90"}</dd>
                 </div>
                 <div>
-                  <dt>{"Venda de referência"}</dt>
+                  <dt>{landingText(texts, "kits.015")}</dt>
                   <dd>{"R$ 109,90"}</dd>
                 </div>
                 <div>
-                  <dt>{"Diferença bruta por caixa"}</dt>
+                  <dt>{landingText(texts, "kits.016")}</dt>
                   <dd>{"R$ 40,00"}</dd>
                 </div>
                 <div className={"lnr-kit-total"}>
-                  <dt>{"Diferença bruta se vender todo o kit"}</dt>
+                  <dt>{landingText(texts, "kits.017")}</dt>
                   <dd>{"R$ 2.000,00"}</dd>
                 </div>
               </dl>
-              <a href={"/?kit=kit50#checkout"} className={"lnr-button"}>{"QUERO COMEÇAR COM 50 CAIXAS"}</a>
+              <a href={"/?kit=kit50#checkout"} className={"lnr-button"}>{landingText(texts, "kits.018")}</a>
             </article>
           </div>
-          <p className={"lnr-kit-comparison"}>{"O KIT50 reduz R$ 5,00 do custo por caixa. Em 50 caixas, isso equivale a R$ 250,00 de economia em relação ao preço do KIT20."}</p>
-          <p className={"lnr-note"}>{"Frete à parte nos kits de 20 e 50 caixas. Pagamento em até 6x, com juros e valor total exibidos antes do pagamento. Pedidos acima de 1.000 unidades têm frete grátis, conforme condição comercial."}</p>
+          <p className={"lnr-kit-comparison"}>{landingText(texts, "kits.019")}</p>
+          <p className={"lnr-note"}>{landingText(texts, "kits.020")}</p>
         </div>
       </section>
 <section id={"duvidas"} className={"lnr-section lnr-faq"}>
         <div className={"lnr-shell lnr-faq-layout"}>
           <div>
-            <span className={"lnr-eyebrow"}>{"FAQ"}</span>
-            <h2>{"Antes de começar."}</h2>
+            <span className={"lnr-eyebrow"}>{landingText(texts, "duvidas.001")}</span>
+            <h2>{landingText(texts, "duvidas.002")}</h2>
           </div>
           <div className={"lnr-faq-list"}>
             <details className={"lnr-disclosure"}>
-              <summary><h3>{"Isso é multinível?"}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
-              <p>{"Não. O resultado apresentado vem da compra e da revenda dos produtos aos clientes. Não há remuneração por recrutamento."}</p>
+              <summary><h3>{landingText(texts, "duvidas.003")}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
+              <p>{landingText(texts, "duvidas.004")}</p>
             </details>
             <details className={"lnr-disclosure"}>
-              <summary><h3>{"Quem entrega o produto?"}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
-              <p>{"A "}<span className={"lnr-lord-name"}>{"LORD NUTRI"}</span>{" envia o kit para o revendedor. Depois, o revendedor organiza a entrega das caixas aos seus próprios clientes."}</p>
+              <summary><h3>{landingText(texts, "duvidas.005")}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
+              <p>{landingText(texts, "duvidas.006")}<span className={"lnr-lord-name"}>{"LORD NUTRI"}</span>{landingText(texts, "duvidas.007")}</p>
             </details>
             <details className={"lnr-disclosure"}>
-              <summary><h3>{"Já existe plataforma e treinamento?"}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
-              <p>{"A plataforma de apoio e os treinamentos estão em desenvolvimento. Não devem ser anunciados como acesso imediato até estarem disponíveis."}</p>
+              <summary><h3>{landingText(texts, "duvidas.008")}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
+              <p>{landingText(texts, "duvidas.009")}</p>
             </details>
             <details className={"lnr-disclosure"}>
-              <summary><h3>{"Posso parcelar?"}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
-              <p>{"O pagamento pode ser feito em até 6x. O checkout deve mostrar os juros e o valor total antes da conclusão."}</p>
+              <summary><h3>{landingText(texts, "duvidas.010")}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
+              <p>{landingText(texts, "duvidas.011")}</p>
             </details>
             <details className={"lnr-disclosure"}>
-              <summary><h3>{"Nunca vendi. Posso começar?"}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
-              <p>{"Sim, mas a revenda exige divulgação, atendimento, organização e dedicação comercial. Não há garantia de vendas."}</p>
+              <summary><h3>{landingText(texts, "duvidas.012")}</h3><span className={"lnr-plus"} aria-hidden={"true"}></span></summary>
+              <p>{landingText(texts, "duvidas.013")}</p>
             </details>
           </div>
         </div>
@@ -455,11 +456,11 @@ export function LandingSections() {
 <section id={"checkout"} className={"lnr-section lnr-checkout"}>
         <div className={"lnr-shell lnr-checkout-layout"}>
           <div>
-            <span className={"lnr-eyebrow"}>{"COMECE SUA REVENDA"}</span>
-            <h2>{"Escolha seu kit"}</h2>
-            <p>{"Antes de pagar, você vê o valor dos produtos, o frete e as condições de parcelamento."}</p>
+            <span className={"lnr-eyebrow"}>{landingText(texts, "checkout.001")}</span>
+            <h2>{landingText(texts, "checkout.002")}</h2>
+            <p>{landingText(texts, "checkout.003")}</p>
           </div>
-          <CheckoutForm />
+          <CheckoutForm texts={texts} />
         </div>
       </section>
 <footer className={"lnr-footer"}>
@@ -467,15 +468,15 @@ export function LandingSections() {
           <div>
             <BrandLogo compact />
             <p><span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span></span></p>
-            <p>{"Programa de Revendedores"}</p>
+            <p>{landingText(texts, "rodape.001")}</p>
           </div>
-          <nav aria-label={"Informações e acesso"}>
-            <a href={"/termos-de-uso"}>{"Termos de Uso"}</a>
-            <a href={"/politica-de-privacidade"}>{"Política de Privacidade"}</a>
-            <a href={"/cookies"}>{"Política de Cookies"}</a>
-            <a href={"/reembolso-e-devolucao"}>{"Reembolso e Devolução"}</a>
-            <a href={"/entrar"}>{"Portal do Revendedor"}</a>
-            <a className={"lnr-google-check"} href={"https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F"} target={"_blank"} rel={"noopener noreferrer"}>{"Consultar segurança do site no Google"}</a>
+          <nav aria-label={landingText(texts, "rodape.002")}>
+            <a href={"/termos-de-uso"}>{landingText(texts, "rodape.003")}</a>
+            <a href={"/politica-de-privacidade"}>{landingText(texts, "rodape.004")}</a>
+            <a href={"/cookies"}>{landingText(texts, "rodape.005")}</a>
+            <a href={"/reembolso-e-devolucao"}>{landingText(texts, "rodape.006")}</a>
+            <a href={"/entrar"}>{landingText(texts, "rodape.007")}</a>
+            <a className={"lnr-google-check"} href={"https://transparencyreport.google.com/safe-browsing/search?url=https%3A%2F%2Frevendedores.mix10pro.com.br%2F"} target={"_blank"} rel={"noopener noreferrer"}>{landingText(texts, "rodape.008")}</a>
           </nav>
         </div>
       </footer>

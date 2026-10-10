@@ -1,4 +1,5 @@
 "use client";
+import { landingText, type LandingTexts } from "@/lib/landing-texts";
 
 import { useMemo, useState } from "react";
 
@@ -9,7 +10,7 @@ function scenario(target: number, expenses: number, days: number, salePrice: num
   return { boxes, perDay: days > 0 ? boxes / days : boxes, result: boxes * margin - expenses };
 }
 
-export function ProfitSimulator() {
+export function ProfitSimulator({texts={}}:{texts?:LandingTexts}={}) {
   const [target, setTarget] = useState(2000);
   const [days, setDays] = useState(26);
   const [salePrice, setSalePrice] = useState(109.9);
@@ -19,16 +20,16 @@ export function ProfitSimulator() {
 
   return (
     <div className="simulator-grid" data-cms-text-protected="1">
-      <div className="lnr-sim-fields"><label>Meta mensal de resultado (R$)<input type="number" min="0" step="100" value={target} onChange={(e) => setTarget(Number(e.target.value) || 0)} /></label>
-      <label>Dias de venda no mês<input type="number" min="1" max="31" value={days} onChange={(e) => setDays(Math.max(1, Number(e.target.value) || 1))} /></label>
-      <label>Preço médio por caixa<input type="number" min="0" step="0.01" value={salePrice} onChange={(e) => setSalePrice(Number(e.target.value) || 0)} /></label>
-      <label>Despesas estimadas (R$)<input type="number" min="0" step="0.01" value={expenses} onChange={(e) => setExpenses(Number(e.target.value) || 0)} /></label>
+      <div className="lnr-sim-fields"><label>{landingText(texts, "simulador.018")}<input type="number" min="0" step="100" value={target} onChange={(e) => setTarget(Number(e.target.value) || 0)} /></label>
+      <label>{landingText(texts, "simulador.019")}<input type="number" min="1" max="31" value={days} onChange={(e) => setDays(Math.max(1, Number(e.target.value) || 1))} /></label>
+      <label>{landingText(texts, "simulador.020")}<input type="number" min="0" step="0.01" value={salePrice} onChange={(e) => setSalePrice(Number(e.target.value) || 0)} /></label>
+      <label>{landingText(texts, "simulador.021")}<input type="number" min="0" step="0.01" value={expenses} onChange={(e) => setExpenses(Number(e.target.value) || 0)} /></label>
       </div>
       <div className="lnr-sim-results">
-      <div className="simulator-result"><span>KIT20 · caixas necessárias</span><strong>{kit20.boxes}</strong><small>≈ {kit20.perDay.toFixed(1)} caixa(s)/dia · resultado estimado {format(kit20.result)}</small></div>
-      <div className="simulator-result featured"><span>KIT50 · caixas necessárias</span><strong>{kit50.boxes}</strong><small>≈ {kit50.perDay.toFixed(1)} caixa(s)/dia · resultado estimado {format(kit50.result)}</small></div>
+      <div className="simulator-result"><span>{landingText(texts, "simulador.022")}</span><strong>{kit20.boxes}</strong><small>≈ {kit20.perDay.toFixed(1)} {landingText(texts, "simulador.023")}{format(kit20.result)}</small></div>
+      <div className="simulator-result featured"><span>{landingText(texts, "simulador.024")}</span><strong>{kit50.boxes}</strong><small>≈ {kit50.perDay.toFixed(1)} {landingText(texts, "simulador.025")}{format(kit50.result)}</small></div>
       </div>
-      <p className="fine-print">Cenário de referência para R$ 10 mil de ganho bruto: 250 caixas vendidas no mês a R$ 109,90, com custo de R$ 69,90 por caixa (KIT50). Frete, taxas, juros, impostos, descontos e outras despesas reduzem o resultado. Vendas e resultados dependem da atuação de cada revendedor.</p>
+      <p className="fine-print">{landingText(texts, "simulador.026")}</p>
     </div>
   );
 }
