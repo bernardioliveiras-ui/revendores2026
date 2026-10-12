@@ -78,19 +78,19 @@ export function LandingSections({texts={}}:{texts?:LandingTexts}={}) {
             <div className={"lnr-product-copy"}>
               <h2>{landingText(texts, "mix10pro.001")}<span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span>{"."}</span></h2>
               <p>{landingText(texts, "mix10pro.002")}<span className={"lnr-mix-name"}><span>{"MIX10"}</span>{" "}<span>{"PRO"}</span></span>{landingText(texts, "mix10pro.003")}</p>
-              <div className={"lnr-product-facts"}>
-                <div>
-                  <strong>{"10"}</strong>
-                  <span>{landingText(texts, "mix10pro.004")}</span>
-                </div>
-                <div>
-                  <strong>{"30"}</strong>
-                  <span>{landingText(texts, "mix10pro.005")}</span>
-                </div>
-                <div>
-                  <strong>{"40+"}</strong>
-                  <span>{landingText(texts, "mix10pro.006")}</span>
-                </div>
+              <div className={"lnr-product-overview"}>
+                <article className={"lnr-product-overview-card"}>
+                  <span>{"POSICIONAMENTO DO PRODUTO"}</span>
+                  <p>
+                    {"O MIX10 PRO reúne 10 ativos em uma única fórmula, criando uma proposta diferenciada para pessoas que buscam complementar a rotina de cuidados com o corpo, bem-estar e qualidade de vida."}
+                  </p>
+                </article>
+                <article className={"lnr-product-overview-card"}>
+                  <span>{"APRESENTAÇÃO MAIS CLARA"}</span>
+                  <p>
+                    {"Nesta versão, a leitura da seção foi reorganizada para destacar melhor a proposta do produto, facilitar a compreensão e deixar o conteúdo mais limpo e objetivo."}
+                  </p>
+                </article>
               </div>
               <p className={"lnr-anvisa"}><span>{landingText(texts, "mix10pro.007")}<span>{"2535115572620267"}</span>{" "}</span><strong></strong></p>
             </div>
@@ -231,6 +231,37 @@ export function LandingSections({texts={}}:{texts?:LandingTexts}={}) {
                 </div>
               </details>
             </div>
+          </div>
+          <div className={"lnr-testimonial-section"}>
+            <div className={"lnr-testimonial-copy"}>
+              <span className={"lnr-eyebrow"}>{"UMA EXPERIÊNCIA REAL"}</span>
+              <h2>{"NÃO FIQUE SÓ NA DESCRIÇÃO. CONHEÇA A EXPERIÊNCIA DE QUEM JÁ EXPERIMENTOU."}</h2>
+              <p>
+                {"Antes de começar a revender, você também quer conhecer a experiência de quem já conhece o Mix10Pro, não é?"}
+              </p>
+            </div>
+            <div className={"lnr-testimonial-media"}>
+              <div className={"lnr-testimonial-video-wrap"}>
+                <video controls playsInline preload={"metadata"}>
+                  <source src={"https://mix10pro.com.br/dp-mariasocorro.mp4"} type={"video/mp4"} />
+                  {"Seu navegador não suporta vídeo HTML5."}
+                </video>
+              </div>
+              <p className={"lnr-testimonial-caption"}>{"Depoimento em vídeo — Maria Socorro"}</p>
+            </div>
+          </div>
+          <div className={"lnr-google-business-section"}>
+            <div className={"lnr-google-business-mark"} aria-hidden={"true"}>{"G"}</div>
+            <div className={"lnr-google-business-copy"}>
+              <span>{"GOOGLE MEU NEGÓCIO"}</span>
+              <h3>{"Mais autenticidade para quem está conhecendo a LORD NUTRI."}</h3>
+              <p>
+                {"Além do depoimento em vídeo, o visitante pode acessar o perfil no Google, conferir informações públicas da empresa e ver avaliações antes de começar sua revenda."}
+              </p>
+            </div>
+            <a className={"lnr-google-business-button"} href={"https://share.google/Dj32yNldD2417zSXQ"} target={"_blank"} rel={"noopener noreferrer"}>
+              {"VER PERFIL NO GOOGLE"}
+            </a>
           </div>
           <div className={"lnr-inline-action"}>
             <a className={"lnr-button"} href={"#modelo"}><span>{landingText(texts, "mix10pro.045")}</span></a>

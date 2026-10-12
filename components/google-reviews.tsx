@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 type GoogleReview = { author: string; rating: number; text: string; relativeTime: string; url?: string };
 type ReviewsPayload = { configured: boolean; rating?: number; userRatingCount?: number; reviews?: GoogleReview[] };
 
-const VIEW_URL = "https://share.google/TfuQVPuf9zfS1dzj7";
+const VIEW_URL = "https://share.google/Dj32yNldD2417zSXQ";
 
 const FALLBACK_REVIEWS: GoogleReview[] = [
   {
