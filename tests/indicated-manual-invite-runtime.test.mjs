@@ -8,6 +8,7 @@ const schema={
  users:table('id','email','role','status','name','phone'),
  indicatedClients:table('id','clientUserId'),
  indicatedInvitations:table('tokenHash','clientUserId','expiresAt','usedAt'),
+ indicatorProfiles:table('userId'),
 };
 const orm={...operators,isNull:(col)=>(r)=>r[col]==null};
 const user={id:'client-1',role:'client_indicated',status:'active',email:'indicado@example.test'};
@@ -17,7 +18,8 @@ const invitationDeps=(s)=>({
  'drizzle-orm':orm,
  '@/db':{getDb:()=>s.db},
  '@/db/schema':schema,
- '@/lib/indicated-security':{invitationHash,newInvitationToken}
+ '@/lib/indicated-security':{invitationHash,newInvitationToken},
+ '@/lib/indicator-schema':{ensureIndicatorSchema:async()=>{}}
 });
 
 test('geração manual funciona sem Resend, token fica só em hash e vínculo é obrigatório', async()=>{

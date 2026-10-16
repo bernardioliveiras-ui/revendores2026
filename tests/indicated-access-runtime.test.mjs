@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { load, memoryDb, operators, table } from './runtime-loader.mjs';
 import { cleanPhone, safeReceiptMime, clientOwnsIndication, mayMarkBought, invitationHash, newInvitationToken } from '../lib/indicated-security.ts';
-const schema={users:table('id','email','role','status','name','phone'),authSessions:table('userId'),indicatedClients:table('id','clientUserId','receiptId','status','receiptReview'),indicatedInvitations:table('tokenHash','clientUserId','expiresAt','usedAt')};
+const schema={users:table('id','email','role','status','name','phone'),authSessions:table('userId'),indicatedClients:table('id','clientUserId','receiptId','status','receiptReview'),indicatedInvitations:table('tokenHash','clientUserId','expiresAt','usedAt'),indicatorProfiles:table('userId')};
 const now=new Date().toISOString();
 const row={id:'11111111-1111-4111-8111-111111111111',clientUserId:'u1',name:'Cliente Um',phone:'11988887777',channel:'Link',responsible:'BKO',status:'ENTROU NO LINK',receiptId:null,receiptReview:'PENDENTE',receiptGuidance:'',cashbackStatus:'PENDENTE',cashbackCents:null,createdAt:now,updatedAt:now};
 const admin={id:'a',role:'admin'};const client={id:'u1',role:'client_indicated'};
 const deps=(s,user)=>({
  'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,
  '@/lib/auth':{requireAdmin:async()=>{if(user.role!=='admin')throw Error('FORBIDDEN');return user},requireIndicatedClient:async()=>{if(user.role!=='client_indicated')throw Error('FORBIDDEN');return user}},
- '@/lib/indicated-schema':{ensureIndicatedSchema:async()=>{}},
+ '@/lib/indicated-schema':{ensureIndicatedSchema:async()=>{}},'@/lib/indicator-schema':{ensureIndicatorSchema:async()=>{}},
  '@/lib/indicated-security':{cleanPhone,cleanText:(v,max=120)=>typeof v==='string'?v.trim().slice(0,max):'',INDICATED_STATUSES:['ENTROU NO LINK','ESPERANDO NO CARRINHO','COMPROU'],RECEIPT_REVIEWS:['PENDENTE','APROVADO','REJEITADO'],MANUAL_CASHBACK_STATUSES:['PENDENTE','LIBERADO','PAGO'],clientOwnsIndication,MAX_RECEIPT_BYTES:8*1024*1024,safeReceiptMime,validChoice:(v,a)=>a.includes(v),mayMarkBought,indicatedError:(e)=>Response.json({error:e.message},{status:e.message==='FORBIDDEN'?403:500}),privateResponseHeaders:{'cache-control':'no-store'},PURCHASE_URL:'https://mix10pro.com.br/lp-v2'},
 });
 const req=(data)=>new Request('https://app.test/api/admin/indicated',{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify(data)});
@@ -102,11 +102,11 @@ test('ativação do convite só aceita token válido de cliente indicado, ainda 
  const token=newInvitationToken(),hash=invitationHash(token);
  const s=memoryDb(schema,{users:[{id:'u1',role:'client_indicated',status:'active',passwordHash:null,mustChangePassword:0}],indicatedClients:[structuredClone(row)],indicatedInvitations:[{tokenHash:hash,clientUserId:'u1',usedAt:null,expiresAt:new Date(Date.now()+3600_000).toISOString()}],authSessions:[{userId:'u1'}]});
  const ops={...operators,gt:(column,value)=>(r)=>r[column]>value,isNull:column=>(r)=>r[column]===null};
- const mod=load('app/api/indicated/activate/route.ts',{'drizzle-orm':ops,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/indicated-schema':{ensureIndicatedSchema:async()=>{}},'@/lib/indicated-security':{invitationHash,privateResponseHeaders:{}},'@/lib/passwords':{hashPassword:async()=> 'secure-hash'}});
+ const mod=load('app/api/indicated/activate/route.ts',{'drizzle-orm':ops,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/indicated-schema':{ensureIndicatedSchema:async()=>{}},'@/lib/indicator-schema':{ensureIndicatorSchema:async()=>{}},'@/lib/indicated-security':{invitationHash,privateResponseHeaders:{}},'@/lib/passwords':{hashPassword:async()=> 'secure-hash'}});
  const request=()=>new Request('https://app.test/api/indicated/activate',{method:'POST',body:JSON.stringify({token,password:'valid-strong-password',confirm:'valid-strong-password'})});
  assert.equal((await mod.POST(request())).status,200);assert.equal(s.rows.users[0].passwordHash,'secure-hash');assert.equal(s.rows.authSessions.length,0);
  assert.equal((await mod.POST(request())).status,410);
  const reseller=memoryDb(schema,{users:[{id:'u1',role:'reseller',status:'active',passwordHash:null}],indicatedClients:[structuredClone(row)],indicatedInvitations:[{tokenHash:hash,clientUserId:'u1',usedAt:null,expiresAt:new Date(Date.now()+3600_000).toISOString()}]});
- const denied=load('app/api/indicated/activate/route.ts',{'drizzle-orm':ops,'@/db':{getDb:()=>reseller.db},'@/db/schema':schema,'@/lib/indicated-schema':{ensureIndicatedSchema:async()=>{}},'@/lib/indicated-security':{invitationHash,privateResponseHeaders:{}},'@/lib/passwords':{hashPassword:async()=> 'secure-hash'}});
+ const denied=load('app/api/indicated/activate/route.ts',{'drizzle-orm':ops,'@/db':{getDb:()=>reseller.db},'@/db/schema':schema,'@/lib/indicated-schema':{ensureIndicatedSchema:async()=>{}},'@/lib/indicator-schema':{ensureIndicatorSchema:async()=>{}},'@/lib/indicated-security':{invitationHash,privateResponseHeaders:{}},'@/lib/passwords':{hashPassword:async()=> 'secure-hash'}});
  assert.equal((await denied.POST(request())).status,403);
 });

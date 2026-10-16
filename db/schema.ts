@@ -156,6 +156,43 @@ export const indicatedClients = mysqlTable("indicated_clients", {
   updatedAt: varchar("updated_at", { length: 40 }).notNull(),
 }, table => [uniqueIndex("idx_indicated_client_user").on(table.clientUserId), index("idx_indicated_status").on(table.status)]);
 
+/** Pessoas que indicam compradores, sem permissões nem estoque de revendedor. */
+export const indicatorProfiles = mysqlTable("indicator_profiles", {
+  userId: varchar("user_id", { length: 80 }).primaryKey(),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+});
+
+export const indicatorLeads = mysqlTable("indicator_leads", {
+  id: varchar("id", { length: 80 }).primaryKey(),
+  indicatorUserId: varchar("indicator_user_id", { length: 80 }).notNull(),
+  publicCode: varchar("public_code", { length: 64 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  channel: varchar("channel", { length: 120 }).notNull().default("WhatsApp"),
+  status: varchar("status", { length: 32 }).notNull().default("LINK GERADO"),
+  clickCount: int("click_count").notNull().default(0),
+  lastClickedAt: varchar("last_clicked_at", { length: 40 }),
+  verificationNotes: varchar("verification_notes", { length: 500 }).notNull().default(""),
+  receiptId: varchar("receipt_id", { length: 80 }),
+  receiptSentAt: varchar("receipt_sent_at", { length: 40 }),
+  receiptReview: varchar("receipt_review", { length: 16 }).notNull().default("PENDENTE"),
+  reviewedAt: varchar("reviewed_at", { length: 40 }),
+  reviewedBy: varchar("reviewed_by", { length: 80 }),
+  cashbackCents: int("cashback_cents"),
+  cashbackStatus: varchar("cashback_status", { length: 16 }).notNull().default("PENDENTE"),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+  updatedAt: varchar("updated_at", { length: 40 }).notNull(),
+}, (table) => [uniqueIndex("idx_indicator_leads_code").on(table.publicCode),index("idx_indicator_leads_owner").on(table.indicatorUserId,table.createdAt)]);
+
+export const indicatorReceipts = mysqlTable("indicator_receipts", {
+  id: varchar("id", { length: 80 }).primaryKey(),
+  leadId: varchar("lead_id", { length: 80 }).notNull(),
+  filename: varchar("filename", { length: 255 }).notNull(),
+  mimeType: varchar("mime_type", { length: 80 }).notNull(),
+  sizeBytes: int("size_bytes").notNull(),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+}, (table) => [index("idx_indicator_receipts_lead").on(table.leadId)]);
+
 export const indicatedInvitations = mysqlTable("indicated_invitations", {
   tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
   clientUserId: varchar("client_user_id", { length: 80 }).notNull(),

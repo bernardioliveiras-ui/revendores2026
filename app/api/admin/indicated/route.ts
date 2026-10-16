@@ -24,9 +24,10 @@ export async function GET(request: Request) {
       receiptReview:indicatedClients.receiptReview, receiptGuidance:indicatedClients.receiptGuidance,
       cashbackCents:indicatedClients.cashbackCents, cashbackStatus:indicatedClients.cashbackStatus,
       createdAt:indicatedClients.createdAt, updatedAt:indicatedClients.updatedAt,
-      email:users.email, accessStatus:users.status, passwordHash:users.passwordHash,
+      email:users.email, accessStatus:users.status, role:users.role, passwordHash:users.passwordHash,
     }).from(indicatedClients).innerJoin(users,eq(indicatedClients.clientUserId,users.id)).orderBy(desc(indicatedClients.createdAt));
     return Response.json({ clients:rows.filter(r =>
+      r.role === "client_indicated" &&
       (!rawQuery || r.name.toLowerCase().includes(rawQuery) || r.phone.includes(needle) || r.email.toLowerCase().includes(rawQuery)) &&
       (!status || r.status === status) && (!access || r.accessStatus === access)
     ).map(({passwordHash, ...row}) => ({...row, activationStatus:passwordHash ? "activated" : "awaiting_activation"})) }, {headers:privateResponseHeaders});

@@ -1,6 +1,7 @@
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
-import { authSessions, indicatedClients, indicatedInvitations, users } from "@/db/schema";
+import { authSessions, indicatedClients, indicatedInvitations, indicatorProfiles, users } from "@/db/schema";
+import { ensureIndicatorSchema } from "@/lib/indicator-schema";
 import { ensureIndicatedSchema } from "@/lib/indicated-schema";
 import { invitationHash, privateResponseHeaders } from "@/lib/indicated-security";
 import { hashPassword } from "@/lib/passwords";
@@ -8,7 +9,7 @@ import { hashPassword } from "@/lib/passwords";
 export const runtime="nodejs";
 export async function POST(request:Request) {
   try {
-    await ensureIndicatedSchema();
+    await ensureIndicatedSchema(); await ensureIndicatorSchema();
     const body = await request.json().catch(()=>null);
     const token=typeof body?.token==="string"?body.token:"";
     const password=typeof body?.password==="string"?body.password:"";
@@ -22,7 +23,8 @@ export async function POST(request:Request) {
       if (!invite || invite.usedAt || invite.expiresAt <= now) return Response.json({error:"Convite inválido ou expirado. Peça um novo convite ao BKO."},{status:410});
       const [user]=await tx.select().from(users).where(eq(users.id,invite.clientUserId)).limit(1).for("update");
       const [indication]=await tx.select({id:indicatedClients.id}).from(indicatedClients).where(eq(indicatedClients.clientUserId,invite.clientUserId)).limit(1);
-      if (!user || user.role !== "client_indicated" || user.status !== "active" || !indication) return Response.json({error:"Convite indisponível."},{status:403});
+      const [profile]=await tx.select({userId:indicatorProfiles.userId}).from(indicatorProfiles).where(eq(indicatorProfiles.userId,invite.clientUserId)).limit(1);
+      if (!user || user.status !== "active" || !(user.role === "client_indicated" && indication || user.role === "indicator" && profile)) return Response.json({error:"Convite indisponível."},{status:403});
       await tx.update(users).set({passwordHash:hash,mustChangePassword:0,failedLoginAttempts:0,lockedUntil:null,updatedAt:now}).where(eq(users.id,user.id));
       await tx.delete(authSessions).where(eq(authSessions.userId,user.id));
       await tx.update(indicatedInvitations).set({usedAt:now}).where(eq(indicatedInvitations.tokenHash,invite.tokenHash));
