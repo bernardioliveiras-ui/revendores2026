@@ -3,7 +3,7 @@ import { getDb } from "@/db";
 import { authSessions, indicatedClients, indicatedInvitations, users } from "@/db/schema";
 import { isAdminEmail, normalizeEmail, requireAdmin } from "@/lib/auth";
 import { ensureIndicatedSchema } from "@/lib/indicated-schema";
-import { sendIndicatedInvitation, invitationReady } from "@/lib/indicated-invitations";
+import { issueIndicatedInvitation } from "@/lib/indicated-invitations";
 import { cleanPhone, cleanText, indicatedError, INDICATED_STATUSES, MANUAL_CASHBACK_STATUSES, mayMarkBought, privateResponseHeaders, RECEIPT_REVIEWS, validChoice } from "@/lib/indicated-security";
 
 export const runtime = "nodejs";
@@ -36,7 +36,6 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await requireAdmin(request); await ensureIndicatedSchema();
-    if (!invitationReady()) return Response.json({error:"Configure RESEND_API_KEY, WELCOME_EMAIL_FROM e NEXT_PUBLIC_APP_URL (HTTPS) nas variáveis da Hostinger antes de criar convites."},{status:503});
     const data = await request.json().catch(()=>null);
     const name = cleanText(data?.name), email = normalizeEmail(data?.email), phone = cleanPhone(data?.phone);
     const channel = cleanText(data?.channel), responsible = cleanText(data?.responsible);
@@ -51,11 +50,11 @@ export async function POST(request: Request) {
       await tx.insert(indicatedClients).values({id,clientUserId:userId,name,phone,channel,responsible,status:"ENTROU NO LINK",receiptReview:"PENDENTE",cashbackStatus:"PENDENTE",createdAt:now,updatedAt:now});
     });
     try {
-      await sendIndicatedInvitation(userId);
-      return Response.json({created:true,id,inviteSent:true},{status:201,headers:privateResponseHeaders});
+      const invitation = await issueIndicatedInvitation(userId);
+      return Response.json({created:true,id,...invitation},{status:201,headers:privateResponseHeaders});
     } catch (error) {
-      console.error("indicated_invite_failed", error);
-      return Response.json({created:true,id,inviteSent:false,error:"Indicação cadastrada, mas o envio do convite falhou. Reenvie em Acessos."},{status:201,headers:privateResponseHeaders});
+      console.error("indicated_invite_generation_failed", error);
+      return Response.json({created:true,id,activationPath:null,error:"Indicação cadastrada, mas o link não pôde ser gerado. Gere um novo link em Acessos."},{status:201,headers:privateResponseHeaders});
     }
   } catch (error) {
     if (error instanceof Error && (error.message === "EMAIL_TAKEN" || ("code" in error && error.code === "ER_DUP_ENTRY"))) return Response.json({error:"Este e-mail já possui um acesso. Nenhum perfil foi alterado."},{status:409});

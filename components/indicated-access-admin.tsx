@@ -18,22 +18,29 @@ export function IndicatedAccessAdmin() {
  const [editing,setEditing]=useState<string|null>(null);
  const [notice,setNotice]=useState("");const [loading,setLoading]=useState(false);
  const [busy,setBusy]=useState(false);
+ const [activation,setActivation]=useState<{id:string;url:string;expiresAt:string}|null>(null);
+ function showActivation(id:string,path:string,expiresAt:string){
+   if(location.protocol!=="https:" && location.hostname!=="localhost" && location.hostname!=="127.0.0.1") throw new Error("Abra o BKO pelo endereço HTTPS para gerar o link de ativação.");
+   if(!path.startsWith("/ativar-cliente?token="))throw new Error("Link de ativação inválido.");
+   setActivation({id,url:`${location.origin}${path}`,expiresAt});
+ }
+ async function copyActivation(){if(!activation)return;try{await navigator.clipboard.writeText(activation.url);setNotice("Link copiado. Envie somente ao cliente correspondente.");}catch{setNotice("Selecione e copie o link manualmente.");}}
  const load=useCallback(async()=>{
    setLoading(true);
    try{const params=new URLSearchParams({q:query,status,access});const r=await fetch(`/api/admin/indicated?${params}`,{cache:"no-store"});const b=await r.json();if(!r.ok)throw new Error(b.error);setClients(b.clients||[]);}
    catch(e){setNotice(e instanceof Error?e.message:"Erro ao carregar indicações.");}finally{setLoading(false);}
  },[query,status,access]);
  useEffect(()=>{void load()},[load]);
- async function create(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);setNotice("");
+ async function create(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);setNotice("");setActivation(null);
    const form=e.currentTarget;const data=Object.fromEntries(new FormData(form));
-   try{const r=await fetch("/api/admin/indicated",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(data)});const b=await r.json();if(!r.ok)throw new Error(b.error);setNotice(b.inviteSent?"Cliente indicado cadastrado. Convite enviado por e-mail.":b.error||"Acesso cadastrado; convite pendente.");form.reset();await load();}
+   try{const r=await fetch("/api/admin/indicated",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(data)});const b=await r.json();if(!r.ok)throw new Error(b.error);if(b.activationPath)showActivation(b.id,b.activationPath,b.expiresAt);setNotice(b.activationPath?"Cliente cadastrado! Copie o link abaixo e envie ao cliente em canal privado.":b.error||"Acesso cadastrado; gere um link depois.");form.reset();await load();}
    catch(e){setNotice(e instanceof Error?e.message:"Erro ao cadastrar.");}finally{setBusy(false);}
  }
  async function patch(id:string,changes:Record<string,unknown>){setBusy(true);setNotice("");
    try{const r=await fetch("/api/admin/indicated",{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({id,...changes})});const b=await r.json();if(!r.ok)throw new Error(b.error);setNotice("Indicação atualizada.");await load();}
    catch(e){setNotice(e instanceof Error?e.message:"Não foi possível atualizar.");}finally{setBusy(false);}
  }
- async function invite(id:string){setBusy(true);setNotice("");try{const r=await fetch("/api/admin/indicated/invite",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id})});const b=await r.json();if(!r.ok)throw new Error(b.error);setNotice("Convite seguro enviado ao e-mail do cliente.");}catch(e){setNotice(e instanceof Error?e.message:"Convite não enviado.");}finally{setBusy(false);}}
+ async function invite(id:string){setBusy(true);setNotice("");setActivation(null);try{const r=await fetch("/api/admin/indicated/invite",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id})});const b=await r.json();if(!r.ok)throw new Error(b.error);showActivation(id,b.activationPath,b.expiresAt);setNotice("Novo link gerado. O anterior foi invalidado. Envie somente ao cliente.");}catch(e){setNotice(e instanceof Error?e.message:"Não foi possível gerar o link.");}finally{setBusy(false);}}
  async function edit(e:FormEvent<HTMLFormElement>,id:string){e.preventDefault();const raw=Object.fromEntries(new FormData(e.currentTarget));const value=String(raw.cashbackReais||"").trim();const cents=value===""?null:Math.round(Number(value.replace(",","."))*100);if(cents!==null&&(!Number.isSafeInteger(cents)||cents<0)){setNotice("Valor de cashback inválido.");return;}
    const changes:Record<string,unknown>={name:raw.name,phone:raw.phone,channel:raw.channel,responsible:raw.responsible,status:raw.status,cashbackCents:cents,cashbackStatus:raw.cashbackStatus};
    // Review is optional. Do not re-review an existing receipt during ordinary edits.
@@ -42,8 +49,13 @@ export function IndicatedAccessAdmin() {
  }
  return <section className="portal-card indicated-area">
    <div className="card-title"><h2>Acessos · Clientes indicados</h2><span>{loading?"Atualizando…":`${clients.length} indicações`}</span></div>
-   <p className="portal-form-help">Acesso exclusivo de cliente indicado. Revendedores seguem apenas o fluxo de aprovação do Asaas via LP. Convites não exibem senhas.</p>
+   <p className="portal-form-help">Acesso exclusivo de cliente indicado. Revendedores seguem apenas o fluxo de aprovação do Asaas via LP. Copie o link de ativação e envie em canal privado; não há e-mail automático nem senha provisória.</p>
    {notice?<div className="portal-notice" role="status">{notice}</div>:null}
+   {activation?<div className="portal-notice" role="status">
+      <strong>Link de ativação · uso único</strong><p>Validade: {new Date(activation.expiresAt).toLocaleString("pt-BR")}. Um novo link cancela o anterior. Não publique nem compartilhe com terceiros.</p>
+      <input aria-label="Link de ativação para compartilhar" readOnly value={activation.url} onFocus={e=>e.currentTarget.select()} />
+      <div className="indicated-actions"><button type="button" className="secondary-button compact" onClick={()=>void copyActivation()}>Copiar link</button><button type="button" className="secondary-button compact" onClick={()=>setActivation(null)}>Ocultar link</button></div>
+   </div>:null}
    <form className="portal-form indicated-create" onSubmit={create}>
      <h3>Cadastrar indicação e criar acesso</h3>
      <label>Nome do indicado<input name="name" required maxLength={120}/></label>
@@ -51,7 +63,7 @@ export function IndicatedAccessAdmin() {
      <label>Telefone<input name="phone" type="tel" required placeholder="DDD + telefone"/></label>
      <label>Canal da venda<input name="channel" required maxLength={120} placeholder="Ex.: link, WhatsApp"/></label>
      <label>Responsável pela indicação<input name="responsible" required maxLength={120}/></label>
-     <button disabled={busy} className="primary-button">Criar cliente indicado e enviar convite</button>
+     <button disabled={busy} className="primary-button">Cadastrar e gerar link</button>
    </form>
    <div className="indicated-filters">
      <label>Buscar nome, telefone ou e-mail<input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar cliente…"/></label>
@@ -63,7 +75,7 @@ export function IndicatedAccessAdmin() {
      <div className="indicated-summary">
        <div><strong>{c.name}</strong><p>{c.email} · {c.phone}</p><small>{c.channel} · Responsável: {c.responsible}</small></div>
        <div><span className="status-pill">{c.status}</span><p>Acesso: {c.accessStatus!=="active"?"Desativado":c.activationStatus==="activated"?"Ativado":"Aguardando ativação"}</p><small>Comprovante: {c.receiptId?c.receiptReview:"Não enviado"}</small></div>
-       <div className="indicated-actions"><button className="secondary-button compact" onClick={()=>setEditing(editing===c.id?null:c.id)}>{editing===c.id?"Fechar":"Editar / conferir"}</button><button className="secondary-button compact" disabled={busy||c.accessStatus!=="active"} onClick={()=>void invite(c.id)}>Reenviar convite</button><button className="secondary-button compact" disabled={busy} onClick={()=>{if(window.confirm(c.accessStatus==="active"?"Desativar acesso deste cliente?":"Reativar acesso deste cliente?"))void patch(c.id,{active:c.accessStatus!=="active"});}}>{c.accessStatus==="active"?"Desativar":"Reativar"}</button></div>
+       <div className="indicated-actions"><button className="secondary-button compact" onClick={()=>setEditing(editing===c.id?null:c.id)}>{editing===c.id?"Fechar":"Editar / conferir"}</button><button className="secondary-button compact" disabled={busy||c.accessStatus!=="active"} onClick={()=>{if(c.activationStatus==="activated"&&!window.confirm("Esse cliente já tem senha. O novo link permitirá que ele defina outra senha e, quando usado, encerrará sessões anteriores. Gerar mesmo assim?"))return;void invite(c.id);}}>Gerar novo link</button><button className="secondary-button compact" disabled={busy} onClick={()=>{if(window.confirm(c.accessStatus==="active"?"Desativar acesso deste cliente?":"Reativar acesso deste cliente?"))void patch(c.id,{active:c.accessStatus!=="active"});}}>{c.accessStatus==="active"?"Desativar":"Reativar"}</button></div>
      </div>
      {editing===c.id?<form className="portal-form indicated-edit" key={`${c.id}-${c.status}-${c.receiptReview}-${c.cashbackStatus}`} onSubmit={e=>void edit(e,c.id)}>
        <label>Nome<input name="name" defaultValue={c.name} required/></label>

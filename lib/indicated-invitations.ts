@@ -1,41 +1,34 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
-import { indicatedInvitations, users } from "@/db/schema";
-import { getAppUrl, getOptionalEnv } from "@/lib/env";
+import { indicatedClients, indicatedInvitations, users } from "@/db/schema";
 import { invitationHash, newInvitationToken } from "@/lib/indicated-security";
 
-function htmlEscape(value: string) { return value.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] || c); }
-export function invitationReady() {
-  const url = getAppUrl();
-  return Boolean(getOptionalEnv("NEXT_PUBLIC_APP_URL") && getOptionalEnv("RESEND_API_KEY") && (getOptionalEnv("WELCOME_EMAIL_FROM") || getOptionalEnv("EMAIL_FROM")) && (url.startsWith("https://") || url.startsWith("http://localhost:")));
-}
-
-/** Tokens are never returned to BKO; delivery uses the existing Resend email integration. */
-export async function sendIndicatedInvitation(clientUserId: string) {
-  if (!invitationReady()) throw new Error("INVITE_NOT_CONFIGURED");
-  const db = getDb();
-  const [user] = await db.select({ id:users.id, email:users.email, name:users.name, role:users.role, status:users.status })
-    .from(users).where(eq(users.id,clientUserId)).limit(1);
-  if (!user || user.role !== "client_indicated" || user.status !== "active") throw new Error("INVITE_FORBIDDEN");
+/**
+ * Create a one-time, short-lived manual activation link for an indicated client.
+ *
+ * The admin receives the path only in this response and delivers it privately
+ * (for example via WhatsApp). The DB stores only a SHA-256 hash. No e-mail,
+ * reseller account or Asaas integration is used here.
+ */
+export async function issueIndicatedInvitation(clientUserId: string) {
   const token = newInvitationToken();
-  const hash = invitationHash(token);
   const now = new Date().toISOString();
-  const expiresAt = new Date(Date.now() + 24 * 3600_000).toISOString();
-  await db.insert(indicatedInvitations).values({ tokenHash: hash, clientUserId, expiresAt, usedAt:null, createdAt:now });
-  const inviteUrl = `${getAppUrl()}/ativar-cliente?token=${encodeURIComponent(token)}`;
-  const from = getOptionalEnv("WELCOME_EMAIL_FROM") || getOptionalEnv("EMAIL_FROM");
-  try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST", signal: AbortSignal.timeout(15000),
-      headers: { "content-type":"application/json", authorization:`Bearer ${getOptionalEnv("RESEND_API_KEY")}` },
-      body: JSON.stringify({from, to:[user.email], subject:"LORD NUTRI — ative seu acesso de cliente indicado",
-        html:`<div style="font-family:Arial,sans-serif;color:#17263b"><h2>Olá, ${htmlEscape(user.name)}!</h2><p>Você recebeu um convite para acessar sua indicação na LORD NUTRI.</p><p><a href="${htmlEscape(inviteUrl)}">Ativar acesso e criar minha senha</a></p><p>O convite expira em 24 horas e só pode ser utilizado uma vez. Se você não solicitou este acesso, ignore a mensagem.</p></div>` }),
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  await getDb().transaction(async tx => {
+    // Serialize generation and access deactivation around the same user row.
+    const [user] = await tx.select({ id: users.id, role: users.role, status: users.status })
+      .from(users).where(eq(users.id, clientUserId)).limit(1).for("update");
+    if (!user || user.role !== "client_indicated" || user.status !== "active") throw new Error("INVITE_FORBIDDEN");
+    const [indication] = await tx.select({ id: indicatedClients.id })
+      .from(indicatedClients).where(eq(indicatedClients.clientUserId, clientUserId)).limit(1);
+    if (!indication) throw new Error("INVITE_FORBIDDEN");
+    // A newly generated link invalidates earlier unredeemed ones.
+    await tx.delete(indicatedInvitations).where(and(eq(indicatedInvitations.clientUserId, clientUserId), isNull(indicatedInvitations.usedAt)));
+    await tx.insert(indicatedInvitations).values({
+      tokenHash: invitationHash(token), clientUserId, expiresAt, usedAt: null, createdAt: now,
     });
-    if (!response.ok) throw new Error("INVITE_DELIVERY_FAILED");
-  } catch (error) {
-    // Do not expose a token whose delivery failed; administrator may retry.
-    await db.delete(indicatedInvitations).where(and(eq(indicatedInvitations.tokenHash,hash),isNull(indicatedInvitations.usedAt)));
-    throw error;
-  }
-  return {sent:true, expiresAt};
+  });
+  // Never build a full URL from a request Host header. The authenticated
+  // frontend / PowerShell client joins this relative path to its trusted HTTPS base.
+  return { activationPath: `/ativar-cliente?token=${encodeURIComponent(token)}`, expiresAt };
 }

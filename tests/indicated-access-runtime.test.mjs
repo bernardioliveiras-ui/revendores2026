@@ -19,15 +19,15 @@ test('cliente indicado nunca herda papel revendedor ou BKO ao criar acesso',asyn
  const s=memoryDb(schema,{users:[],indicatedClients:[]});
  const mod=load('app/api/admin/indicated/route.ts',{
   ...deps(s,admin),'@/lib/auth':{requireAdmin:async()=>admin,normalizeEmail:v=>v?.toLowerCase()||null,isAdminEmail:()=>false},
-  '@/lib/indicated-invitations':{invitationReady:()=>true,sendIndicatedInvitation:async()=>({sent:true})}
+  '@/lib/indicated-invitations':{issueIndicatedInvitation:async()=>({activationPath:'/ativar-cliente?token=test-token',expiresAt:now})}
  });
  const r=await mod.POST(new Request('https://app.test/api/admin/indicated',{method:'POST',body:JSON.stringify({name:'Maria',email:'maria@test.com',phone:'11988887777',channel:'LP',responsible:'Atendimento'})}));
- assert.equal(r.status,201);assert.equal(s.rows.users.length,1);assert.equal(s.rows.users[0].role,'client_indicated');
+ assert.equal(r.status,201);const body=await r.json();assert.match(body.activationPath,/^\/ativar-cliente\?token=/);assert.equal(s.rows.users.length,1);assert.equal(s.rows.users[0].role,'client_indicated');
  assert.equal(s.rows.users[0].passwordHash,null);assert.equal(s.rows.indicatedClients[0].clientUserId,s.rows.users[0].id);
 });
 test('BKO não pode marcar COMPROU sem conferência aprovada, nem sem comprovante',async()=>{
  const s=memoryDb(schema,{users:[{id:'u1',role:'client_indicated'}],indicatedClients:[structuredClone(row)]});
- const {PATCH}=load('app/api/admin/indicated/route.ts', {...deps(s,admin),'@/lib/indicated-invitations':{invitationReady:()=>true,sendIndicatedInvitation:async()=>{}},'@/lib/auth':{requireAdmin:async()=>admin}});
+ const {PATCH}=load('app/api/admin/indicated/route.ts', {...deps(s,admin),'@/lib/indicated-invitations':{issueIndicatedInvitation:async()=>({activationPath:'/ativar-cliente?token=test-token',expiresAt:now})},'@/lib/auth':{requireAdmin:async()=>admin}});
  assert.equal((await PATCH(req({id:row.id,status:'COMPROU'}))).status,409);
  s.rows.indicatedClients[0].receiptId='file-1';
  assert.equal((await PATCH(req({id:row.id,status:'COMPROU'}))).status,409);
@@ -41,7 +41,7 @@ test('BKO não pode marcar COMPROU sem conferência aprovada, nem sem comprovant
 });
 test('rejeição exige orientação; acesso desativado revoga sessões e convites',async()=>{
  const s=memoryDb(schema,{users:[{id:'u1',role:'client_indicated',status:'active'}],indicatedClients:[{...row,receiptId:'file-1'}],authSessions:[{userId:'u1'}],indicatedInvitations:[{clientUserId:'u1',tokenHash:'token'}]});
- const {PATCH}=load('app/api/admin/indicated/route.ts',{...deps(s,admin),'@/lib/auth':{requireAdmin:async()=>admin},'@/lib/indicated-invitations':{invitationReady:()=>true,sendIndicatedInvitation:async()=>{}}});
+ const {PATCH}=load('app/api/admin/indicated/route.ts',{...deps(s,admin),'@/lib/auth':{requireAdmin:async()=>admin},'@/lib/indicated-invitations':{issueIndicatedInvitation:async()=>({activationPath:'/ativar-cliente?token=test-token',expiresAt:now})}});
  assert.equal((await PATCH(req({id:row.id,receiptReview:'REJEITADO'}))).status,400);
  assert.equal((await PATCH(req({id:row.id,active:false}))).status,200);
  assert.equal(s.rows.users[0].status,'inactive');assert.equal(s.rows.authSessions.length,0);assert.equal(s.rows.indicatedInvitations.length,0);
