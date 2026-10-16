@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         }
       }
       if (!user || user.status !== "active") return Response.json({ error: "E-mail ou senha inválidos." }, { status: 401 });
-      if (isAdminEmail(email) && user.role !== "admin") {
+      if (isAdminEmail(email) && user.role === "reseller") {
         await db.update(users).set({ role: "admin", updatedAt: new Date().toISOString() }).where(eq(users.id, user.id));
         user = { ...user, role: "admin" };
       }

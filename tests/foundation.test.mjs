@@ -15,12 +15,15 @@ test('kit catalog has the approved KIT20 and KIT50 values', async () => {
   assert.doesNotMatch(source, /kit30/i);
 });
 
-test('fresh schema contains only the V1 operational tables', async () => {
+test('fresh schema preserves V1 tables and adds only isolated indicated-client tables', async () => {
   const sql = await read('database/schema.sql');
   for (const table of ['users','auth_sessions','purchases','reseller_profiles','stock_movements','sales','affiliate_referrals','affiliate_clicks','asaas_events']) {
     assert.ok(sql.includes('CREATE TABLE IF NOT EXISTS `'+table+'`'));
   }
-  assert.doesNotMatch(sql, /auth_login_codes|invitations|memberships/);
+  for (const table of ['indicated_clients','indicated_invitations','indicated_receipts']) {
+    assert.ok(sql.includes('CREATE TABLE IF NOT EXISTS `'+table+'`'));
+  }
+  assert.doesNotMatch(sql, /auth_login_codes|memberships/);
 });
 
 test('package has no Resend or Cloudflare runtime', async () => {

@@ -135,6 +135,44 @@ export const affiliateReferrals = mysqlTable("affiliate_referrals", {
   updatedAt: varchar("updated_at", { length: 40 }).notNull(),
 }, (table) => [uniqueIndex("idx_referrals_code").on(table.publicCode), index("idx_referrals_user_created").on(table.userId, table.createdAt)]);
 
+/** Indicações criadas pelo BKO: independentes da aprovação de revendedores via Asaas. */
+export const indicatedClients = mysqlTable("indicated_clients", {
+  id: varchar("id", { length: 80 }).primaryKey(),
+  clientUserId: varchar("client_user_id", { length: 80 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  channel: varchar("channel", { length: 120 }).notNull(),
+  responsible: varchar("responsible", { length: 120 }).notNull(),
+  status: varchar("status", { length: 32 }).notNull().default("ENTROU NO LINK"),
+  receiptId: varchar("receipt_id", { length: 80 }),
+  receiptSentAt: varchar("receipt_sent_at", { length: 40 }),
+  receiptReview: varchar("receipt_review", { length: 16 }).notNull().default("PENDENTE"),
+  receiptGuidance: varchar("receipt_guidance", { length: 500 }).notNull().default(""),
+  reviewedAt: varchar("reviewed_at", { length: 40 }),
+  reviewedBy: varchar("reviewed_by", { length: 80 }),
+  cashbackCents: int("cashback_cents"),
+  cashbackStatus: varchar("cashback_status", { length: 16 }).notNull().default("PENDENTE"),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+  updatedAt: varchar("updated_at", { length: 40 }).notNull(),
+}, table => [uniqueIndex("idx_indicated_client_user").on(table.clientUserId), index("idx_indicated_status").on(table.status)]);
+
+export const indicatedInvitations = mysqlTable("indicated_invitations", {
+  tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
+  clientUserId: varchar("client_user_id", { length: 80 }).notNull(),
+  expiresAt: varchar("expires_at", { length: 40 }).notNull(),
+  usedAt: varchar("used_at", { length: 40 }),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+}, table => [index("idx_indicated_invitation_user").on(table.clientUserId)]);
+
+export const indicatedReceipts = mysqlTable("indicated_receipts", {
+  id: varchar("id", { length: 80 }).primaryKey(),
+  indicationId: varchar("indication_id", { length: 80 }).notNull(),
+  filename: varchar("filename", { length: 255 }).notNull(),
+  mimeType: varchar("mime_type", { length: 80 }).notNull(),
+  sizeBytes: int("size_bytes").notNull(),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+}, table => [index("idx_indicated_receipt_indication").on(table.indicationId)]);
+
 /** Cashback de indicação: separado de faturamento, vendas e pagamentos do pedido. */
 export const affiliateCashbacks = mysqlTable("affiliate_cashbacks", {
   id: varchar("id", { length: 80 }).primaryKey(),
