@@ -1,3 +1,5 @@
+> **Atualização:** a navegação e as métricas foram reorganizadas como CRM de Parceiros. Consulte `CRM-PARCEIROS-LEIA-ME.md` para a especificação vigente. O texto abaixo documenta a implantação anterior.
+
 # LORD NUTRI — Indicadores por comprovante (Hostinger)
 
 ## Separação operacional

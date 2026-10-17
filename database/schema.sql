@@ -182,6 +182,8 @@ CREATE TABLE IF NOT EXISTS `indicator_leads` (
  `channel` varchar(120) NOT NULL DEFAULT 'WhatsApp',
  `status` varchar(32) NOT NULL DEFAULT 'LINK GERADO',
  `click_count` int NOT NULL DEFAULT 0,
+ `share_attempts` int NOT NULL DEFAULT 0,
+ `last_shared_at` varchar(40) NULL,
  `last_clicked_at` varchar(40) NULL,
  `verification_notes` varchar(500) NOT NULL DEFAULT '',
  `receipt_id` varchar(80) NULL,

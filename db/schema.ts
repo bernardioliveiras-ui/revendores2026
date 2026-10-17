@@ -171,6 +171,8 @@ export const indicatorLeads = mysqlTable("indicator_leads", {
   channel: varchar("channel", { length: 120 }).notNull().default("WhatsApp"),
   status: varchar("status", { length: 32 }).notNull().default("LINK GERADO"),
   clickCount: int("click_count").notNull().default(0),
+  shareAttempts: int("share_attempts").notNull().default(0),
+  lastSharedAt: varchar("last_shared_at", { length: 40 }),
   lastClickedAt: varchar("last_clicked_at", { length: 40 }),
   verificationNotes: varchar("verification_notes", { length: 500 }).notNull().default(""),
   receiptId: varchar("receipt_id", { length: 80 }),
