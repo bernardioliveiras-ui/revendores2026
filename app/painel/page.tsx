@@ -12,5 +12,5 @@ export default async function PanelPage(){
   } catch {
     // O portal continua funcionando com as variáveis antigas como fallback.
   }
-  return <PortalClient welcomeVideoUrl={welcomeVideoUrl} embedUrl={process.env.VSL_EMBED_URL} videoUrl={process.env.VSL_VIDEO_URL} manualUrl="/api/reseller/manual"/>;
+  return <PortalClient welcomeVideoUrl={welcomeVideoUrl} embedUrl={process.env.VSL_EMBED_URL} videoUrl={process.env.VSL_VIDEO_URL} manualUrl="/api/reseller/manual?edition=material"/>;
 }

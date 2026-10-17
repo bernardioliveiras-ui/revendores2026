@@ -2,6 +2,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
+import { MarketingFolder } from "@/components/marketing-folder";
 import { crmLeadStage, crmMetrics } from "@/lib/indicator-crm";
 
 type Lead={id:string;name:string;phone:string;channel:string;status:string;clickCount:number;shareAttempts:number;createdAt:string;publicPath:string;hasReceipt:boolean;receiptSentAt:string|null;receiptReview:string;receiptGuidance:string;cashbackCents:number|null;cashbackStatus:string};
@@ -47,6 +48,7 @@ export function IndicatorPortal(){
    {notice?<div className="portal-notice" role="status">{notice}</div>:null}
    <section className="indicator-stats crm-metrics"><div><strong>{totals.generated}</strong><span>Links gerados</span></div><div><strong>{totals.shareIntent}</strong><span>Cliques em compartilhar</span></div><div><strong>{totals.visits}</strong><span>Aberturas estimadas</span></div><div><strong>{totals.pending}</strong><span>Comprovantes pendentes</span></div><div><strong>{totals.confirmed}</strong><span>Compras confirmadas</span></div></section>
    <p className="crm-quiet">Compartilhar abre o WhatsApp, mas não confirma envio. Aberturas podem incluir prévias de aplicativos. Somente a aprovação do BKO confirma a compra.</p>
+   <MarketingFolder/>
    <section className="portal-card"><div className="crm-sidebar-head"><div><h2>Novo comprador</h2><p className="portal-form-help">Uma pessoa indicada = um card com link individual e comprovante próprio.</p></div><button className="secondary-button compact" onClick={()=>setShowNew(!showNew)} aria-expanded={showNew}>{showNew?"Ocultar cadastro":"+ Cadastrar indicação"}</button></div>
     {showNew?<form onSubmit={create} className="portal-form indicator-form"><label>Nome do comprador<input name="name" maxLength={120} required/></label><label>WhatsApp / telefone<input name="phone" type="tel" required placeholder="DDD + número"/></label><label>Canal<select name="channel" defaultValue="WhatsApp"><option>WhatsApp</option><option>Instagram</option><option>Indicação pessoal</option><option>Outro</option></select></label><button className="primary-button" disabled={busy}>Criar card e gerar link</button></form>:null}
    </section>

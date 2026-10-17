@@ -15,6 +15,7 @@ async function authorize(request:Request){
   const user=await requireSession(request);
   if(user.mustChangePassword) throw new Error("PASSWORD_REQUIRED");
   if(user.role!=="admin"){
+    if(user.role!=="reseller") throw new Error("FORBIDDEN_MANUAL");
     const [purchase]=await getDb().select({id:purchases.id}).from(purchases).where(and(eq(purchases.userId,user.id),eq(purchases.paymentStatus,"paid"),or(eq(purchases.kit,"kit20"),eq(purchases.kit,"kit50")),isNotNull(purchases.accessReleasedAt))).limit(1);
     if(!purchase) throw new Error("FORBIDDEN_MANUAL");
   }
@@ -24,6 +25,11 @@ export async function GET(request:Request){
   try{
     await authorize(request);
     const url=new URL(request.url);
+    // PDF enviado para a biblioteca de materiais, protegido pela mesma autorização do manual.
+    if(url.searchParams.get("edition")==="material"){
+      const pdf=await readFile(join(process.cwd(),"private","manual","Manual_do_Revendedor_Enviado_2026.pdf"));
+      return new Response(new Uint8Array(pdf),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Length":String(pdf.byteLength),"Content-Disposition":'inline; filename="Manual_do_Revendedor_LORD_NUTRI_2026.pdf"'}});
+    }
     if(url.searchParams.get("base")==="1"){
       const pdf=await readFile(join(process.cwd(),"private","manual","Manual_do_Revendedor_LORD_NUTRI.pdf"));
       return new Response(new Uint8Array(pdf),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Length":String(pdf.byteLength),"Content-Disposition":'inline; filename="Manual_do_Revendedor_LORD_NUTRI_BASE.pdf"'}});
