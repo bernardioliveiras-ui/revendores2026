@@ -34,10 +34,17 @@ export async function GET(request:Request){
       const pdf=await readFile(join(process.cwd(),"private","manual","Manual_do_Revendedor_LORD_NUTRI.pdf"));
       return new Response(new Uint8Array(pdf),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Length":String(pdf.byteLength),"Content-Disposition":'inline; filename="Manual_do_Revendedor_LORD_NUTRI_BASE.pdf"'}});
     }
+    // Mantem o Studio disponível sob demanda, mas o portal usa o PDF-base vetorial.
+    // Isso evita a recomposição sobre JPG (1440x810), que causava perda de nitidez
+    // e pequenos deslocamentos de texto no manual publicado.
     const studio=await getStudioDoc("manual");
-    const pages=(studio.published as {pages?:Parameters<typeof buildManualPdf>[0]}).pages||[];
-    const pageImages=await Promise.all(pages.map((_:unknown,index:number)=>readFile(join(process.cwd(),"private","manual","pages",`page-${String(index+1).padStart(2,"0")}.jpg`))));
-    const pdf=buildManualPdf(pages,pageImages);
+    if(url.searchParams.get("studio")==="1"){
+      const pages=(studio.published as {pages?:Parameters<typeof buildManualPdf>[0]}).pages||[];
+      const pageImages=await Promise.all(pages.map((_:unknown,index:number)=>readFile(join(process.cwd(),"private","manual","pages",`page-${String(index+1).padStart(2,"0")}.jpg`))));
+      const pdf=buildManualPdf(pages,pageImages);
+      return new Response(new Uint8Array(pdf),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Length":String(pdf.byteLength),"Content-Disposition":'inline; filename="Manual_do_Revendedor_LORD_NUTRI_Studio.pdf"'}});
+    }
+    const pdf=await readFile(join(process.cwd(),"private","manual","Manual_do_Revendedor_LORD_NUTRI.pdf"));
     return new Response(new Uint8Array(pdf),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Length":String(pdf.byteLength),"Content-Disposition":'inline; filename="Manual_do_Revendedor_LORD_NUTRI_Publicado.pdf"'}});
   }catch(error){
     const m=error instanceof Error?error.message:"";

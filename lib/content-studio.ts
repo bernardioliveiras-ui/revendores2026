@@ -466,6 +466,28 @@ function sanitizeLandingDraft(value: unknown) {
   };
 }
 
+function normalizeManualNotification(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const source = value as { pages?: Array<{ page?: number; fields?: Array<Record<string, unknown>> }>; fieldCount?: number };
+  if (!Array.isArray(source.pages)) return value;
+  const pages = source.pages.map(page => {
+    if (page.page !== 6 || !Array.isArray(page.fields)) return page;
+    const replacements: Record<string, Record<string, unknown>> = {
+      "p06-t016": {id:"p06-t016",page:6,text:"Processo de Notificação",x:340,y:287,w:180,h:22,size:14,font:"Helvetica-Bold",color:15849876,background:[10,33,22]},
+      "p06-t028": {id:"p06-t028",page:6,text:"ANVISA n°",x:340,y:308,w:100,h:22,size:14,font:"Helvetica-Bold",color:15849876,background:[10,33,22]},
+      "p06-t017": {id:"p06-t017",page:6,text:"25351155726202677",x:340,y:329,w:150,h:22,size:14,font:"Helvetica",color:13029832,background:[10,33,22]},
+      "p06-t027": {id:"p06-t027",page:6,text:"Processo de Notificação ANVISA n° 25351155726202677",x:621,y:482.1,w:270,h:14,size:8.5,font:"Helvetica",color:13029832,background:[6,25,14]},
+    };
+    const fields = page.fields.map(field => replacements[String(field.id || "")] ? {...field,...replacements[String(field.id || "")]} : field);
+    if (!fields.some(field => String(field.id || "") === "p06-t028")) {
+      const pos = Math.max(0, fields.findIndex(field => String(field.id || "") === "p06-t017"));
+      fields.splice(pos,0,replacements["p06-t028"]);
+    }
+    return {...page,fields};
+  });
+  return {...source,pages};
+}
+
 export async function getStudioDoc(type: StudioDocType) {
   await ensureContentStudioSchema();
   const [rows] = await getMysqlPool().execute("SELECT * FROM content_studio WHERE doc_type=? LIMIT 1", [type]);
@@ -474,8 +496,8 @@ export async function getStudioDoc(type: StudioDocType) {
   const rawPublished = parse(row?.published_json, defaults[type]);
   return {
     type,
-    draft: type === "landing" ? sanitizeLandingDraft(rawDraft) : rawDraft,
-    published: type === "landing" ? sanitizeLandingDraft(rawPublished) : rawPublished,
+    draft: type === "landing" ? sanitizeLandingDraft(rawDraft) : type === "manual" ? normalizeManualNotification(rawDraft) : rawDraft,
+    published: type === "landing" ? sanitizeLandingDraft(rawPublished) : type === "manual" ? normalizeManualNotification(rawPublished) : rawPublished,
     updatedAt: row?.updated_at || null,
     publishedAt: row?.published_at || null,
   };

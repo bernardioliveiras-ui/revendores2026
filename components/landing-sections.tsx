@@ -92,7 +92,7 @@ export function LandingSections({texts={}}:{texts?:LandingTexts}={}) {
                   </p>
                 </article>
               </div>
-              <p className={"lnr-anvisa"}><span>{landingText(texts, "mix10pro.007")}<span>{"2535115572620267"}</span>{" "}</span><strong></strong></p>
+              <p className={"lnr-anvisa"}><span className={"lnr-anvisa-line"}>{"Processo de Notificação"}</span><span className={"lnr-anvisa-line"}>{"Anvisa N°"}</span><strong className={"lnr-anvisa-line"}>{"25351155726202677"}</strong></p>
             </div>
             <div className={"lnr-product-visual"}>
               <img src={"/brand/mix10-box-transparent-v3-web.webp"} alt={landingText(texts, "mix10pro.008")} loading={"lazy"} decoding={"async"} width={"800"} height={"1067"} />
