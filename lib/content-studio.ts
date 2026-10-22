@@ -7,7 +7,7 @@ type StudioRow = { doc_type: StudioDocType; draft_json: string; published_json: 
 
 const productDefaults = {
   products: [
-    { id: "mix10pro", name: "MIX10 PRO", subtitle: "Suplemento alimentar em cápsulas", image: "/brand/mix10-box-transparent-v3-web.webp", anvisa: "2535115572620267", active: true },
+    { id: "mix10pro", name: "MIX10 PRO", subtitle: "Suplemento alimentar em cápsulas", image: "/brand/mix10-box-transparent-v3-web.webp", anvisa: "25351155726202677", active: true },
     { id: "kit20", name: "KIT20", subtitle: "20 caixas", image: "/brand/mix10-box-transparent-v3-web.webp", price: "R$ 1.498,00", active: true },
     { id: "kit50", name: "KIT50", subtitle: "50 caixas", image: "/brand/mix10-box-transparent-v3-web.webp", price: "R$ 3.495,00", active: true },
   ],
