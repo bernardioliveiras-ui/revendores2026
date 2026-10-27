@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `purchases` (
   `kit` varchar(20) NOT NULL, `boxes` int NOT NULL, `unit_price_cents` int NOT NULL,
   `product_total_cents` int NOT NULL DEFAULT 0, `shipping_type` varchar(20) NOT NULL DEFAULT '', `shipping_cents` int NOT NULL DEFAULT 0,
   `payment_method` varchar(20) NOT NULL DEFAULT '', `installments` int NOT NULL DEFAULT 1, `installment_value_cents` int NOT NULL DEFAULT 0, `interest_cents` int NOT NULL DEFAULT 0, `total_cents` int NOT NULL,
+  `campaign_id` varchar(80) DEFAULT NULL, `asaas_verified_at` varchar(40) DEFAULT NULL,
   `payment_status` varchar(30) NOT NULL DEFAULT 'payment_pending', `shipping_status` varchar(30) NOT NULL DEFAULT 'awaiting_payment',
   `carrier` varchar(120) DEFAULT NULL, `tracking_code` varchar(120) DEFAULT NULL, `shipped_at` varchar(40) DEFAULT NULL, `delivered_at` varchar(40) DEFAULT NULL,
   `asaas_customer_id` varchar(120) DEFAULT NULL, `asaas_payment_id` varchar(120) DEFAULT NULL, `asaas_installment_id` varchar(120) DEFAULT NULL, `asaas_invoice_url` varchar(1000) DEFAULT NULL,
@@ -165,7 +166,22 @@ CREATE TABLE IF NOT EXISTS `indicated_receipts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- Setor de indicadores: não utiliza compras Asaas, vendas ou estoque de revendedores.
+-- Indicadoras têm campanhas rastreadas via vendas Asaas; links antigos individuais continuam isolados.
+CREATE TABLE IF NOT EXISTS `indicator_campaigns` (
+ `id` varchar(80) NOT NULL PRIMARY KEY,
+ `indicator_user_id` varchar(80) NOT NULL,
+ `name` varchar(120) NOT NULL,
+ `public_code` varchar(64) NOT NULL,
+ `active` int NOT NULL DEFAULT 1,
+ `click_count` int NOT NULL DEFAULT 0,
+ `created_at` varchar(40) NOT NULL,
+ `updated_at` varchar(40) NOT NULL,
+ UNIQUE KEY `idx_indicator_campaign_code` (`public_code`),
+ UNIQUE KEY `idx_indicator_campaign_owner` (`indicator_user_id`),
+ CONSTRAINT `fk_indicator_campaign_owner` FOREIGN KEY (`indicator_user_id`) REFERENCES `users`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Setor de indicadores: os links legados ainda existem para histórico.
 CREATE TABLE IF NOT EXISTS `indicator_profiles` (
  `user_id` varchar(80) NOT NULL PRIMARY KEY,
  `created_at` varchar(40) NOT NULL,

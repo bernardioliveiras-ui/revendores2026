@@ -16,6 +16,7 @@
     "db:push": "drizzle-kit push",
     "start:app": "next start",
     "db:migrate": "node scripts/migrate.mjs",
+    "db:reset:test": "node scripts/reset-test-data.mjs",
     "test:critical": "node --experimental-strip-types --test tests/automation-runtime.test.mjs tests/cashback-rules.test.mjs tests/delivery-progress.test.mjs tests/welcome-contract.test.mjs tests/passwords.test.mjs tests/mysql-errors.test.mjs tests/migration-runtime.test.mjs",
     "check:readiness": "node scripts/check-readiness.mjs",
     "test:launch": "node --experimental-strip-types --test tests/automation-runtime.test.mjs tests/launch-regressions.test.mjs tests/checkout-runtime.test.mjs tests/postal-code-runtime.test.mjs tests/portal-unauthorized-runtime.test.mjs tests/migration-runtime.test.mjs",

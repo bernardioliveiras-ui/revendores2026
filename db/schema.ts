@@ -52,6 +52,8 @@ export const purchases = mysqlTable("purchases", {
   interestCents: int("interest_cents").notNull().default(0),
   totalCents: int("total_cents").notNull(),
   paymentStatus: varchar("payment_status", { length: 30 }).notNull().default("payment_pending"),
+  campaignId: varchar("campaign_id", { length: 80 }),
+  asaasVerifiedAt: varchar("asaas_verified_at", { length: 40 }),
   shippingStatus: varchar("shipping_status", { length: 30 }).notNull().default("awaiting_payment"),
   carrier: varchar("carrier", { length: 120 }),
   trackingCode: varchar("tracking_code", { length: 120 }),
@@ -161,6 +163,18 @@ export const indicatorProfiles = mysqlTable("indicator_profiles", {
   userId: varchar("user_id", { length: 80 }).primaryKey(),
   createdAt: varchar("created_at", { length: 40 }).notNull(),
 });
+
+/** Uma campanha, um link público e várias vendas por influenciador. */
+export const indicatorCampaigns = mysqlTable("indicator_campaigns", {
+  id: varchar("id", { length: 80 }).primaryKey(),
+  indicatorUserId: varchar("indicator_user_id", { length: 80 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  publicCode: varchar("public_code", { length: 64 }).notNull(),
+  active: int("active").notNull().default(1),
+  clickCount: int("click_count").notNull().default(0),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+  updatedAt: varchar("updated_at", { length: 40 }).notNull(),
+}, t => [uniqueIndex("idx_indicator_campaign_code").on(t.publicCode), uniqueIndex("idx_indicator_campaign_owner").on(t.indicatorUserId)]);
 
 export const indicatorLeads = mysqlTable("indicator_leads", {
   id: varchar("id", { length: 80 }).primaryKey(),

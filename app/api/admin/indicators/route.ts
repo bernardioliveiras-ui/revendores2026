@@ -1,8 +1,10 @@
+import { getAsaasConfig } from "@/lib/asaas";
 import { and, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { authSessions, indicatedClients, indicatedInvitations, indicatorLeads, indicatorProfiles, users } from "@/db/schema";
+import { authSessions, indicatedClients, indicatedInvitations, indicatorCampaigns, indicatorLeads, indicatorProfiles, purchases, users } from "@/db/schema";
 import { isAdminEmail, normalizeEmail, requireAdmin } from "@/lib/auth";
 import { ensureIndicatorSchema } from "@/lib/indicator-schema";
+import { ensureCampaignSchema } from "@/lib/campaign-schema";
 import { issueIndicatedInvitation } from "@/lib/indicated-invitations";
 import { indicatorProofTotals } from "@/lib/indicator-accounting";
 import { cleanPhone, cleanText, indicatedError, privateResponseHeaders } from "@/lib/indicator-security";
@@ -11,15 +13,21 @@ export const runtime="nodejs";
 export const dynamic="force-dynamic";
 export async function GET(request:Request){
  try {
-  await requireAdmin(request);await ensureIndicatorSchema();
+  await requireAdmin(request);await ensureIndicatorSchema();await ensureCampaignSchema();
   const q=cleanText(new URL(request.url).searchParams.get("q")).toLowerCase();
   const db=getDb();
-  const [all,leads]=await Promise.all([
+  const [all,leads,campaigns,orders]=await Promise.all([
    db.select({userId:users.id,name:users.name,email:users.email,phone:users.phone,accessStatus:users.status,passwordHash:users.passwordHash})
     .from(indicatorProfiles).innerJoin(users,eq(users.id,indicatorProfiles.userId)),
    db.select().from(indicatorLeads).orderBy(desc(indicatorLeads.createdAt)),
+   db.select().from(indicatorCampaigns).orderBy(desc(indicatorCampaigns.createdAt)),
+   db.select({id:purchases.id,orderNumber:purchases.orderNumber,campaignId:purchases.campaignId,
+    name:purchases.name,kit:purchases.kit,createdAt:purchases.createdAt,asaasVerifiedAt:purchases.asaasVerifiedAt,
+    paymentStatus:purchases.paymentStatus,productTotalCents:purchases.productTotalCents,shippingCents:purchases.shippingCents,
+    interestCents:purchases.interestCents,totalCents:purchases.totalCents,utmSource:purchases.utmSource,utmMedium:purchases.utmMedium})
+    .from(purchases).orderBy(desc(purchases.createdAt)),
   ]);
-  return Response.json({totals:indicatorProofTotals(leads),indicators:all.filter(u=>!q || `${u.name} ${u.email} ${u.phone}`.toLowerCase().includes(q)).map(({passwordHash,...row})=>({...row,activated:!!passwordHash})),leads:leads.map(({publicCode,...row})=>({...row,indicatorName:all.find(u=>u.userId===row.indicatorUserId)?.name||"Indicador"}))}, {headers:privateResponseHeaders});
+  return Response.json({asaasEnvironment:getAsaasConfig().environment,campaigns,orders:orders.filter(o=>o.campaignId),totals:indicatorProofTotals(leads),indicators:all.filter(u=>!q || `${u.name} ${u.email} ${u.phone}`.toLowerCase().includes(q)).map(({passwordHash,...row})=>({...row,activated:!!passwordHash})),leads:leads.map(({publicCode,...row})=>({...row,indicatorName:all.find(u=>u.userId===row.indicatorUserId)?.name||"Indicador"}))}, {headers:privateResponseHeaders});
  }catch(error){return indicatedError(error)}
 }
 export async function POST(request:Request){

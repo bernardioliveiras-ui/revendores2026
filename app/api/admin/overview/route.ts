@@ -10,7 +10,7 @@ function signed(type: string, boxes: number) { if (type === "entry" || type === 
 const purchaseFields = {
   id: purchases.id, orderNumber: purchases.orderNumber, name: purchases.name, email: purchases.email, phone: purchases.phone, cpfCnpj: purchases.cpfCnpj,
   postalCode: purchases.postalCode, street: purchases.street, number: purchases.number, complement: purchases.complement, district: purchases.district, city: purchases.city, state: purchases.state,
-  kit: purchases.kit, boxes: purchases.boxes, totalCents: purchases.totalCents, paymentStatus: purchases.paymentStatus, shippingStatus: purchases.shippingStatus,
+  kit: purchases.kit, boxes: purchases.boxes, totalCents: purchases.totalCents, productTotalCents:purchases.productTotalCents, shippingCents:purchases.shippingCents, interestCents:purchases.interestCents, asaasVerifiedAt:purchases.asaasVerifiedAt, campaignId:purchases.campaignId, paymentStatus: purchases.paymentStatus, shippingStatus: purchases.shippingStatus,
   carrier: purchases.carrier, trackingCode: purchases.trackingCode, accessReleasedAt: purchases.accessReleasedAt, userId: purchases.userId, welcomeStatus: purchases.welcomeStatus, createdAt: purchases.createdAt,
 };
 
@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     let referralRows: Array<typeof affiliateReferrals.$inferSelect> = [];
     try { referralRows = await db.select().from(affiliateReferrals); } catch (error) { console.error("admin_referrals_optional_failed", error); referralRows = []; }
     const paid = purchaseRows.filter((p) => p.paymentStatus === "paid");
+    const asaasVerified = paid.filter(p=>!!p.asaasVerifiedAt);
     const stockByUser = new Map<string, number>();
     for (const row of stockRows) stockByUser.set(row.userId, (stockByUser.get(row.userId) || 0) + signed(row.type, row.boxes));
     const soldByUser = new Map<string, number>();
@@ -39,9 +40,9 @@ export async function GET(request: Request) {
     }
     const metrics = {
       activeResellers: userRows.filter((u) => u.role === "reseller" && u.status === "active").length,
-      paidPurchases: paid.length,
+      paidPurchases: asaasVerified.length,
       pendingAccess: paid.filter((p) => !p.accessReleasedAt).length,
-      kitRevenueCents: paid.reduce((sum, p) => sum + p.totalCents, 0),
+      kitRevenueCents: asaasVerified.reduce((sum, p) => sum + Math.max(0,p.productTotalCents || p.totalCents-p.shippingCents-p.interestCents), 0),
       boxesSold: saleRows.reduce((sum, row) => sum + row.boxes, 0),
       grossSalesCents: saleRows.reduce((sum, row) => sum + row.totalValueCents, 0),
       aggregateStock: stockRows.reduce((sum, row) => sum + signed(row.type, row.boxes), 0),

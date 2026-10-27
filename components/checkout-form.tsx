@@ -144,12 +144,20 @@ export function CheckoutForm({texts={}}:{texts?:LandingTexts}={}) {
     setBusy(true);
     const form = new FormData(event.currentTarget);
     const attribution = checkoutAttribution();
+    // Código da campanha é operacional, não é pixel/consentimento de anúncios.
+    let campaignCode = "";
+    try {
+      const direct = new URLSearchParams(location.search).get("campanha") || "";
+      if (/^[a-f0-9]{32}$/.test(direct)) { sessionStorage.setItem("ln_campaign",direct); campaignCode=direct; }
+      else campaignCode=sessionStorage.getItem("ln_campaign") || "";
+    } catch { /* Cookie do redirecionamento também é aceito no servidor. */ }
     trackCheckout("begin_checkout", { kit, totalCents: selected.totalCents });
     const payload = {
       ...Object.fromEntries(form.entries()),
       shippingType,
       paymentMethod,
       installments: paymentMethod === "credit" ? installments : 1,
+      campaignCode,
       utmSource: attribution.utmSource || "",
       utmMedium: attribution.utmMedium || "",
       utmCampaign: attribution.utmCampaign || "",

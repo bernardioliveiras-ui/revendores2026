@@ -13,7 +13,7 @@ import { sendWelcome } from "@/lib/welcome-notification";
 
 function purchaseStatus(event: string) {
   if (["PAYMENT_RECEIVED", "PAYMENT_CONFIRMED"].includes(event)) return "paid";
-  if (["PAYMENT_REFUNDED", "PAYMENT_DELETED", "PAYMENT_CHARGEBACK_REQUESTED"].includes(event)) return "cancelled";
+  if (["PAYMENT_REFUNDED", "PAYMENT_PARTIALLY_REFUNDED", "PAYMENT_DELETED", "PAYMENT_RECEIVED_IN_CASH_UNDONE", "PAYMENT_CHARGEBACK_REQUESTED"].includes(event)) return "cancelled";
   return null;
 }
 export async function POST(request: Request) {
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
           await tx.insert(stockMovements).values({id:crypto.randomUUID(),userId:purchase.userId,type:"adjustment_out",boxes:entry.boxes,referenceType:"cancelled_purchase",referenceId:purchase.id,notes:"Compra cancelada antes da expedição",occurredAt:now,createdAt:now});
         }
       }
-      await tx.update(purchases).set({paymentStatus:status,shippingStatus:status==="paid" ? (purchase.shippingStatus==="awaiting_payment" ? "separating" : purchase.shippingStatus) : (physicallyDispatched ? purchase.shippingStatus : "cancelled"),updatedAt:new Date().toISOString()}).where(eq(purchases.id,purchase.id));
+      await tx.update(purchases).set({paymentStatus:status,asaasVerifiedAt:status==="paid"?new Date().toISOString():null,shippingStatus:status==="paid" ? (purchase.shippingStatus==="awaiting_payment" ? "separating" : purchase.shippingStatus) : (physicallyDispatched ? purchase.shippingStatus : "cancelled"),updatedAt:new Date().toISOString()}).where(eq(purchases.id,purchase.id));
       return {id:purchase.id,paid:status==="paid",duplicate:false};
     });
     // A retry repairs a failed provisioning/notification even if the payment

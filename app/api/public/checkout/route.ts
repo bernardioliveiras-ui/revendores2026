@@ -1,3 +1,4 @@
+import { campaignCookieFromRequest, resolveCampaign, validCampaignCode } from "@/lib/campaigns";
 import { capturePurchaseMeasurement } from "@/lib/purchase-measurement";
 import { lookupPostalCode, PostalLookupError } from "@/lib/postal-code";
 import { and, eq } from "drizzle-orm";
@@ -60,6 +61,10 @@ export async function POST(request: Request) {
     const payment = calculateInstallment(baseCents, installments);
     const chargedTotalCents = payment.chargedValueCents;
 
+    // Nunca aceitar um ID de campanha arbitrário: validar código público e parceiro ativo.
+    const submittedCode = clean(payload.campaignCode,64);
+    const code = validCampaignCode(submittedCode) ? submittedCode : campaignCookieFromRequest(request);
+    const campaign = code ? await resolveCampaign(code) : null;
     const now = new Date().toISOString();
     purchaseId = crypto.randomUUID();
     const number = orderNumber();
@@ -75,7 +80,7 @@ export async function POST(request: Request) {
       installmentValueCents: payment.installmentValueCents,
       interestCents: payment.interestCents,
       totalCents: chargedTotalCents,
-      paymentStatus: "payment_pending", shippingStatus: "awaiting_payment",
+      paymentStatus: "payment_pending", shippingStatus: "awaiting_payment", campaignId: campaign?.id || null,
       utmSource: clean(payload.utmSource, 120), utmMedium: clean(payload.utmMedium, 120), utmCampaign: clean(payload.utmCampaign, 180), utmContent: clean(payload.utmContent, 180), landingPage: landingPage(request),
       createdAt: now, updatedAt: now,
     });
