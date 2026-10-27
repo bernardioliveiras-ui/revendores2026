@@ -18,7 +18,7 @@ if(execute&&existsSync(backup)){console.error("Backup existente. Escolha outro n
 const connection=await mysql.createConnection({host:process.env.DATABASE_HOST,port:Number(process.env.DATABASE_PORT||3306),
  user:process.env.DATABASE_USER,password:process.env.DATABASE_PASSWORD,database:process.env.DATABASE_NAME,
  ssl:["1","true","yes"].includes((process.env.DATABASE_SSL||"").toLowerCase())?{}:undefined,connectTimeout:15000});
-const tableNames=["affiliate_cashbacks","indicator_receipts","indicator_leads","indicated_receipts","indicated_clients",
+const tableNames=["indicator_terms_acceptances","affiliate_cashbacks","indicator_receipts","indicator_leads","indicated_receipts","indicated_clients",
  "indicated_invitations","indicator_campaigns","indicator_profiles","affiliate_clicks","affiliate_referrals",
  "measurement_outbox","purchase_measurement","reseller_profiles","stock_movements","sales","asaas_events","purchases","auth_sessions"];
 let transaction=false,temporary="";

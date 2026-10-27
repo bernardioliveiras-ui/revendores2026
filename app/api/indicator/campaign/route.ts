@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { indicatorCampaigns, purchases } from "@/db/schema";
 import { requireIndicator } from "@/lib/auth";
+import { requireIndicatorTerms } from "@/lib/indicator-terms-store";
 import { ensureCampaignSchema } from "@/lib/campaign-schema";
 import { cleanText, indicatedError, privateResponseHeaders } from "@/lib/indicator-security";
 import { summarizeCampaign } from "@/lib/campaign-metrics.mjs";
@@ -11,7 +12,7 @@ export const runtime="nodejs";
 export const dynamic="force-dynamic";
 export async function GET(request:Request) {
  try {
-  const user=await requireIndicator(request);await ensureCampaignSchema();
+  const user=await requireIndicator(request);await requireIndicatorTerms(user.id);await ensureCampaignSchema();
   const [campaign]=await getDb().select().from(indicatorCampaigns).where(eq(indicatorCampaigns.indicatorUserId,user.id)).limit(1);
   if(!campaign)return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:null},{headers:privateResponseHeaders});
   const orders=await getDb().select({id:purchases.id,campaignId:purchases.campaignId,paymentStatus:purchases.paymentStatus,
@@ -23,7 +24,7 @@ export async function GET(request:Request) {
 }
 export async function POST(request:Request) {
  try {
-  const user=await requireIndicator(request);await ensureCampaignSchema();
+  const user=await requireIndicator(request);await requireIndicatorTerms(user.id);await ensureCampaignSchema();
   const body=await request.json().catch(()=>null),name=cleanText(body?.name,120);
   if(name.length<3)return Response.json({error:"Informe uma campanha com pelo menos 3 letras."},{status:400});
   const db=getDb();

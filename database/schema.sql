@@ -228,3 +228,18 @@ CREATE TABLE IF NOT EXISTS `indicator_receipts` (
  KEY `idx_indicator_receipts_lead` (`lead_id`),
  CONSTRAINT `fk_indicator_receipts_lead` FOREIGN KEY (`lead_id`) REFERENCES `indicator_leads` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Registros imutáveis de aceite das condições do Programa de Indicadores.
+CREATE TABLE IF NOT EXISTS `indicator_terms_acceptances` (
+ `id` varchar(80) NOT NULL PRIMARY KEY,
+ `user_id` varchar(80) NOT NULL,
+ `terms_version` varchar(40) NOT NULL,
+ `terms_sha256` char(64) NOT NULL,
+ `terms_snapshot` longtext NOT NULL,
+ `accepted_at` varchar(40) NOT NULL,
+ `ip_address` varchar(64) NULL,
+ `user_agent` varchar(512) NULL,
+ UNIQUE KEY `idx_indicator_terms_once` (`user_id`, `terms_version`),
+ KEY `idx_indicator_terms_time` (`accepted_at`),
+ CONSTRAINT `fk_indicator_terms_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

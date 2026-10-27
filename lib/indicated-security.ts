@@ -33,6 +33,7 @@ export function indicatedError(error: unknown) {
   const message = error instanceof Error ? error.message : "";
   if (message === "UNAUTHORIZED") return Response.json({ error: "Faça login novamente." }, { status: 401 });
   if (message === "FORBIDDEN") return Response.json({ error: "Acesso não permitido." }, { status: 403 });
+  if (message === "TERMS_REQUIRED") return Response.json({ error: "Aceite os Termos do Programa de Indicadores antes de utilizar sua campanha.", code: "TERMS_REQUIRED" }, { status: 403, headers: privateResponseHeaders });
   console.error("indicated_access_error", error);
   return Response.json({ error: "Não foi possível concluir a operação." }, { status: 500 });
 }

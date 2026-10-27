@@ -1,6 +1,8 @@
 import { getAsaasConfig } from "@/lib/asaas";
 import { and, desc, eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, getMysqlPool } from "@/db";
+import { ensureIndicatorTermsSchema, currentTermsHash } from "@/lib/indicator-terms-store";
+import { INDICATOR_TERMS_VERSION } from "@/lib/indicator-terms";
 import { authSessions, indicatedClients, indicatedInvitations, indicatorCampaigns, indicatorLeads, indicatorProfiles, purchases, users } from "@/db/schema";
 import { isAdminEmail, normalizeEmail, requireAdmin } from "@/lib/auth";
 import { ensureIndicatorSchema } from "@/lib/indicator-schema";
@@ -13,7 +15,7 @@ export const runtime="nodejs";
 export const dynamic="force-dynamic";
 export async function GET(request:Request){
  try {
-  await requireAdmin(request);await ensureIndicatorSchema();await ensureCampaignSchema();
+  await requireAdmin(request);await ensureIndicatorSchema();await ensureCampaignSchema();await ensureIndicatorTermsSchema();
   const q=cleanText(new URL(request.url).searchParams.get("q")).toLowerCase();
   const db=getDb();
   const [all,leads,campaigns,orders]=await Promise.all([
@@ -27,7 +29,9 @@ export async function GET(request:Request){
     interestCents:purchases.interestCents,totalCents:purchases.totalCents,utmSource:purchases.utmSource,utmMedium:purchases.utmMedium})
     .from(purchases).orderBy(desc(purchases.createdAt)),
   ]);
-  return Response.json({asaasEnvironment:getAsaasConfig().environment,campaigns,orders:orders.filter(o=>o.campaignId),totals:indicatorProofTotals(leads),indicators:all.filter(u=>!q || `${u.name} ${u.email} ${u.phone}`.toLowerCase().includes(q)).map(({passwordHash,...row})=>({...row,activated:!!passwordHash})),leads:leads.map(({publicCode,...row})=>({...row,indicatorName:all.find(u=>u.userId===row.indicatorUserId)?.name||"Indicador"}))}, {headers:privateResponseHeaders});
+  const [acceptanceRows]=await getMysqlPool().execute("SELECT user_id AS userId,terms_version AS version,terms_sha256 AS sha256,accepted_at AS acceptedAt FROM indicator_terms_acceptances WHERE terms_version=? AND terms_sha256=?",[INDICATOR_TERMS_VERSION,currentTermsHash()]);
+  const acceptanceMap=new Map((acceptanceRows as Array<{userId:string;version:string;sha256:string;acceptedAt:string}>).map(r=>[r.userId,r]));
+  return Response.json({termsVersion:INDICATOR_TERMS_VERSION,asaasEnvironment:getAsaasConfig().environment,campaigns,orders:orders.filter(o=>o.campaignId),totals:indicatorProofTotals(leads),indicators:all.filter(u=>!q || `${u.name} ${u.email} ${u.phone}`.toLowerCase().includes(q)).map(({passwordHash,...row})=>({...row,activated:!!passwordHash,termsAcceptedAt:acceptanceMap.get(row.userId)?.acceptedAt||null,termsAcceptedVersion:acceptanceMap.get(row.userId)?.version||null})),leads:leads.map(({publicCode,...row})=>({...row,indicatorName:all.find(u=>u.userId===row.indicatorUserId)?.name||"Indicador"}))}, {headers:privateResponseHeaders});
  }catch(error){return indicatedError(error)}
 }
 export async function POST(request:Request){

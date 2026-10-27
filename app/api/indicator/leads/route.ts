@@ -3,19 +3,20 @@ import { randomBytes } from "node:crypto";
 import { getDb } from "@/db";
 import { indicatorLeads, indicatorProfiles } from "@/db/schema";
 import { requireIndicator } from "@/lib/auth";
+import { requireIndicatorTerms } from "@/lib/indicator-terms-store";
 import { ensureIndicatorSchema } from "@/lib/indicator-schema";
 import { cleanPhone, cleanText, indicatedError, indicatorLink, privateResponseHeaders } from "@/lib/indicator-security";
 export const runtime="nodejs";
 export async function GET(request:Request){
  try{
-  const user=await requireIndicator(request);await ensureIndicatorSchema();
+  const user=await requireIndicator(request);await requireIndicatorTerms(user.id);await ensureIndicatorSchema();
   const leads=await getDb().select().from(indicatorLeads).where(eq(indicatorLeads.indicatorUserId,user.id)).orderBy(desc(indicatorLeads.createdAt));
   return Response.json({leads:leads.map(row=>({id:row.id,name:row.name,phone:row.phone,channel:row.channel,status:row.status,clickCount:row.clickCount,shareAttempts:row.shareAttempts,createdAt:row.createdAt,publicPath:indicatorLink(row.publicCode),receiptSentAt:row.receiptSentAt,receiptReview:row.receiptReview,hasReceipt:!!row.receiptId,receiptGuidance:row.verificationNotes,cashbackCents:row.cashbackCents,cashbackStatus:row.cashbackStatus}))},{headers:privateResponseHeaders});
  }catch(error){return indicatedError(error)}
 }
 export async function POST(request:Request){
  try{
-  const user=await requireIndicator(request);await ensureIndicatorSchema();
+  const user=await requireIndicator(request);await requireIndicatorTerms(user.id);await ensureIndicatorSchema();
   const data=await request.json().catch(()=>null);
   const name=cleanText(data?.name),phone=cleanPhone(data?.phone),channel=cleanText(data?.channel)||"WhatsApp";
   if(!name||!phone)return Response.json({error:"Informe nome e telefone do comprador."},{status:400});

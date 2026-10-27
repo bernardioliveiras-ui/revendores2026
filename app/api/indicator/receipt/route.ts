@@ -2,6 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { getDb, getMysqlPool } from "@/db";
 import { indicatorLeads } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
+import { requireIndicatorTerms } from "@/lib/indicator-terms-store";
 import { ensureIndicatorSchema } from "@/lib/indicator-schema";
 import { indicatedError, privateResponseHeaders } from "@/lib/indicator-security";
 import { MAX_RECEIPT_BYTES, safeReceiptMime } from "@/lib/indicated-security";
@@ -11,6 +12,7 @@ export async function POST(request:Request) {
  try{
   const user=await requireSession(request);
   if(user.role!=="indicator")throw new Error("FORBIDDEN");
+  await requireIndicatorTerms(user.id);
   await ensureIndicatorSchema();
   const length=Number(request.headers.get("content-length")||0);
   if(length>MAX_RECEIPT_BYTES+100_000)return Response.json({error:"Arquivo acima de 8 MB."},{status:413});

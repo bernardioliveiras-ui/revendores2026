@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { INDICATOR_TERMS,INDICATOR_TERMS_TITLE,INDICATOR_TERMS_VERSION,INDICATOR_CASHBACK_NOTICE } from "@/lib/indicator-terms";
+export const metadata={title:"Termos dos Indicadores · LORD NUTRI",robots:{index:false,follow:false}};
+export default function TermsIndicatorsPage(){return <main className="legal-page"><article className="legal-wrap"><Link href="/" className="legal-brand">LORD NUTRI</Link><h1>{INDICATOR_TERMS_TITLE}</h1><p className="legal-intro">Versão {INDICATOR_TERMS_VERSION} · Programa de divulgação independente</p><p className="terms-highlight">{INDICATOR_CASHBACK_NOTICE}</p>{INDICATOR_TERMS.map(s=><section key={s.heading}><h2>{s.heading}</h2><p>{s.text}</p></section>)}<p className="legal-note">Esta minuta deve ser validada por assessoria jurídica antes do uso comercial.</p></article></main>}

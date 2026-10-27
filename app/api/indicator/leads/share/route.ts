@@ -2,6 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { indicatorLeads } from "@/db/schema";
 import { requireIndicator } from "@/lib/auth";
+import { requireIndicatorTerms } from "@/lib/indicator-terms-store";
 import { ensureIndicatorSchema } from "@/lib/indicator-schema";
 import { cleanText, indicatedError, privateResponseHeaders } from "@/lib/indicator-security";
 
@@ -9,7 +10,7 @@ export const runtime="nodejs";
 /** Registra apenas a intenção de abrir o compartilhamento: não prova envio/entrega pelo WhatsApp. */
 export async function POST(request:Request){
  try{
-  const user=await requireIndicator(request);await ensureIndicatorSchema();
+  const user=await requireIndicator(request);await requireIndicatorTerms(user.id);await ensureIndicatorSchema();
   const data=await request.json().catch(()=>null),id=cleanText(data?.id,80);
   if(!id)return Response.json({error:"Indicação inválida."},{status:400});
   const db=getDb();
