@@ -45,3 +45,11 @@ A rotina faz backup `.jsonl.gz` antes de abrir a transação de exclusão e abor
 - Unitários: 5/5 cenários de valor sem frete/juros, múltiplas vendas no mesmo link, exclusão de não pagos, estorno e isolamento por influenciador.
 - Verificação sintática TypeScript/TSX das rotas e componentes alterados.
 - **Não executado**: teste end-to-end de cobrança Asaas e deploy Hostinger, pois credenciais e conexão de banco não foram disponibilizadas. O `npm ci` completo depende do ambiente que tenha acesso às dependências; rodar o build e a suíte completa após instalar.
+
+
+## Indicadores — criação e recuperação de senha (atualização v2.1)
+
+- **ADMIN/BKO > Central de vendas e influenciadores > + Influenciador**: ao cadastrar, o painel exibe um convite privado de ativação com validade de 24 horas. Envie o link ao parceiro individualmente. Ele define a própria senha com pelo menos 10 caracteres em `/ativar-cliente` e entra em `/entrar`.
+- **Indicador existente**: selecione seu cadastro no ranking e clique em **Gerar link para redefinir senha** ou **Gerar convite de ativação**, conforme o status. Use **Copiar convite** e envie apenas ao titular.
+- As senhas são armazenadas como hash, não são recuperáveis pelo ADMIN. Um novo convite invalida convites anteriores ainda não utilizados. Para uma conta já ativada, a senha antiga só deixa de funcionar depois que o titular ativa a nova; nesse momento, sessões existentes são encerradas.
+- A reemissão de convite não altera campanha, código de divulgação nem dados de vendas. A limpeza de testes é operação separada e apaga contas de indicadores; depois da limpeza, é preciso recadastrá-los.
