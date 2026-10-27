@@ -6,6 +6,8 @@ import { INDICATOR_TERMS_VERSION } from "@/lib/indicator-terms";
 import { authSessions, indicatedClients, indicatedInvitations, indicatorCampaigns, indicatorLeads, indicatorProfiles, purchases, users } from "@/db/schema";
 import { isAdminEmail, normalizeEmail, requireAdmin } from "@/lib/auth";
 import { ensureIndicatorSchema } from "@/lib/indicator-schema";
+import { ensureIndicatedSchema } from "@/lib/indicated-schema";
+import { indicatorDeletionBlockers } from "@/lib/indicator-admin-delete-guards.mjs";
 import { ensureCampaignSchema } from "@/lib/campaign-schema";
 import { issueIndicatedInvitation } from "@/lib/indicated-invitations";
 import { indicatorProofTotals } from "@/lib/indicator-accounting";
@@ -83,5 +85,79 @@ export async function PATCH(request:Request){
    await tx.update(users).set(patch).where(eq(users.id,userId));
    return Response.json({updated:true},{headers:privateResponseHeaders});
   });
+ }catch(error){return indicatedError(error)}
+}
+
+/**
+ * Exclusão individual de indicador sem histórico financeiro. Toda operação ocorre
+ * na mesma transação, com checagem de pedidos e FKs habilitadas. Exclusão ampla de
+ * dados de teste deve usar o script backup-first, não esta API.
+ */
+export async function DELETE(request:Request){
+ try{
+  const admin=await requireAdmin(request);
+  const origin=request.headers.get("origin");
+  const trustedHost=request.headers.get("host")||new URL(request.url).host;
+  let safeOrigin=false;
+  try { const parsed=new URL(origin||"");safeOrigin=parsed.host===trustedHost&&(parsed.protocol==="https:"||(parsed.protocol==="http:"&&/^(localhost|127\.0\.0\.1)(:|$)/.test(trustedHost))); }catch{}
+  if(!safeOrigin)return Response.json({error:"Origem não autorizada para exclusão."},{status:403,headers:privateResponseHeaders});
+  await ensureIndicatorSchema();await ensureIndicatedSchema();await ensureCampaignSchema();await ensureIndicatorTermsSchema();
+  const data=await request.json().catch(()=>null);
+  const userId=cleanText(data?.userId,80);
+  const email=normalizeEmail(data?.email);
+  if(!userId||!email||data?.confirm!=="EXCLUIR")return Response.json({error:"Informe o e-mail do indicador e confirme EXCLUIR."},{status:400,headers:privateResponseHeaders});
+  const pool=getMysqlPool();const conn=await pool.getConnection();
+  try{
+   await conn.beginTransaction();
+   const [found]=await conn.execute("SELECT id,email,role FROM users WHERE id=? FOR UPDATE",[userId]);
+   const account=(found as Array<{id:string;email:string;role:string}>)[0];
+   const [profile]=await conn.execute("SELECT user_id FROM indicator_profiles WHERE user_id=? LIMIT 1",[userId]);
+   if(!account||account.role!=="indicator"||account.email.toLowerCase()!==email||(profile as unknown[]).length===0){
+    await conn.rollback();return Response.json({error:"Indicador não encontrado ou e-mail divergente. Nenhum cadastro foi excluído."},{status:404,headers:privateResponseHeaders});
+   }
+   const [linkedOrders]=await conn.execute(`SELECT COUNT(*) AS n FROM purchases
+    WHERE user_id=? OR campaign_id IN (SELECT id FROM indicator_campaigns WHERE indicator_user_id=?)`,[userId,userId]);
+   const counts:Record<string,number>={purchases:Number((linkedOrders as Array<{n:number}>)[0]?.n||0)};
+   const checks:Record<string,string>={
+    affiliateReferrals:"SELECT COUNT(*) AS n FROM affiliate_referrals WHERE user_id=?",
+    affiliateCashbacks:"SELECT COUNT(*) AS n FROM affiliate_cashbacks WHERE reseller_user_id=?",
+    resellerProfiles:"SELECT COUNT(*) AS n FROM reseller_profiles WHERE user_id=?",
+    sales:"SELECT COUNT(*) AS n FROM sales WHERE user_id=?",
+    stockMovements:"SELECT COUNT(*) AS n FROM stock_movements WHERE user_id=?",
+    indicatorReceipts:"SELECT COUNT(*) AS n FROM indicator_receipts WHERE lead_id IN (SELECT id FROM indicator_leads WHERE indicator_user_id=?)",
+    indicatedReceipts:"SELECT COUNT(*) AS n FROM indicated_receipts WHERE indication_id IN (SELECT id FROM indicated_clients WHERE client_user_id=?)",
+    financialLeads:"SELECT COUNT(*) AS n FROM indicator_leads WHERE indicator_user_id=? AND (receipt_id IS NOT NULL OR receipt_review='APROVADO' OR cashback_status IN ('LIBERADO','PAGO') OR status='COMPROU')",
+    financialIndications:"SELECT COUNT(*) AS n FROM indicated_clients WHERE client_user_id=? AND (receipt_id IS NOT NULL OR receipt_review='APROVADO' OR cashback_status IN ('LIBERADO','PAGO') OR status='COMPROU')",
+   };
+   const [tables]=await conn.execute("SELECT TABLE_NAME AS name FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_TYPE='BASE TABLE'");
+   const present=new Set((tables as Array<{name:string}>).map(r=>r.name));
+   const relevant:Record<string,string>={affiliateReferrals:"affiliate_referrals",affiliateCashbacks:"affiliate_cashbacks",resellerProfiles:"reseller_profiles",sales:"sales",stockMovements:"stock_movements",indicatorReceipts:"indicator_receipts",indicatedReceipts:"indicated_receipts",financialLeads:"indicator_leads",financialIndications:"indicated_clients"};
+   for(const [key,query] of Object.entries(checks)){
+    if(!present.has(relevant[key]))continue;
+    const [rows]=await conn.execute(query,[userId]);counts[key]=Number((rows as Array<{n:number}>)[0]?.n||0);
+   }
+   const blockers=indicatorDeletionBlockers(counts);
+   if(blockers.length){await conn.rollback();return Response.json({error:`Não é possível excluir este indicador: ${blockers.join(", ")}. Preserve o histórico ou utilize a limpeza supervisionada com backup.`,code:"HAS_FINANCIAL_HISTORY",blockers},{status:409,headers:privateResponseHeaders});}
+   // Não remova nem desvincule pedidos. Dados financeiros nunca são apagados por esta rota.
+   await conn.execute("DELETE FROM indicator_terms_acceptances WHERE user_id=?",[userId]);
+   await conn.execute("DELETE FROM indicator_receipts WHERE lead_id IN (SELECT id FROM indicator_leads WHERE indicator_user_id=?)",[userId]);
+   await conn.execute("DELETE FROM indicator_leads WHERE indicator_user_id=?",[userId]);
+   if(present.has("indicated_receipts"))await conn.execute("DELETE FROM indicated_receipts WHERE indication_id IN (SELECT id FROM indicated_clients WHERE client_user_id=?)",[userId]);
+   if(present.has("indicated_clients"))await conn.execute("DELETE FROM indicated_clients WHERE client_user_id=?",[userId]);
+   await conn.execute("DELETE FROM indicated_invitations WHERE client_user_id=?",[userId]);
+   await conn.execute("DELETE FROM indicator_campaigns WHERE indicator_user_id=?",[userId]);
+   await conn.execute("DELETE FROM indicator_profiles WHERE user_id=?",[userId]);
+   await conn.execute("DELETE FROM auth_sessions WHERE user_id=?",[userId]);
+   const [result]=await conn.execute("DELETE FROM users WHERE id=? AND role='indicator' AND email=?",[userId,email]);
+   if((result as {affectedRows:number}).affectedRows!==1)throw Error("Indicador mudou durante a exclusão. A operação será revertida.");
+   await conn.commit();
+   console.info("bko_indicator_deleted",{actor:admin.id,indicatorId:userId,at:new Date().toISOString()});
+   return Response.json({deleted:true,userId},{headers:privateResponseHeaders});
+  }catch(error){
+   await conn.rollback().catch(()=>{});
+   if(error instanceof Error && "code" in error && ["ER_ROW_IS_REFERENCED_2","ER_ROW_IS_REFERENCED"].includes(String(error.code)))return Response.json({error:"O indicador possui registros vinculados a outro módulo. Nenhum dado foi apagado. Para zerar o ambiente inteiro, utilize a rotina supervisionada com backup."},{status:409,headers:privateResponseHeaders});
+   throw error;
+  }
+  finally{conn.release()}
  }catch(error){return indicatedError(error)}
 }
