@@ -17,6 +17,7 @@ const userColumns: Record<string, string> = {
 const purchaseColumns: Record<string, string> = {
   asaas_installment_id: "varchar(120) NULL",
   campaign_id: "varchar(80) NULL",
+  indicator_cashback_cents: "int NULL",
   asaas_verified_at: "varchar(40) NULL",
   carrier: "varchar(120) NULL",
   tracking_code: "varchar(120) NULL",

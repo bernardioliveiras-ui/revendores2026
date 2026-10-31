@@ -28,7 +28,7 @@ export async function GET(request:Request){
    db.select({id:purchases.id,orderNumber:purchases.orderNumber,campaignId:purchases.campaignId,
     name:purchases.name,kit:purchases.kit,createdAt:purchases.createdAt,asaasVerifiedAt:purchases.asaasVerifiedAt,
     paymentStatus:purchases.paymentStatus,productTotalCents:purchases.productTotalCents,shippingCents:purchases.shippingCents,
-    interestCents:purchases.interestCents,totalCents:purchases.totalCents,utmSource:purchases.utmSource,utmMedium:purchases.utmMedium})
+    interestCents:purchases.interestCents,totalCents:purchases.totalCents,indicatorCashbackCents:purchases.indicatorCashbackCents,utmSource:purchases.utmSource,utmMedium:purchases.utmMedium})
     .from(purchases).orderBy(desc(purchases.createdAt)),
   ]);
   const [acceptanceRows]=await getMysqlPool().execute("SELECT user_id AS userId,terms_version AS version,terms_sha256 AS sha256,accepted_at AS acceptedAt FROM indicator_terms_acceptances WHERE terms_version=? AND terms_sha256=?",[INDICATOR_TERMS_VERSION,currentTermsHash()]);

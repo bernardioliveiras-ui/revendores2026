@@ -1034,3 +1034,7 @@ body { overflow-x: clip; }
 .crm-v2 .crm-danger-outline{color:#a02a2a!important;border-color:#c77f7f!important;background:#fffafa!important}
 .crm-v2 .crm-danger-outline:hover:not(:disabled){background:#ffecec!important}
 .crm-v2 button:disabled{opacity:.55;cursor:not-allowed}
+
+/* BKO v2.5 — contagens de manutenção sem colunas vazias */
+.maintenance-counts>div{grid-template-columns:minmax(140px,1fr) auto}
+@media(max-width:720px){.maintenance-counts>div{grid-template-columns:1fr auto}.bko-tabs button{padding:10px 12px;font-size:12px}}

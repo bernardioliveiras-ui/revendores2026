@@ -17,9 +17,9 @@ export async function GET(request:Request) {
   if(!campaign)return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:null},{headers:privateResponseHeaders});
   const orders=await getDb().select({id:purchases.id,campaignId:purchases.campaignId,paymentStatus:purchases.paymentStatus,
     productTotalCents:purchases.productTotalCents,totalCents:purchases.totalCents,shippingCents:purchases.shippingCents,
-    interestCents:purchases.interestCents,asaasVerifiedAt:purchases.asaasVerifiedAt})
+    interestCents:purchases.interestCents,asaasVerifiedAt:purchases.asaasVerifiedAt,indicatorCashbackCents:purchases.indicatorCashbackCents})
     .from(purchases).where(eq(purchases.campaignId,campaign.id));
-  return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:{...summarizeCampaign(campaign,orders),publicPath:`/c/${campaign.publicCode}`}}, {headers:privateResponseHeaders});
+  return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:{...summarizeCampaign(campaign,orders),cashbackMode:campaign.cashbackMode,cashbackValue:campaign.cashbackValue,publicPath:`/c/${campaign.publicCode}`}}, {headers:privateResponseHeaders});
  }catch(error){return indicatedError(error)}
 }
 export async function POST(request:Request) {
