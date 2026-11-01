@@ -1,0 +1,20 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> mix10-pro-revendedores@0.2.2-lordnutri-final check:readiness
+> node scripts/check-readiness.mjs
+
+PENDENTE: DATABASE_HOST
+PENDENTE: DATABASE_NAME
+PENDENTE: DATABASE_USER
+PENDENTE: DATABASE_PASSWORD
+PENDENTE: ASAAS_API_KEY
+PENDENTE: ASAAS_WEBHOOK_TOKEN
+PENDENTE: ADMIN_EMAILS
+PENDENTE: AUTH_SECRET com pelo menos 32 caracteres
+PENDENTE: NEXT_PUBLIC_APP_URL HTTPS
+PENDENTE: ASAAS_ENVIRONMENT válido
+OBSERVAÇÃO: Asaas ainda não está em produção.
+PENDENTE: Boas-vindas por automação ou e-mail
+WhatsApp automático: não configurado; BKO pode enviar manualmente
+Logística externa: atualização manual pelo BKO
+Este diagnóstico não comprova conexão com MySQL, recebimento de pagamentos, envio de mensagens ou entrega.

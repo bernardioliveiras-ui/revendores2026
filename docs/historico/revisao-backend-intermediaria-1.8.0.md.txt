@@ -1,0 +1,107 @@
+# Revisão de backend — LORD NUTRI 1.8.0
+
+Revisão local em 09/10/2026, sem publicação, cobranças, envio de mensagens ou alteração de contas externas. Os testes executam o TypeScript entregue com doubles explícitos nas fronteiras MySQL/HTTP; criptografia, autenticação, decisões e serviços internos usam código real.
+
+## Defeitos reproduzidos e corrigidos
+
+| Fluxo | Evidência antes da correção | Correção |
+| --- | --- | --- |
+| Login simultâneo | Oito senhas erradas simultâneas recebiam 401; todas liam o mesmo contador e sobrescreviam incrementos. | Transação e lock da linha do usuário serializam leitura, verificação e atualização. Regressão: cinco 401, três 429; senha correta também bloqueada até expirar o lock. |
+| Verificação de senha | Um hash corrompido `scrypt$<salt>$!` decodificava digest vazio e aceitava qualquer senha. Não houve evidência de hashes desse tipo no banco do usuário. | Exige exatamente três campos, salt de 16 bytes e digest de 64 bytes; deriva sempre 64 bytes. |
+| Cookie de sessão inválido | Escape `%E0%A4%A` causava `URIError` antes da autorização. | Cookie inválido retorna sessão ausente, sem consulta ao banco. |
+| JSON de login | Payload `null` ou JSON malformado era tratado como erro interno 500. | Validação do corpo retorna 400, sem criar sessão. |
+| Download do manual | Falha de MySQL, CMS ou arquivo retornava 403, confundindo indisponibilidade com falta de permissão. | 401 para anônimo, 403 para restrições de acesso e 503 para dependência indisponível; sem PDF ou redirecionamento no erro. |
+| Origem do checkout | `landingPage` persistia todo o Referer, inclusive query e fragmento com possível dado pessoal. | Persiste somente origin + pathname de URL HTTP(S); URL inválida vira string vazia. Valores do pedido continuam calculados no servidor. |
+| Boas-vindas via Resend | O fallback não enviava a chave de idempotência já usada na automação externa, permitindo reenvio duplicado após falha transitória. | Envia chave estável por pedido/geração de senha. Nova geração de reset recebe outra chave. |
+
+Os testes de cada defeito acima falharam antes da respectiva mudança e passaram depois. O harness do manual também estava desatualizado: faltavam mocks de `content-studio` e `simple-pdf`. O teste agora executa o gerador real de PDF com uma imagem privada entregue no pacote, preservando os bloqueios de sessão, pagamento, kit, propriedade do pedido e troca de senha. Essa atualização do harness revelou a falha real de status HTTP; nenhuma regra de acesso foi afrouxada.
+
+## Fluxos verificados
+
+- Sessão do revendedor: HMAC no armazenamento, cookie HttpOnly/SameSite/Secure em HTTPS, rejeição de token adulterado, expiração, usuário inativo e revogação no logout.
+- Login: senha correta/incorreta, papel admin no retorno, lock concorrente, expiração do lock e troca de senha que grava scrypt e remove a flag com confirmação válida.
+- BKO: anônimo recebe 401 e revendedor recebe 403 antes de consultar esquema; compra pendente/cancelada não libera acesso ou estoque; aprovação repetida usa o provisionamento comum sem duplicar conta/estoque; pedido cancelado não é reativado.
+- Reset no BKO: altera hash, exige troca de senha, revoga todas as sessões, remove segredos anteriores e prepara uma nova geração de boas-vindas.
+- Provisionamento: pagamento pendente não libera acesso; chamadas concorrentes convergem em uma conta/entrada de estoque; recompra preserva senha existente.
+- Asaas: token obrigatório, JSON inválido, repetição de evento, conflito de identidade, pedido ainda não pronto com retry, recuperação de falha de provisionamento após pagamento gravado, confirmação atrasada de pedido cancelado e vínculo de parcelas.
+- Estorno: cancelamento antes de expedir retira estoque virtual uma vez; após expedição preserva estoque físico para conciliação do BKO.
+- Automação: pagamento pendente não envia acesso; falha conserva segredo e permite retry com a mesma chave; sucesso apaga segredo; recompra não inventa senha temporária.
+- Checkout/CEP: valor adulterado pelo cliente ignorado, parcelas/frete calculados no servidor, pagamento permanece pendente ao criar cobrança e erro do checkout não sobrescreve pagamento confirmado concorrentemente.
+- Logística/vendas: rastreio preservado, regressão logística rejeitada e vendas concorrentes não produzem estoque negativo.
+- Migração: aplicação aditiva e repetível no double do banco.
+
+## Resultado e limites
+
+- Suíte comportamental crítica: **86 testes, 86 passam, zero falhas**; código de saída 0.
+- TypeScript: `tsc --noEmit --incremental false`, código de saída 0.
+- Suíte completa neste instante da integração: **243 testes, 189 passam, 54 falham**; código de saída 1. Os nomes de todas as falhas constam abaixo. Não representam sucesso global da suíte.
+- As mensagens `TEST_PROVIDER_FAILURE` e `PROVISION_TEMPORARILY_UNAVAILABLE` nos logs são falhas injetadas deliberadamente nos testes de recuperação.
+- Não foram usados MySQL, Asaas, automação externa, Resend ou WhatsApp de produção. Locks e concorrência reais do MySQL, configuração de proxy/cookie, entrega de mensagens e repetição real de webhooks precisam de homologação com credenciais apropriadas.
+- A flag `mustChangePassword` é retornada pela sessão e bloqueia o manual. Não foi introduzido bloqueio global adicional de todas as APIs por essa flag; preservou-se a semântica existente.
+- Idempotência de email depende do provedor: o Resend retém a chave por 24 horas; não se afirma entrega exatamente uma vez por tempo ilimitado. Referência oficial: [Engineering Idempotency Keys](https://www.resend.com/blog/engineering-idempotency-keys).
+- Regras de cashback/qualificação de afiliado foram inspecionadas e testes existentes passaram; nenhum pagamento/repasse real foi executado.
+
+Comando da suíte comportamental:
+
+```bash
+node --test tests/automation-runtime.test.mjs tests/backoffice-runtime.test.mjs tests/session-runtime.test.mjs tests/auth-runtime.test.mjs tests/passwords.test.mjs tests/manual-access-runtime.test.mjs tests/launch-regressions.test.mjs tests/checkout-runtime.test.mjs tests/postal-code-runtime.test.mjs tests/portal-unauthorized-runtime.test.mjs tests/migration-runtime.test.mjs
+```
+
+## Falhas da suíte completa no momento desta revisão
+
+Predominam contratos estáticos de versões anteriores do Studio/editor retirado e de markup antigo; também existem expectativas anteriores de README/guia/versionamento. Mantidos explícitos para não ocultar resultados vermelhos. A integração final pode atualizar essa lista após concluir a remoção do Studio e os documentos de 1.8.0.
+
+- BKO exposes draft/publish studio for landing, manual, products and media
+- landing has runtime editable text/images and locked ANVISA process
+- Hostinger guide documents Node 22, additive startup and Asaas webhook
+- README describes the LORDNUTRI reseller modules and VSL
+- LP builds trust in LORD NUTRI before product benefits, model, calculations and kits
+- landing includes Google proof and institutional single-unit path
+- CMS exposes only layout-safe text leaves while keeping saved overrides compatible
+- 0.7 free canvas keeps the React landing base immutable and stores overlays separately
+- landing exposes named groups and dropzones across editable commercial blocks
+- builder keeps undo redo duplicate hide and responsive layout controls
+- landing page follows the approved briefing structure and VSL
+- institutional LORD NUTRI copy is corrected
+- CMS applies only layout-safe text and section-scoped stable keys
+- brand internals are not exposed as separate CMS fields
+- 0.5 builder exposes drag, duplicate, hide and block library
+- runtime materializes section and element clones and supports drag drop
+- server sanitizes page builder state
+- functional sections stay protected
+- legal pages exist and checkout footer links to them
+- 0.5.1 duplicates composite groups such as number plus label
+- 0.5.1 allows cross-section drag and free movement
+- 0.5.1 stores separate responsive layout for desktop tablet and mobile
+- 0.5.2 gives the 30 plus label block a permanent group identity
+- 0.5.2 discovers only explicit groups instead of guessing DOM containers
+- 0.5.2 uses pointer drag for element movement
+- 0.5.2 keeps responsive layout data and safe structured persistence
+- Studio Builder is wired into the BKO
+- public landing can switch to the published Studio document
+- protected business components remain React components
+- commercial and regulatory constants were preserved
+- Studio supports full visual operations without DOM-path identity
+- checkout is forced visible after user Studio styles and a missing slot is recreated
+- version is bumped to 1.6.0
+- Studio Flow 1.1 removes absolute-position editing
+- commercial and regulatory constants remain preserved
+- protected business components stay mounted and their structure is locked
+- Studio document is persisted as version 1.3 and free positioning remains blocked
+- server sanitizer drops legacy tablet Studio overrides
+- public landing has runtime safety recovery for checkout, simulator and Google reviews
+- Safe Flow keeps free X-Y positioning blocked and bumps Studio version
+- checkout has portal plus runtime fallback if the published slot does not mount
+- Studio stores version 1.5 and blocks geometry that causes layout drift
+- landing CMS persists copy plus bounded safe font scale only
+- runtime applies copy and safe font scale without visual-builder mutations
+- admin exposes safe A-/A+ sizing but no free layout builder controls
+- dynamic functional widgets are protected while static review copy stays editable
+- font-size control is proportional and bounded to preserve responsive briefing
+- 0.5.4 exposes the gold announcement as a whole builder section
+- 0.5.4 keeps announcement and header in the structural catalog and blocks accidental duplication
+- 0.5.4 migrates newly discovered structural blocks into natural DOM order
+- visual builder supports undo redo, style copy and live preview
+- brand tokens render in any editable text
+- landing draft stores safe typography and section order
+- sections can be reordered like slides
