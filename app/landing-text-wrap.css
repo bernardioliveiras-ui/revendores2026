@@ -1,5 +1,0 @@
-/* Edited words may wrap inside their original containers. No visual settings are editable. */
-.lnr-page :is(h1,h2,h3,h4,p,a,label,.lnr-eyebrow,.lnr-trust-card,.lnr-kit dt,.lnr-benefit-card){overflow-wrap:anywhere}
-.lnr-page .lnr-login{white-space:normal;min-width:0;max-width:calc(100% - 90px)}
-.lnr-page .lnr-header-inner{height:auto;min-height:78px}
-@media(max-width:700px){.lnr-page .lnr-header-inner{min-height:70px}}
