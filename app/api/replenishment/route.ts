@@ -3,7 +3,7 @@ import { getDb } from "@/db";
 import { purchases, resellerProfiles } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { createCheckoutCustomer, createPayment, AsaasRequestError } from "@/lib/asaas";
-import { KITS, getKit } from "@/lib/kits";
+import { REPLENISHMENT_KITS, getReplenishmentKit } from "@/lib/kits";
 import { calculateInstallment, calculateShipping, getInstallmentOptions, MAX_CARD_INSTALLMENTS, type PaymentMethod, type ShippingType } from "@/lib/checkout/pricing";
 import { ensureOperationalSchema } from "@/lib/runtime-schema";
 
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     await ensureOperationalSchema();
     const [profile] = await getDb().select().from(resellerProfiles).where(eq(resellerProfiles.userId, user.id)).limit(1);
     if (!profile) return Response.json({ error: "Endereço do revendedor não encontrado. Fale com o BKO." }, { status: 409 });
-    const kits = Object.values(KITS).map((kit) => {
+    const kits = Object.values(REPLENISHMENT_KITS).map((kit) => {
       const shipping = calculateShipping(profile.postalCode, kit.boxes) || [];
       return {
         id: kit.id, label: kit.label, boxes: kit.boxes, productTotalCents: kit.totalCents,
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     await ensureOperationalSchema();
     const body = await request.json().catch(() => null) as Record<string, unknown> | null;
     if (!body) return Response.json({ error: "Dados inválidos." }, { status: 400 });
-    const kit = getKit(body.kit);
+    const kit = getReplenishmentKit(body.kit);
     if (!kit) return Response.json({ error: "Escolha um kit válido." }, { status: 400 });
     const shippingType = clean(body.shippingType, 20) as ShippingType;
     const paymentMethod = clean(body.paymentMethod, 20) as PaymentMethod;

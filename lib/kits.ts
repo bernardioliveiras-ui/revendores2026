@@ -23,3 +23,13 @@ export function getKit(value: unknown) {
   if (value === "kit20" || value === "kit50") return KITS[value];
   return null;
 }
+
+// Kit exclusivo para reposição no portal; não alterar os kits públicos da landing page.
+export const REPLENISHMENT_KITS = {
+  ...KITS,
+  kit100: { id: "kit100", label: "KIT100", boxes: 100, unitPriceCents: 6790, totalCents: 679000, positioning: "Reposição de 100 unidades" },
+} as const;
+export function getReplenishmentKit(value: unknown) {
+  if (value === "kit20" || value === "kit50" || value === "kit100") return REPLENISHMENT_KITS[value];
+  return null;
+}
