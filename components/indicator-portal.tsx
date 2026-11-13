@@ -25,6 +25,7 @@ export function IndicatorPortal() {
   if(!r.ok)throw Error(b.error||"Não foi possível carregar a campanha.");
   setAsaasEnvironment(b.asaasEnvironment||"sandbox");setCampaign(b.campaign||null);if(b.campaign)setCampaignName(b.campaign.name);
  },[]);
+ useEffect(()=>{const timer=setInterval(()=>{if(document.visibilityState==="visible")void load().catch(()=>{});},30000);const refresh=()=>void load().catch(()=>{});window.addEventListener("focus",refresh);return()=>{clearInterval(timer);window.removeEventListener("focus",refresh);}},[load]);
  useEffect(()=>{void load().catch(e=>setNotice(e.message)).finally(()=>setLoading(false))},[load]);
  async function save(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);setNotice("");
   try{const r=await fetch("/api/indicator/campaign",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({name:campaignName})}),b=await r.json();if(!r.ok)throw Error(b.error||"Não foi possível salvar.");await load();setNotice("Campanha salva. Seus links permanentes estão disponíveis.")}

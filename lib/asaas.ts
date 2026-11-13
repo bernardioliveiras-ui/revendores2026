@@ -4,7 +4,7 @@ type AsaasEnvironment = "sandbox" | "production";
 type AsaasErrorBody = { errors?: Array<{ code?: string; description?: string }> };
 
 export type AsaasCustomer = { id: string };
-export type AsaasPayment = { id: string; status?: string; invoiceUrl?: string; externalReference?: string; installment?: string };
+export type AsaasPayment = { id: string; status?: string; customer?: string; value?: number; deleted?: boolean; invoiceUrl?: string; externalReference?: string; installment?: string };
 
 export class AsaasRequestError extends Error {
   constructor(message: string, readonly status: number) {
@@ -29,6 +29,7 @@ async function asaasRequest<T>(path: string, init: RequestInit = {}) {
   if (!config.apiKey) throw new AsaasRequestError("A conta Asaas ainda não foi conectada.", 503);
   const response = await fetch(`${config.baseUrl}${path}`, {
     ...init,
+    cache: "no-store",
     signal: init.signal || AbortSignal.timeout(20000),
     headers: {
       "content-type": "application/json",

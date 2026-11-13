@@ -6,7 +6,7 @@ const root = new URL('..', import.meta.url).pathname;
 const read = (p) => readFile(join(root,p),'utf8');
 
 test('Asaas webhook requires configured token and records events idempotently', async () => {
-  const src = await read('app/api/billing/webhook/route.ts');
+  const src = await read('lib/billing-webhook.ts');
   assert.match(src,/ASAAS_WEBHOOK_TOKEN/);
   assert.match(src,/asaas-access-token/);
   assert.match(src,/asaasEvents/);
@@ -14,7 +14,7 @@ test('Asaas webhook requires configured token and records events idempotently', 
 });
 
 test('paid Asaas events mark paid and provision through the shared transactional service', async () => {
-  const src = await read('app/api/billing/webhook/route.ts');
+  const src = await read('lib/billing-webhook.ts');
   assert.match(src,/PAYMENT_RECEIVED/);
   assert.match(src,/PAYMENT_CONFIRMED/);
   assert.match(src,/paymentStatus:status/);

@@ -87,6 +87,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
   const [error, setError] = useState("");
   const [quoteError, setQuoteError] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [retailStep, setRetailStep] = useState(1);
   const selected = salesCode ? getRetailProduct(quantity)! : display[kit];
 
   const activeQuote = quote?.kit.id === (salesCode ? RETAIL_SKU : kit) && (!salesCode || quote.kit.boxes === quantity) && quote.postalCode === postalCode.replace(/\D/g, "") ? quote : null;
@@ -164,9 +165,43 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
     if (postalCode.replace(/\D/g, "").length === 8) void loadQuote(postalCode, id);
   }
 
+  function validateRetailStep(step: number) {
+    const fields = formRef.current?.querySelectorAll<HTMLInputElement | HTMLSelectElement>(`[data-purchase-step="${step}"] input, [data-purchase-step="${step}"] select`);
+    for (const field of fields || []) {
+      if (!field.checkValidity()) {
+        setRetailStep(step);
+        requestAnimationFrame(() => field.reportValidity());
+        return false;
+      }
+    }
+    return true;
+  }
+  function continueRetail() {
+    if (!validateRetailStep(retailStep)) return;
+    if (retailStep === 2 && !selectedShipping) {
+      setQuoteError("Calcule o frete pelo CEP para continuar.");
+      return;
+    }
+    setRetailStep(current => Math.min(3,current+1));
+    void sendActivity("contact");
+  }
+  function changeRetailQuantity(next: number) {
+    if (busy || next < 1 || next > MAX_RETAIL_BOXES) return;
+    setQuantity(next);
+    invalidateQuote();
+    setQuoteError("");
+    setInstallments(1);
+    recordActivity();
+    if (retailStep === 3) setRetailStep(2);
+    if (postalCode.replace(/\D/g,"").length === 8) void loadQuote(postalCode,kit,next);
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitInFlight.current) return;
+    if (salesCode) {
+      if (retailStep < 3) { continueRetail(); return; }
+      if (![1,2,3].every(validateRetailStep)) return;
+    }
     setError("");
     if (!selectedShipping) {
       setError(landingText(texts, "checkout.shippingRequired"));
@@ -223,6 +258,111 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
       submitInFlight.current = false;
     }
   }
+
+  if (salesCode) return (
+    <form ref={formRef} className="purchase-layout" noValidate onSubmit={submit}
+      onChange={recordActivity} onBlur={()=>void sendActivity("contact")}>
+      <aside className="purchase-summary" aria-label="Resumo da compra">
+        <h2>Resumo da compra</h2>
+        <div className="purchase-item">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/mix10-box-transparent-v3.png" alt="Caixa MIX10 PRO" width={80} height={94} />
+          <div><h3>{quantity === 1 ? "Uma caixa" : `${quantity} caixas`}</h3>
+            <span>30 cápsulas por caixa</span><p>MIX10 PRO original da LORD NUTRI. Suplemento alimentar em cápsulas.</p></div>
+        </div>
+        <div className="purchase-summary-row"><span>Quantidade selecionada</span>
+          <div className="purchase-counter">
+            <button type="button" onClick={()=>changeRetailQuantity(quantity-1)} disabled={busy||quantity===1} aria-label="Diminuir quantidade">−</button>
+            <output aria-label="Quantidade de caixas">{quantity}</output>
+            <button type="button" onClick={()=>changeRetailQuantity(quantity+1)} disabled={busy||quantity===MAX_RETAIL_BOXES} aria-label="Aumentar quantidade">+</button>
+          </div>
+        </div>
+        <div className="purchase-summary-row"><span>Produtos</span><strong>{money(selected.totalCents)}</strong></div>
+        <div className="purchase-summary-row"><span>Frete</span><span>{selectedShipping?money(selectedShipping.priceCents):"Calculado ao inserir CEP"}</span></div>
+        {paymentMethod==="credit"?<div className="purchase-summary-row"><span>Encargos do cartão</span><span>{money(feeCents)}</span></div>:null}
+        <div className="purchase-total" aria-live="polite"><span>Total{!selectedShipping?<small>Frete a calcular</small>:null}</span>
+          <strong>{paymentMethod==="credit"&&selectedInstallment?`${selectedInstallment.installments}x de ${money(selectedInstallment.installmentValueCents)}`:`1x de ${money(finalCents)}`}</strong>
+        </div>
+        {paymentMethod==="credit"&&installments>1?<p className="purchase-total-detail">Total parcelado {money(finalCents)}</p>:null}
+        <div className="purchase-benefits">
+          <p><span aria-hidden="true">✓</span> Entrega calculada pelo seu CEP</p>
+          <p><span aria-hidden="true">✓</span> Suporte da equipe LORD NUTRI</p>
+          <p><span aria-hidden="true">✓</span> Pagamento por PIX ou cartão</p>
+        </div>
+        <a className="purchase-institutional" href="https://mix10pro.com.br/lp-v2" target="_blank" rel="noopener noreferrer">Institucional · Conheça mais sobre o MIX10 PRO ↗</a>
+      </aside>
+      <div className="purchase-form-panel">
+        <h1>Falta pouco para concluir sua compra</h1>
+        <section className={`purchase-step ${retailStep===1?"is-open":""}`}>
+          <button type="button" className="purchase-step-heading" onClick={()=>setRetailStep(1)} disabled={busy} aria-expanded={retailStep===1}>
+            <span>1</span> Identificação
+          </button>
+          <fieldset data-purchase-step="1" hidden={retailStep!==1} disabled={busy}>
+            <legend className="sr-only">Identificação</legend>
+            <div className="purchase-fields">
+              <label className="purchase-wide">Nome completo<input required name="name" autoComplete="name" placeholder="Digite seu nome" minLength={2} maxLength={120}/></label>
+              <label>E-mail<input required type="email" name="email" autoComplete="email" placeholder="seu@email.com" maxLength={254}/></label>
+              <label>WhatsApp<input required name="phone" type="tel" autoComplete="tel" placeholder="(00) 00000-0000" minLength={10} maxLength={20}/></label>
+              <label className="purchase-wide">CPF ou CNPJ<input required name="cpfCnpj" inputMode="numeric" placeholder="000.000.000-00" minLength={11} maxLength={18}/></label>
+            </div>
+            <p className="purchase-privacy">A equipe LORD NUTRI poderá usar seu telefone para ajudar com a compra. <a href="/politica-de-privacidade" target="_blank" rel="noreferrer">Privacidade</a></p>
+            <button className="purchase-continue" type="button" onClick={continueRetail}>Continuar para entrega</button>
+          </fieldset>
+        </section>
+        <section className={`purchase-step ${retailStep===2?"is-open":""}`}>
+          <button type="button" className="purchase-step-heading" disabled={busy} aria-expanded={retailStep===2}
+            onClick={()=>{if(validateRetailStep(1))setRetailStep(2)}}><span>2</span> Entrega</button>
+          <fieldset data-purchase-step="2" hidden={retailStep!==2} disabled={busy}>
+            <legend className="sr-only">Endereço de entrega</legend>
+            <div className="purchase-fields">
+              <label className="purchase-wide">CEP<div className="purchase-postal">
+                <input required name="postalCode" inputMode="numeric" autoComplete="postal-code" placeholder="00000-000" value={postalCode} pattern="[0-9]{5}-?[0-9]{3}" onChange={event=>{
+                  const value=event.target.value.replace(/\D/g,"").slice(0,8);
+                  setPostalCode(value.length>5?`${value.slice(0,5)}-${value.slice(5)}`:value);
+                  invalidateQuote();setAddress({street:"",district:"",city:"",state:""});setQuoteError("");
+                }} onBlur={()=>{if(postalCode.replace(/\D/g,"").length===8&&!activeQuote)void loadQuote(postalCode)}}/>
+                <button type="button" disabled={quoteBusy} onClick={()=>void loadQuote(postalCode)}>{quoteBusy?"Calculando…":"Calcular frete"}</button>
+              </div></label>
+              <label className="purchase-wide">Endereço<input required name="street" autoComplete="address-line1" value={address.street} onChange={e=>setAddress(a=>({...a,street:e.target.value}))}/></label>
+              <label>Número<input required name="number" maxLength={32}/></label>
+              <label>Complemento<input name="complement" autoComplete="address-line2" maxLength={160}/></label>
+              <label className="purchase-wide">Bairro<input required name="district" value={address.district} onChange={e=>setAddress(a=>({...a,district:e.target.value}))}/></label>
+              <label>Cidade<input required name="city" autoComplete="address-level2" value={address.city} onChange={e=>setAddress(a=>({...a,city:e.target.value}))}/></label>
+              <label>UF<input required name="state" autoComplete="address-level1" minLength={2} maxLength={2} value={address.state} onChange={e=>setAddress(a=>({...a,state:e.target.value.toUpperCase()}))}/></label>
+            </div>
+            {quoteError?<p className="purchase-error" role="alert">{quoteError}</p>:null}
+            {activeQuote?<div className="purchase-options">{activeQuote.shippingOptions.map(option=>
+              <label key={option.id} className={shippingType===option.id?"selected":""}>
+                <input type="radio" name="shippingChoice" checked={shippingType===option.id} onChange={()=>{setShippingType(option.id);setInstallments(1)}}/>
+                <span>{option.label}<small>{option.deliveryTime}</small></span><strong>{money(option.priceCents)}</strong>
+              </label>)}</div>:null}
+            <button className="purchase-continue" type="button" disabled={quoteBusy||!selectedShipping} onClick={continueRetail}>Continuar para pagamento</button>
+          </fieldset>
+        </section>
+        <section className={`purchase-step ${retailStep===3?"is-open":""}`}>
+          <button type="button" className="purchase-step-heading" disabled={busy} aria-expanded={retailStep===3} onClick={()=>{
+            if(!validateRetailStep(1)||!validateRetailStep(2))return;
+            if(!selectedShipping){setRetailStep(2);setQuoteError("Calcule o frete para continuar.");return;}
+            setRetailStep(3);
+          }}><span>3</span> Pagamento</button>
+          <fieldset data-purchase-step="3" hidden={retailStep!==3} disabled={busy}>
+            <legend className="sr-only">Pagamento</legend>
+            <div className="purchase-options">
+              <label className={paymentMethod==="pix"?"selected":""}><input type="radio" name="billingChoice" checked={paymentMethod==="pix"} onChange={()=>{setPaymentMethod("pix");setInstallments(1)}}/><span>PIX<small>QR Code e copia e cola no Asaas</small></span></label>
+              <label className={paymentMethod==="credit"?"selected":""}><input type="radio" name="billingChoice" checked={paymentMethod==="credit"} onChange={()=>setPaymentMethod("credit")}/><span>Cartão de crédito<small>De 1x a 6x</small></span></label>
+            </div>
+            {paymentMethod==="credit"&&selectedShipping?<label className="purchase-installments">Parcelamento<select value={installments} onChange={e=>setInstallments(Number(e.target.value))}>
+              {selectedShipping.credit.map(option=><option value={option.installments} key={option.installments}>{option.installments}x de {money(option.installmentValueCents)} · total {money(option.chargedValueCents)}</option>)}
+            </select></label>:null}
+            <label className="purchase-consent"><input type="checkbox" name="acceptedTerms" value="yes" required/><span>Li e aceito os <a href="/termos-de-uso" target="_blank" rel="noreferrer">Termos de Uso</a> e a <a href="/politica-de-privacidade" target="_blank" rel="noreferrer">Política de Privacidade</a>.</span></label>
+            <button className="purchase-continue" disabled={busy||quoteBusy||!selectedShipping}>{busy?"Abrindo pagamento…":`Pagar ${money(finalCents)} no Asaas`}</button>
+          </fieldset>
+        </section>
+        {error?<p className="purchase-error" role="alert">{error}</p>:null}
+        <div className="purchase-security"><span>Pagamento protegido pelo Asaas</span><strong>PIX <i>·</i> Cartão de crédito</strong></div>
+      </div>
+    </form>
+  );
 
   return (
     <form ref={formRef} onChange={recordActivity} onBlur={salesCode ? ()=>void sendActivity("contact") : undefined} className="checkout-card" data-cms-text-protected="1" onSubmit={submit}>

@@ -30,13 +30,13 @@ test('boas-vindas da recompra permitem conta existente sem senha provisória',as
 });
 function webhook(initial, overrides={}){
  const s=memoryDb(schema,initial);let releases=0;
- const {POST}=load('app/api/billing/webhook/route.ts',{'next/server':{after:()=>{}},'@/lib/purchase-measurement':{enqueueConfirmedPurchase:async()=>{},runPurchaseMeasurementQueue:async()=>{}},'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/auth':{safeHashEqual:(a,b)=>a===b},'@/lib/env':{getOptionalEnv:()=> 'secret'},'@/lib/mysql-errors':{isMysqlDuplicateKeyError:()=>false},'@/lib/access-provisioning':{provisionPaidPurchase:async()=>{releases++}},'@/lib/welcome-notification':{sendWelcome:async()=>({sent:true})},'@/lib/campaign-schema':{ensureCampaignSchema:async()=>{}},'@/lib/indicator-cashback.mjs':{calculateInfluencerCashback:()=>1500},'@/lib/purchase-fields':{operationalPurchaseFields:{}},'@/lib/asaas':{getPayment:async()=>({})},...overrides});
- const call=(body,token='secret')=>POST(new Request('https://example.test/api/billing/webhook',{method:'POST',headers:{'asaas-access-token':token,'content-type':'application/json'},body:typeof body==='string'?body:JSON.stringify(body)}));
+ const {handleBillingWebhook:POST}=load('lib/billing-webhook.ts',{'next/server':{after:()=>{}},'@/lib/purchase-measurement':{enqueueConfirmedPurchase:async()=>{},runPurchaseMeasurementQueue:async()=>{}},'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/auth':{safeHashEqual:(a,b)=>a===b},'@/lib/env':{getOptionalEnv:()=> 'secret'},'@/lib/mysql-errors':{isMysqlDuplicateKeyError:()=>false},'@/lib/access-provisioning':{provisionPaidPurchase:async()=>{releases++}},'@/lib/welcome-notification':{sendWelcome:async()=>({sent:true})},'@/lib/campaign-schema':{ensureCampaignSchema:async()=>{}},'@/lib/indicator-cashback.mjs':{calculateInfluencerCashback:()=>1500},'@/lib/purchase-fields':{operationalPurchaseFields:{}},'@/lib/asaas':{getPayment:async()=>({})},...overrides});
+ const call=(body,token='secret',channel='all')=>POST(new Request('https://example.test/api/billing/webhook',{method:'POST',headers:{'asaas-access-token':token,'content-type':'application/json'},body:typeof body==='string'?body:JSON.stringify(body)}),channel);
  return {...s,call,get releases(){return releases}};
 }
 const event={id:'evt1',event:'PAYMENT_CONFIRMED',payment:{id:'pay1'}};
-test('webhook desconhecido pede reenvio sem consumir o evento',async()=>{
- const s=webhook({});assert.equal((await s.call(event)).status,503);assert.equal(s.rows.asaasEvents.length,0);
+test('webhook sem pedido nem referência é ignorado sem bloquear fila',async()=>{
+ const s=webhook({});assert.equal((await s.call(event)).status,200);assert.equal(s.rows.asaasEvents.length,0);
 });
 test('webhook inválido retorna 400 e token errado retorna 401',async()=>{
  const s=webhook({});assert.equal((await s.call('{')).status,400);assert.equal((await s.call(event,'wrong')).status,401);
@@ -124,3 +124,14 @@ test('pedido avulso pago não cria acesso nem estoque de revendedor', async () =
  assert.equal(s.rows.users.length, 0);
  assert.equal(s.rows.stockMovements.length, 0);
 });
+
+ test('rotas separadas ignoram o outro canal sem consumir evento',async()=>{
+  for(const [kit,channel] of [['mix10-unit','revendedores'],['kit20','influenciadores']]){
+   const s=webhook({purchases:[{...paid,kit,paymentStatus:'payment_pending'}]});
+   const r=await s.call(event,'secret',channel);assert.equal(r.status,200);assert.equal((await r.json()).ignored,true);assert.equal(s.rows.asaasEvents.length,0);assert.equal(s.rows.purchases[0].paymentStatus,'payment_pending');
+  }
+ });
+ test('evento com referência local ainda sem payment ID continua pedindo reenvio',async()=>{
+  const s=webhook({purchases:[{...paid,asaasPaymentId:null,paymentStatus:'payment_pending'}]});
+  assert.equal((await s.call({...event,payment:{id:'pay1',externalReference:'p1'}})).status,503);
+ });

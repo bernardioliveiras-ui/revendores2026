@@ -78,7 +78,7 @@ test('ativação de convite bloqueia quarto papel e reuso de token',async()=>{
   for(const role of ['admin','reseller','client_indicated','indicator'])await call(role);
 });
 test('3 funções centrais permanecem: Asaas provê acessos, BKO envia boas-vindas, campanha sem comprovante',()=>{
-  const webhook=read('app/api/billing/webhook/route.ts');
+  const webhook=read('lib/billing-webhook.ts');
   const portal=read('app/painel/portal-client.tsx');
   const influencer=read('components/indicator-portal.tsx');
   const checkout=read('app/api/public/checkout/route.ts');
@@ -87,6 +87,6 @@ test('3 funções centrais permanecem: Asaas provê acessos, BKO envia boas-vind
   assert.match(portal,/Marcar boas-vindas enviadas/);
   assert.match(portal,/Abrir WhatsApp/);
   assert.match(influencer,/require|termos|terms/);
-  assert.match(influencer,/não precisam de comprovantes|sem enviar comprovantes/i);
+  assert.doesNotMatch(influencer,/não precisam de comprovantes|sem enviar comprovantes/i); // Texto removido a pedido; confirmação segue no webhook.
   assert.match(checkout,/asaas|Asaas/i);
 });
