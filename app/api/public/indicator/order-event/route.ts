@@ -26,10 +26,13 @@ export async function POST(request: Request) {
     const [existing] = await db.select().from(indicatorExternalOrders)
       .where(eq(indicatorExternalOrders.externalOrderId,data.externalOrderId)).limit(1);
     // Reenvios de pedidos antigos são aceitos mesmo que a campanha tenha sido pausada depois.
-    const campaign = existing
-      ? await db.select().from(indicatorCampaigns).where(eq(indicatorCampaigns.id,existing.campaignId)).limit(1).then(rows=>rows[0])
-      : await resolveCampaign(data.campaignCode);
-    if (!campaign || ("publicCode" in campaign ? campaign.publicCode : campaign.code) !== data.campaignCode)
+    // A resolução pública devolve apenas id/code/name: carregamos a campanha completa
+    // para manter cashbackMode e cashbackValue disponíveis e corretamente tipados.
+    const resolvedCampaignId = existing?.campaignId ?? (await resolveCampaign(data.campaignCode))?.id;
+    const [campaign] = resolvedCampaignId
+      ? await db.select().from(indicatorCampaigns).where(eq(indicatorCampaigns.id, resolvedCampaignId)).limit(1)
+      : [];
+    if (!campaign || campaign.publicCode !== data.campaignCode)
       return Response.json({error:'Campanha não encontrada.'},{status:404});
     if (existing && (existing.campaignId!==campaign.id || existing.asaasPaymentId!==data.asaasPaymentId ||
         existing.productTotalCents!==data.productTotalCents))
