@@ -6,6 +6,21 @@ export async function ensureCampaignSchema() {
   if (!pending) pending = (async () => {
     await ensureOperationalSchema();
     const pool=getMysqlPool();
+    // Hostinger can start Next directly, bypassing the startup migration script.
+    await pool.query(`CREATE TABLE IF NOT EXISTS asaas_events (
+      event_id varchar(180) NOT NULL PRIMARY KEY,
+      event_type varchar(100) NOT NULL,
+      purchase_id varchar(80) NULL,
+      payment_id varchar(120) NULL,
+      received_at varchar(40) NOT NULL,
+      KEY idx_asaas_event_payment (payment_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+    const [eventColumns] = await pool.query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='asaas_events'");
+    const eventNames = new Set((eventColumns as Array<{COLUMN_NAME:string}>).map(row=>row.COLUMN_NAME));
+    if (!eventNames.has("purchase_id")) {
+      try { await pool.query("ALTER TABLE asaas_events ADD COLUMN purchase_id varchar(80) NULL"); }
+      catch(error) { if (!(error instanceof Error && "code" in error && error.code === "ER_DUP_FIELDNAME")) throw error; }
+    }
     await pool.query(`CREATE TABLE IF NOT EXISTS indicator_campaigns (
       id varchar(80) NOT NULL PRIMARY KEY, indicator_user_id varchar(80) NOT NULL,
       name varchar(120) NOT NULL, public_code varchar(64) NOT NULL,

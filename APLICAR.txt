@@ -1,0 +1,4 @@
+Substitua os dois arquivos da pasta lib no GitHub, salve e publique a versao nova na Hostinger. Depois clique em Sincronizar com Asaas para MIXMWFD7KYD9F90.
+A atualizacao cria asaas_events caso ausente e acrescenta purchase_id caso ausente, sem apagar registros. Requer permissoes CREATE/ALTER ja usadas nas preparacoes do sistema.
+O log recebido mostra falha na leitura dessa tabela, mas nao inclui o codigo MySQL: esta correcao cobre a lacuna de preparacao identificada no codigo e passa a registrar code/errno/sqlState para diagnosticar outras causas. Se persistir, envie as novas linhas asaas_webhook_failed.
+Build e 28 testes direcionados aprovados. Banco real ainda nao acessado.

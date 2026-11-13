@@ -105,7 +105,9 @@ export async function handleBillingWebhook(request: Request, channel: BillingCha
     // Another transaction may have claimed the event ID: ask Asaas to retry,
     // so the next request checks the persisted identity and completes the work.
     if(isMysqlDuplicateKeyError(error)) return Response.json({error:"Evento em processamento. Reenviar."},{status:503});
-    console.error("asaas_webhook_failed",error);
+    const cause = error instanceof Error && error.cause ? error.cause : error;
+    const details = cause as {code?:string;errno?:number;sqlState?:string};
+    console.error("asaas_webhook_failed", {code:details?.code,errno:details?.errno,sqlState:details?.sqlState}, error);
     return Response.json({error:"Não foi possível concluir o evento. Reenviar."},{status:500});
   }
 }
