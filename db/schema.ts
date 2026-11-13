@@ -179,6 +179,24 @@ export const indicatorCampaigns = mysqlTable("indicator_campaigns", {
   updatedAt: varchar("updated_at", { length: 40 }).notNull(),
 }, t => [uniqueIndex("idx_indicator_campaign_code").on(t.publicCode), uniqueIndex("idx_indicator_campaign_owner").on(t.indicatorUserId)]);
 
+/** Pedidos feitos na loja externa, atribuídos por callback servidor-servidor. */
+export const indicatorExternalOrders = mysqlTable("indicator_external_orders", {
+  id: varchar("id", { length: 80 }).primaryKey(),
+  externalOrderId: varchar("external_order_id", { length: 120 }).notNull(),
+  campaignId: varchar("campaign_id", { length: 80 }).notNull(),
+  asaasPaymentId: varchar("asaas_payment_id", { length: 120 }).notNull(),
+  paymentStatus: varchar("payment_status", { length: 30 }).notNull().default("payment_pending"),
+  productTotalCents: int("product_total_cents").notNull(),
+  indicatorCashbackCents: int("indicator_cashback_cents"),
+  asaasVerifiedAt: varchar("asaas_verified_at", { length: 40 }),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+  updatedAt: varchar("updated_at", { length: 40 }).notNull(),
+}, t => [
+  uniqueIndex("idx_external_order_id").on(t.externalOrderId),
+  uniqueIndex("idx_external_asaas_payment").on(t.asaasPaymentId),
+  index("idx_external_campaign_id").on(t.campaignId),
+]);
+
 export const indicatorLeads = mysqlTable("indicator_leads", {
   id: varchar("id", { length: 80 }).primaryKey(),
   indicatorUserId: varchar("indicator_user_id", { length: 80 }).notNull(),

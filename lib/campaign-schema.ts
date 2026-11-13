@@ -16,6 +16,21 @@ export async function ensureCampaignSchema() {
       UNIQUE KEY idx_indicator_campaign_owner (indicator_user_id),
       CONSTRAINT fk_indicator_campaign_owner FOREIGN KEY (indicator_user_id) REFERENCES users(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS indicator_external_orders (
+      id varchar(80) NOT NULL PRIMARY KEY,
+      external_order_id varchar(120) NOT NULL,
+      campaign_id varchar(80) NOT NULL,
+      asaas_payment_id varchar(120) NOT NULL,
+      payment_status varchar(30) NOT NULL DEFAULT 'payment_pending',
+      product_total_cents int NOT NULL,
+      indicator_cashback_cents int NULL,
+      asaas_verified_at varchar(40) NULL,
+      created_at varchar(40) NOT NULL,
+      updated_at varchar(40) NOT NULL,
+      UNIQUE KEY idx_external_order_id (external_order_id),
+      UNIQUE KEY idx_external_asaas_payment (asaas_payment_id),
+      KEY idx_external_campaign_id (campaign_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
     const [cols] = await pool.execute("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='indicator_campaigns'");
     const names = new Set((cols as Array<{COLUMN_NAME:string}>).map(r=>r.COLUMN_NAME));
     for (const [field,definition] of Object.entries({cashback_mode:"varchar(12) NOT NULL DEFAULT 'fixed'",cashback_value:"int NOT NULL DEFAULT 1500"})) {

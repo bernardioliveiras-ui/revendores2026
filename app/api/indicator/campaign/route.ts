@@ -2,7 +2,7 @@ import { getAsaasConfig } from "@/lib/asaas";
 import { randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { indicatorCampaigns, purchases } from "@/db/schema";
+import { indicatorCampaigns, indicatorExternalOrders, purchases } from "@/db/schema";
 import { requireIndicator } from "@/lib/auth";
 import { requireIndicatorTerms } from "@/lib/indicator-terms-store";
 import { ensureCampaignSchema } from "@/lib/campaign-schema";
@@ -19,7 +19,11 @@ export async function GET(request:Request) {
     productTotalCents:purchases.productTotalCents,totalCents:purchases.totalCents,shippingCents:purchases.shippingCents,
     interestCents:purchases.interestCents,asaasVerifiedAt:purchases.asaasVerifiedAt,indicatorCashbackCents:purchases.indicatorCashbackCents})
     .from(purchases).where(eq(purchases.campaignId,campaign.id));
-  return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:{...summarizeCampaign(campaign,orders),cashbackMode:campaign.cashbackMode,cashbackValue:campaign.cashbackValue,publicPath:`/c/${campaign.publicCode}`}}, {headers:privateResponseHeaders});
+  const externalOrders=await getDb().select({campaignId:indicatorExternalOrders.campaignId,
+    paymentStatus:indicatorExternalOrders.paymentStatus,productTotalCents:indicatorExternalOrders.productTotalCents,
+    asaasVerifiedAt:indicatorExternalOrders.asaasVerifiedAt,indicatorCashbackCents:indicatorExternalOrders.indicatorCashbackCents})
+    .from(indicatorExternalOrders).where(eq(indicatorExternalOrders.campaignId,campaign.id));
+  return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:{...summarizeCampaign(campaign,[...orders,...externalOrders.map(order=>({...order,totalCents:order.productTotalCents,shippingCents:0,interestCents:0}))]),cashbackMode:campaign.cashbackMode,cashbackValue:campaign.cashbackValue,publicPath:`/c/${campaign.publicCode}`}}, {headers:privateResponseHeaders});
  }catch(error){return indicatedError(error)}
 }
 export async function POST(request:Request) {
