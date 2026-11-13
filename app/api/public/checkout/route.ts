@@ -1,4 +1,6 @@
 import { campaignCookieFromRequest, resolveCampaign, validCampaignCode } from "@/lib/campaigns";
+import { ensureCheckoutActivity } from "@/lib/checkout-activity";
+import { getMysqlPool } from "@/db";
 import { capturePurchaseMeasurement } from "@/lib/purchase-measurement";
 import { lookupPostalCode, PostalLookupError } from "@/lib/postal-code";
 import { and, eq } from "drizzle-orm";
@@ -94,6 +96,15 @@ export async function POST(request: Request) {
       createdAt: now, updatedAt: now,
     });
 
+    if (retail && typeof payload.checkoutSessionId === "string" && /^[0-9a-f-]{36}$/.test(payload.checkoutSessionId)) {
+      try {
+        await ensureCheckoutActivity();
+        await getMysqlPool().execute(
+          "UPDATE checkout_activity SET purchase_id=?,name=?,phone=?,started_at=COALESCE(started_at,?),last_seen_at=? WHERE id=? AND campaign_id=? AND purchase_id IS NULL",
+          [purchaseId,data.name,data.phone,now,now,payload.checkoutSessionId,campaign!.id],
+        );
+      } catch { console.error("checkout_activity_link_failed"); }
+    }
     const measurement = await capturePurchaseMeasurement(purchaseId, payload.measurement, request).catch(() => null);
     const customer = await createCheckoutCustomer({ purchaseId, name: data.name, cpfCnpj: data.cpfCnpj, email: data.email, phone: data.phone });
     const asaasPayment = await createPayment({

@@ -9,7 +9,7 @@ test('Termos têm versão, texto integral, autonomia e privacidade',()=>{
  assert.match(indicatorTermsPlainText(),/sem exclusividade/);
  assert.match(indicatorTermsPlainText(),/vínculo depende da realidade/);
  assert.match(indicatorTermsPlainText(),/endereço IP/);
- assert.match(indicatorTermsPlainText(),/sextas-feiras/);
+ assert.match(indicatorTermsPlainText(),/sexta-feira da semana seguinte/);
  assert.match(indicatorTermsPlainText(),/sem frete e juros/);
  assert.match(INDICATOR_CASHBACK_NOTICE,/R\$ 100,00/);
 });

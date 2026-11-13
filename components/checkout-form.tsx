@@ -37,6 +37,41 @@ const display = {
 } as const;
 
 export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCode?:string}={}) {
+  const activityId = useRef("");
+  const activityStarted = useRef(false);
+  const activityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  async function sendActivity(event: "visit" | "start" | "contact") {
+    if (!salesCode || !activityId.current) return;
+    const form = formRef.current ? new FormData(formRef.current) : null;
+    try {
+      await fetch("/api/public/checkout-activity", {
+        method: "POST", headers: { "content-type": "application/json" }, keepalive: true, signal: AbortSignal.timeout(4000),
+        body: JSON.stringify({ id: activityId.current, code: salesCode, event,
+          ...(event === "contact" ? { name: form?.get("name"), phone: form?.get("phone") } : {}) }),
+      });
+    } catch { /* Falha de contagem não interrompe a compra. */ }
+  }
+  useEffect(() => {
+    if (!salesCode) return;
+    try {
+      const key = "mix10-checkout-" + salesCode;
+      const previous = JSON.parse(sessionStorage.getItem(key) || "null");
+      const id = previous && Date.now()-previous.time < 30*60000 ? previous.id : crypto.randomUUID();
+      activityId.current = id;
+      sessionStorage.setItem(key,JSON.stringify({ id,time:Date.now() }));
+    } catch { activityId.current = crypto.randomUUID(); }
+    void sendActivity("visit");
+    return () => { if (activityTimer.current) clearTimeout(activityTimer.current); };
+  // A session belongs to the campaign in the URL.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salesCode]);
+  function recordActivity() {
+    if (!salesCode) return;
+    if (!activityStarted.current) { activityStarted.current=true; void sendActivity("start"); }
+    if (activityTimer.current) clearTimeout(activityTimer.current);
+    activityTimer.current=setTimeout(()=>void sendActivity("contact"),700);
+  }
   const quoteSequence = useRef(0);
   const quoteController = useRef<AbortController | null>(null);
   const submitInFlight = useRef(false);
@@ -159,13 +194,14 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
       paymentMethod,
       installments: paymentMethod === "credit" ? installments : 1,
       campaignCode,
-      ...(salesCode ? { salesCode, quantity } : {}),
+      ...(salesCode ? { salesCode, quantity, checkoutSessionId: activityId.current } : {}),
       utmSource: attribution.utmSource || "",
       utmMedium: attribution.utmMedium || "",
       utmCampaign: attribution.utmCampaign || "",
       utmContent: attribution.utmContent || "",
     };
     try {
+      if (salesCode) await sendActivity("contact");
       const measurement = await checkoutMeasurement();
       const response = await fetch("/api/public/checkout", {
         method: "POST",
@@ -175,6 +211,9 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || landingText(texts, "checkout.paymentUnavailable"));
+      if (salesCode) {
+        try { sessionStorage.removeItem("mix10-checkout-" + salesCode); } catch { /* storage may be disabled */ }
+      }
       rememberCheckoutMeasurement(body.measurement);
       trackCheckout("order_created", { kit: salesCode ? RETAIL_SKU : kit, totalCents: finalCents, orderNumber: body.orderNumber });
       window.location.href = body.invoiceUrl;
@@ -186,7 +225,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
   }
 
   return (
-    <form className="checkout-card" data-cms-text-protected="1" onSubmit={submit}>
+    <form ref={formRef} onChange={recordActivity} onBlur={salesCode ? ()=>void sendActivity("contact") : undefined} className="checkout-card" data-cms-text-protected="1" onSubmit={submit}>
       {salesCode ? <>
         <h3>Seu pedido</h3>
         <div className="form-grid">
@@ -227,6 +266,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
         <small>{salesCode ? "O pagamento é concluído no Asaas." : landingText(texts, "checkout.017")}</small>
       </div>
 
+      {salesCode?<p className="text-sm">Se precisar de ajuda para concluir, a LORD NUTRI e o influenciador deste link poderão entrar em contato pelo telefone informado. <a href="/politica-de-privacidade" className="underline">Privacidade</a></p>:null}
       <div className="form-grid">
         <label>{landingText(texts, "checkout.018")}<input required name="name" autoComplete="name" /></label>
         <label>{landingText(texts, "checkout.019")}<input required type="email" name="email" autoComplete="email" /></label>

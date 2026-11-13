@@ -34,3 +34,29 @@ Documentação de referência
 - [Eventos de cobrança do Asaas](https://docs.asaas.com/docs/payment-events)
 - [Cobrança Pix](https://docs.asaas.com/docs/cobrancas-via-pix)
 - [Cobrança de cartão com fatura hospedada](https://docs.asaas.com/docs/cobrancas-via-cartao-de-credito)
+
+
+## Atualização do funil e cashback
+
+O BKO consulta todos os acessos registrados. O influenciador consulta somente a própria campanha pela API autenticada. A tabela adicional `checkout_activity` é criada automaticamente no primeiro uso, com os mesmos privilégios de criação já usados nas migrações. Os painéis exibem até 1.000 acessos recentes.
+
+Acesso é uma sessão da aba que carregou o checkout, mesmo entrando diretamente em `/comprar?venda=...`. Uma sessão é reutilizada durante 30 minutos. Checkout iniciado é a interação com o formulário. Carrinho abandonado é um checkout iniciado há pelo menos 30 minutos sem nova atividade e sem pagamento confirmado ou cancelamento. O telefone preenchido permite contato manual pelo WhatsApp. Pedidos pagos deixam a recuperação na próxima atualização do painel. A medição depende do JavaScript e da conexão do navegador.
+
+O texto de privacidade do formulário informa o atendimento pela LORD NUTRI e pelo influenciador. Os termos de participação passam à versão 2026-11-13.1, com novo aceite para os influenciadores. Quando o saldo liberado atingir R$ 100 numa sexta-feira, o montante fica previsto para a sexta-feira da semana seguinte, no horário de São Paulo.
+
+### API de preparação do repasse
+
+`POST /api/admin/cashback/prepare`, com sessão autenticada de administrador.
+
+Exemplo de corpo JSON
+
+```json
+{"amountCents":10000,"availableAt":"2026-11-13T10:00:00-03:00"}
+```
+
+A resposta é uma simulação com valor, data prevista, `mode=preview` e `automaticTransfersEnabled=false`. O valor informado deve corresponder ao saldo liberado conferido pelo BKO. Esta API prepara o calendário. A ativação dos repasses requer conciliação de valores liberados e pagos, cadastro PIX, registro persistente de lotes e idempotência, integração de transferências e webhooks. Transferências e reservas de saldo ficam fora desta prévia.
+
+O Asaas executa split quando recebe cada cobrança. Para acumular o mínimo e pagar na sexta-feira, o mecanismo adequado é transferência PIX agendada com `scheduleDate`.
+
+- https://docs.asaas.com/docs/split-faq
+- https://docs.asaas.com/docs/transfers-faq
