@@ -40,7 +40,7 @@ export function IndicatorPortal() {
  async function decline(){await fetch("/api/auth/logout",{method:"POST"});location.href="/entrar"}
  function link(path?:string){return path?`${location.origin}${path}`:""}
  async function copy(path:string){try{await navigator.clipboard.writeText(link(path));setNotice("Link da campanha copiado.")}catch{setNotice("Não foi possível copiar. Selecione e copie o endereço.")}}
- function share(){window.open(`https://wa.me/?text=${encodeURIComponent(`Conheça a LORD NUTRI: ${link(campaign?.salesPath)}`)}`,"_blank","noopener,noreferrer")}
+ function share(){window.open(`https://wa.me/?text=${encodeURIComponent(`Conheça o MIX10 PRO da LORD NUTRI: ${link(campaign?.salesPath)}`)}`,"_blank","noopener,noreferrer")}
  return <main className="indicator-shell"><header className="indicator-top"><Link href="/" aria-label="LORD NUTRI"><BrandLogo compact/></Link><button className="secondary-button compact" onClick={()=>void fetch("/api/auth/logout",{method:"POST"}).then(()=>location.href="/entrar")}>Sair</button></header>
   {!terms?.accepted?(!loading&&terms?<div className="indicator-content terms-workspace"><span className="section-kicker">LORD NUTRI · PARTICIPAÇÃO INDEPENDENTE</span><h1>Termos e condições do indicador</h1>
    <p>Olá, {name}. Leia as condições antes de acessar seu link de divulgação. O aceite é obrigatório, não vem marcado e será registrado com data, versão e prova técnica.</p>

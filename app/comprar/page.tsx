@@ -1,5 +1,22 @@
-import { privatePageMetadata } from "@/lib/seo";
-export const metadata = { ...privatePageMetadata, title: 'Comprar MIX10 PRO' };
+import type { Metadata } from "next";
+import { privatePageMetadata, getSiteUrl } from "@/lib/seo";
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ venda?: string | string[] }> }): Promise<Metadata> {
+  const { venda } = await searchParams;
+  if (typeof venda !== "string" || !/^[a-f0-9]{32}$/.test(venda)) return { ...privatePageMetadata, title: "Comprar MIX10 PRO" };
+  const title = "MIX10 PRO | LORD NUTRI";
+  const description = "MIX10 PRO com 30 cápsulas por caixa. Escolha a quantidade, calcule o frete e compre com PIX ou cartão.";
+  const image = new URL("/checkout-mix10/mix10-compartilhar.png", getSiteUrl()).href;
+  return {
+    ...privatePageMetadata,
+    title: { absolute: title }, description, keywords: ["MIX10 PRO", "LORD NUTRI"],
+    openGraph: {
+      title, description, siteName: "LORD NUTRI", type: "website", locale: "pt_BR",
+      url: new URL("/v/" + venda, getSiteUrl()).href,
+      images: [{ url: image, width: 1448, height: 1086, alt: "MIX10 PRO da LORD NUTRI" }],
+    },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+  };
+}
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { LegalFooter } from "@/components/legal-footer";

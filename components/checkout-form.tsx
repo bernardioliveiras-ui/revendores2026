@@ -2,7 +2,7 @@
 import { landingText, type LandingTexts } from "@/lib/landing-texts";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { getRetailProduct, MAX_RETAIL_BOXES, RETAIL_SKU, RETAIL_UNIT_CENTS, type KitId } from "@/lib/kits";
+import { getRetailProduct, MAX_RETAIL_BOXES, RETAIL_SKU, type KitId } from "@/lib/kits";
 import { checkoutAttribution, checkoutMeasurement, rememberCheckoutMeasurement, trackCheckout } from "@/lib/measurement-browser";
 
 type Installment = {
@@ -228,7 +228,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
     <form ref={formRef} onChange={recordActivity} onBlur={salesCode ? ()=>void sendActivity("contact") : undefined} className="checkout-card" data-cms-text-protected="1" onSubmit={submit}>
       {salesCode ? <>
         <h3>Seu pedido</h3>
-        <div className="form-grid">
+        <div className="retail-quantity">
           <label>Quantidade de caixas
             <select className="mt-2 block min-h-11 w-full rounded-xl border border-[#cbdad2] bg-white px-3 text-base" value={quantity} disabled={busy} onChange={event => {
               const next = Number(event.target.value);
@@ -242,7 +242,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
               )}
             </select>
           </label>
-          <p>{money(RETAIL_UNIT_CENTS)} por caixa</p>
+
         </div>
       </> : <>
       <div className="section-kicker">{landingText(texts, "checkout.004")}</div>

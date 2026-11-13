@@ -1083,3 +1083,27 @@ body { overflow-x: clip; }
  .retail-header-label{font-size:11px}
  .retail-order .checkout-card{padding:18px 14px}
 }
+
+.retail-order .retail-quantity{display:block;margin-bottom:16px}
+.retail-order .retail-quantity label{display:block;font-size:13px;font-weight:700;color:#294c3b}
+.retail-order .retail-quantity select{width:100%;margin-top:8px;min-height:46px;padding:10px 12px;border:1px solid #acc9b9;border-radius:12px;background:#fff;color:#183a2b}
+.retail-order .checkout-card h3{margin:0 0 22px}
+.retail-order .form-grid{gap:16px}
+.retail-order .checkout-summary{margin-top:0;margin-bottom:22px;padding:18px}
+.retail-order .checkout-card>p{line-height:1.5;margin:0 0 16px;color:#435e50}
+.retail-order .form-grid label{line-height:1.4}
+.retail-order .form-grid input{min-height:46px}
+.retail-order .consent{align-items:flex-start}
+.retail-order .consent input{flex:0 0 18px}
+.retail-order .secondary-button{margin-bottom:14px}
+@media(min-width:901px){
+ .retail-grid{grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);column-gap:28px;row-gap:20px}
+ .retail-order .checkout-card{padding:28px}
+}
+@media(max-width:600px){
+ .retail-product-image{max-height:310px;object-fit:contain;background:#dbe3dd}
+ .retail-product-copy{padding:18px}
+ .retail-product-copy h1{font-size:30px;line-height:1.1}
+ .retail-order .checkout-breakdown{gap:10px 12px}
+ .retail-order .checkout-breakdown .checkout-total-value{font-size:22px}
+}
