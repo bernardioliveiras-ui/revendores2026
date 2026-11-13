@@ -38,11 +38,11 @@ Documentação de referência
 
 ## Atualização do funil e cashback
 
-O BKO consulta todos os acessos registrados. O influenciador consulta somente a própria campanha pela API autenticada. A tabela adicional `checkout_activity` é criada automaticamente no primeiro uso, com os mesmos privilégios de criação já usados nas migrações. Os painéis exibem até 1.000 acessos recentes.
+O BKO consulta todos os acessos registrados. O influenciador acompanha o link, vendas e cashback. Os contatos dos clientes e a recuperação ficam exclusivos do BKO. O endpoint antigo de funil do influenciador retorna 403. A tabela adicional `checkout_activity` é criada automaticamente no primeiro uso, com os mesmos privilégios de criação já usados nas migrações. Os painéis exibem até 1.000 acessos recentes.
 
 Acesso é uma sessão da aba que carregou o checkout, mesmo entrando diretamente em `/comprar?venda=...`. Uma sessão é reutilizada durante 30 minutos. Checkout iniciado é a interação com o formulário. Carrinho abandonado é um checkout iniciado há pelo menos 30 minutos sem nova atividade e sem pagamento confirmado ou cancelamento. O telefone preenchido permite contato manual pelo WhatsApp. Pedidos pagos deixam a recuperação na próxima atualização do painel. A medição depende do JavaScript e da conexão do navegador.
 
-O texto de privacidade do formulário informa o atendimento pela LORD NUTRI e pelo influenciador. Os termos de participação passam à versão 2026-11-13.1, com novo aceite para os influenciadores. Quando o saldo liberado atingir R$ 100 numa sexta-feira, o montante fica previsto para a sexta-feira da semana seguinte, no horário de São Paulo.
+O texto de privacidade do formulário informa o atendimento pela equipe LORD NUTRI. Os botões de suporte abrem o WhatsApp (11) 93492-4155 com o código do link para a equipe identificar a campanha. O BKO exibe o nome do influenciador, a campanha e os dados preenchidos do cliente. Os termos de participação passam à versão 2026-11-13.1, com novo aceite para os influenciadores. Quando o saldo liberado atingir R$ 100 numa sexta-feira, o montante fica previsto para a sexta-feira da semana seguinte, no horário de São Paulo.
 
 ### API de preparação do repasse
 

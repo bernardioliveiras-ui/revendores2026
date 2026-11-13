@@ -15,6 +15,9 @@ export function RetailCheckout({ code }: { code: string }) {
           <div className="flex items-center gap-3"><Image src="/brand/lordnutri-mark.png" alt="LORD NUTRI" width={56} height={56} className="h-14 w-14 object-contain" /><span className="text-xl font-bold tracking-wider">LORD NUTRI</span></div>
           <span className="text-sm font-semibold text-[#c5e9d5]">Checkout MIX10 PRO</span>
         </header>
+        <a className="mb-5 flex min-h-12 items-center justify-center rounded-xl border border-[#8ec5a9] bg-[#e7f3e9] px-4 py-3 text-center text-sm font-semibold text-[#06452f]"
+          href={`https://wa.me/5511934924155?text=${encodeURIComponent("Olá, equipe LORD NUTRI! Preciso de ajuda com minha compra do MIX10 PRO. Código do link: " + code)}`}
+          target="_blank" rel="noopener noreferrer">Suporte LORD NUTRI pelo WhatsApp · (11) 93492-4155</a>
         <div className="grid items-start gap-6 lg:grid-cols-[1fr_1fr] lg:gap-9">
           <section aria-labelledby="mix10-title" className="min-w-0 overflow-hidden rounded-3xl border border-[#dbe4dd] bg-[#e7f3e9] text-[#102b21]">
             <Image src={media + "/produto.webp"} alt="Embalagens MIX10 PRO da Lord Nutri" width={1448} height={1086}
@@ -26,17 +29,17 @@ export function RetailCheckout({ code }: { code: string }) {
               <a href="#pedido" className="mt-4 inline-block font-semibold underline underline-offset-4 lg:hidden">Escolher quantidade</a>
             </div>
           </section>
-          <section id="pedido" aria-label="Dados e pagamento do pedido" className="retail-order min-w-0 scroll-mt-4 text-[#102b21]">
+          <section id="pedido" aria-label="Dados e pagamento do pedido" className="retail-order min-w-0 scroll-mt-4 text-[#102b21] lg:col-start-2 lg:row-start-1 lg:row-span-2">
             <CheckoutForm salesCode={code} />
           </section>
+          <section aria-label="Conheça a fórmula MIX10 PRO" className="min-w-0 overflow-hidden rounded-3xl border border-[#96c3a9] bg-[#e7f3e9] lg:col-start-1 lg:row-start-2">
+            <a href={media + "/formula.webp"} target="_blank" rel="noopener noreferrer" aria-label="Abrir flyer da fórmula em tamanho maior">
+              <Image src={media + "/formula.webp"} alt="Flyer MIX10 PRO com os ingredientes da fórmula" width={1024} height={1536}
+                sizes="(max-width: 1023px) 100vw, 540px" className="block h-auto w-full" />
+            </a>
+          </section>
         </div>
-        <section className="mt-10 grid items-start gap-6 lg:grid-cols-2">
-          <details className="overflow-hidden rounded-2xl border border-[#dbe4dd] bg-[#e7f3e9] text-[#102b21] p-5">
-            <summary className="cursor-pointer text-lg font-bold">Conheça a fórmula</summary>
-            <a className="mt-3 inline-block text-sm font-semibold underline" href={media + "/formula.webp"} target="_blank" rel="noreferrer">Abrir infográfico em tamanho maior</a>
-            <Image src={media + "/formula.webp"} alt="Infográfico com os ingredientes do MIX10 PRO" width={1024} height={1536}
-              sizes="(max-width: 1023px) 100vw, 540px" className="mt-4 h-auto w-full rounded-xl" />
-          </details>
+        <section className="mt-8">
           <details className="rounded-2xl border border-[#dbe4dd] bg-[#e7f3e9] text-[#102b21] p-5">
             <summary className="cursor-pointer text-lg font-bold">Vídeos e depoimento</summary>
             <div className="mt-4 grid gap-5 sm:grid-cols-2">

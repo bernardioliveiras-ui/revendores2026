@@ -2,17 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {load} from './runtime-loader.mjs';
 
-test('influenciador consulta somente sua campanha e aceita termos antes de ler',async()=>{
- let owner,terms;
+test('influenciador não acessa dados de clientes pelo endpoint antigo',async()=>{
  const {GET}=load('app/api/indicator/funnel/route.ts',{
   '@/lib/auth':{requireIndicator:async()=>({id:'owner-1'})},
-  '@/lib/indicator-terms-store':{requireIndicatorTerms:async id=>{terms=id}},
-  '@/lib/indicator-security':{privateResponseHeaders:{'cache-control':'no-store'},indicatedError:()=>new Response(null,{status:403})},
-  '@/lib/checkout-activity':{readCheckoutFunnel:async id=>{owner=id;return []}},
+  '@/lib/indicator-security':{privateResponseHeaders:{'cache-control':'no-store'},indicatedError:()=>new Response(null,{status:401})},
  });
  const response=await GET(new Request('https://example.test?ownerId=other'));
- assert.equal(response.status,200);
- assert.equal(owner,'owner-1');assert.equal(terms,'owner-1');
+ assert.equal(response.status,403);
+ const body=await response.json();
+ assert.equal(body.activity,undefined);
 });
 test('atividade rejeita origem externa e não consulta campanha',async()=>{
  let called=false;

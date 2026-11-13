@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-type Activity = {id:string;campaignName:string;name:string;phone:string;startedAt:string|null;
+type Activity = {id:string;campaignName:string;campaignCode:string;influencerName:string;name:string;phone:string;startedAt:string|null;
   lastSeenAt:string;createdAt:string;paymentStatus:string|null;paymentMethod:string|null;asaasPaymentId:string|null;orderNumber:string|null};
 
 export function CheckoutFunnel({ admin = false }: { admin?: boolean }) {
@@ -45,7 +45,7 @@ export function CheckoutFunnel({ admin = false }: { admin?: boolean }) {
       {abandoned.map(row=>{
         const url=contact(row);
         return <article key={row.id} className="crm-v2-order"><div><strong>{row.name || "Visitante sem nome"}</strong>
-          <small>{row.campaignName} · {row.orderNumber || "Pedido em preenchimento"}</small></div>
+          <small>{row.influencerName} · {row.campaignName} · {row.orderNumber || "Pedido em preenchimento"}</small><small>Código do influenciador · {row.campaignCode}</small></div>
           {url?<a className="secondary-button compact" href={url} target="_blank" rel="noopener noreferrer">Chamar no WhatsApp</a>:<small>Telefone ainda não informado</small>}
         </article>;
       })}

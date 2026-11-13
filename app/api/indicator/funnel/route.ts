@@ -1,12 +1,11 @@
 import { requireIndicator } from "@/lib/auth";
-import { requireIndicatorTerms } from "@/lib/indicator-terms-store";
 import { indicatedError, privateResponseHeaders } from "@/lib/indicator-security";
-import { readCheckoutFunnel } from "@/lib/checkout-activity";
 
+/** Endpoint antigo mantido com acesso negado para remover exposição de contatos. */
 export async function GET(request: Request) {
   try {
-    const user = await requireIndicator(request);
-    await requireIndicatorTerms(user.id);
-    return Response.json({ activity: await readCheckoutFunnel(user.id) }, { headers: privateResponseHeaders });
+    await requireIndicator(request);
+    return Response.json({ error: "O atendimento ao cliente é realizado pela equipe LORD NUTRI." },
+      { status: 403, headers: privateResponseHeaders });
   } catch (error) { return indicatedError(error); }
 }

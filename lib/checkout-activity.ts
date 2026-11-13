@@ -19,11 +19,12 @@ export async function ensureCheckoutActivity() {
 export async function readCheckoutFunnel(ownerId?: string) {
   await ensureCheckoutActivity();
   const [rows] = await getMysqlPool().execute(`SELECT a.id, a.campaign_id AS campaignId,
-    c.name AS campaignName, a.name, a.phone, a.started_at AS startedAt,
+    c.name AS campaignName, c.public_code AS campaignCode, u.name AS influencerName, a.name, a.phone, a.started_at AS startedAt,
     a.last_seen_at AS lastSeenAt, a.created_at AS createdAt,
     p.payment_status AS paymentStatus, p.payment_method AS paymentMethod,
     p.asaas_payment_id AS asaasPaymentId, p.order_number AS orderNumber
     FROM checkout_activity a INNER JOIN indicator_campaigns c ON c.id=a.campaign_id
+    INNER JOIN users u ON u.id=c.indicator_user_id
     LEFT JOIN purchases p ON p.id=a.purchase_id
     ${ownerId ? "WHERE c.indicator_user_id=?" : ""}
     ORDER BY a.created_at DESC LIMIT 1000`, ownerId ? [ownerId] : []);

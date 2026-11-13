@@ -266,7 +266,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
         <small>{salesCode ? "O pagamento é concluído no Asaas." : landingText(texts, "checkout.017")}</small>
       </div>
 
-      {salesCode?<p className="text-sm">Se precisar de ajuda para concluir, a LORD NUTRI e o influenciador deste link poderão entrar em contato pelo telefone informado. <a href="/politica-de-privacidade" className="underline">Privacidade</a></p>:null}
+      {salesCode?<p className="text-sm">Se precisar de ajuda para concluir, a equipe LORD NUTRI poderá entrar em contato pelo telefone informado. <a href="/politica-de-privacidade" className="underline">Privacidade</a></p>:null}
       <div className="form-grid">
         <label>{landingText(texts, "checkout.018")}<input required name="name" autoComplete="name" /></label>
         <label>{landingText(texts, "checkout.019")}<input required type="email" name="email" autoComplete="email" /></label>
@@ -345,6 +345,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
       ) : null}
 
       <label className="consent"><input required type="checkbox" name="acceptedTerms" value="yes" /> {landingText(texts, "checkout.047")}</label>
+      {salesCode?<a className="secondary-button full mt-4" target="_blank" rel="noopener noreferrer" href={`https://wa.me/5511934924155?text=${encodeURIComponent("Olá, equipe LORD NUTRI! Preciso de ajuda para preencher ou finalizar minha compra do MIX10 PRO. Código do link: " + salesCode)}`}>Precisa de ajuda? Fale com a LORD NUTRI</a>:null}
       {error ? <div className="form-error">{error}</div> : null}
       <button className="primary-button full" disabled={busy || quoteBusy || !selectedShipping}>{busy ? landingText(texts, "checkout.048") : selectedShipping ? <>{salesCode ? "Pagar no Asaas" : landingText(texts,"checkout.paymentCta")} · {money(finalCents)}</> : landingText(texts, "checkout.049")}</button>
     </form>

@@ -1,5 +1,4 @@
 "use client";
-import { CheckoutFunnel } from "@/components/checkout-funnel";
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
@@ -54,15 +53,15 @@ export function IndicatorPortal() {
      <div className="crm-actions"><button className="primary-button" type="submit" disabled={!termsCheck||termsBusy}>{termsBusy?"Registrando aceite…":"Aceitar e acessar painel"}</button><button className="secondary-button" type="button" onClick={()=>void decline()}>Não aceito · Sair</button></div>
     </form>
    </section>
-  </div>:<div className="indicator-content"><p role="status">{notice||"Verificando seus termos…"}</p></div>):<div className="indicator-content"><span className="section-kicker">LORD NUTRI · INFLUENCIADORES</span><h1>Minha campanha</h1><p>Olá, {name}. Use o link de vendas para levar clientes direto ao checkout e acompanhe os pagamentos confirmados pelo Asaas, sem enviar comprovantes.</p>
+  </div>:<div className="indicator-content"><p role="status">{notice||"Verificando seus termos…"}</p></div>):<div className="indicator-content"><span className="section-kicker">LORD NUTRI · INFLUENCIADORES</span><h1>Minha campanha</h1><p>Olá, {name}. Use seu link de vendas para levar clientes direto ao checkout.</p>
    {terms?.accepted?<p className="crm-quiet">Termos aceitos: versão {terms.version}, em {terms.acceptedAt?new Date(terms.acceptedAt).toLocaleString("pt-BR"):"data indisponível"}. <Link href="/termos-indicadores" target="_blank" rel="noopener noreferrer">Consultar texto integral</Link>.</p>:null}
-   <section className="cashback-alert" role="note"><strong>Cashback · pagamentos às sextas-feiras</strong><p>Ao atingir R$ 100,00 em cashback liberado, o montante será pago na sexta-feira seguinte. Se completar R$ 100,00 numa sexta-feira, o pagamento será na próxima sexta-feira, após a conferência dos dados.</p><small>O total de vendas exibido abaixo não equivale a cashback disponível.</small></section>
+   <section className="cashback-alert" role="note"><strong>Cashback · pagamentos às sextas-feiras</strong><p>Se o saldo de cashback liberado atingir R$ 100,00 até quinta-feira, o montante será pago na sexta-feira daquela semana. Se atingir R$ 100,00 na sexta-feira, o pagamento será feito na sexta-feira da semana seguinte.</p><small>O total de vendas exibido abaixo não equivale a cashback disponível.</small></section>
    {asaasEnvironment==="sandbox"?<p className="portal-notice">Ambiente Asaas de teste (sandbox): pagamentos simulados não são faturamento real.</p>:null}
    {notice?<div className="portal-notice" role="status">{notice}</div>:null}
    <section className="portal-card"><h2>Campanha de divulgação</h2><form className="portal-form indicator-form" onSubmit={save}><label>Campanha<input required minLength={3} maxLength={120} placeholder="Ex.: Campanha Outubro · Instagram" value={campaignName} onChange={e=>setCampaignName(e.target.value)}/></label><button className="primary-button" disabled={busy||loading||campaign?.active===false}>{busy?"Salvando…":campaign?"Atualizar nome da campanha":"Gerar meus links"}</button></form>
    {campaign?<div className="crm-campaign-link"><label>Link de vendas<input readOnly value={link(campaign.salesPath)} onFocus={e=>e.currentTarget.select()}/></label><div className="crm-actions"><button className="secondary-button compact" onClick={()=>void copy(campaign.salesPath)}>Copiar link de vendas</button><button className="primary-button" onClick={share}>Compartilhar no WhatsApp</button></div>{!campaign.active?<p>Campanha pausada pelo BKO.</p>:null}</div>:null}</section>
    {campaign?<p className="crm-quiet"><b>Sua regra atual:</b> {campaign.cashbackMode==="percent"?`${(campaign.cashbackValue/100).toFixed(2).replace(".",",")}% sobre produtos, sem frete`:`${money(campaign.cashbackValue)} por venda verificada`}. <b>Cashback apurado:</b> {money(campaign.cashbackAccruedCents)} (ainda sujeito à liberação e ao mínimo de R$ 100,00 para repasse).{campaign.uncalculatedOrders?` ${campaign.uncalculatedOrders} compra(s) antigas sem apuração.`:""}</p>:null}
-   {campaign?<><section className="indicator-stats crm-metrics"><div><strong>{campaign.confirmedOrders}</strong><span>Vendas confirmadas</span></div><div><strong>{money(campaign.cashbackAccruedCents)}</strong><span>Cashback apurado</span></div></section><CheckoutFunnel /></>:null}
-   <p className="crm-quiet">Não é necessário comprovante. Confirmação e estorno dependem dos eventos do Asaas; o link acessado pode ser contado mais de uma vez.</p><MarketingFolder/>
+   {campaign?<><section className="indicator-stats crm-metrics"><div><strong>{campaign.confirmedOrders}</strong><span>Vendas confirmadas</span></div><div><strong>{money(campaign.cashbackAccruedCents)}</strong><span>Cashback apurado</span></div></section></>:null}
+   <MarketingFolder/>
   </div>}</main>;
 }
