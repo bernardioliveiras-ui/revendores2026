@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {load,memoryDb,operators,table} from './runtime-loader.mjs';
-const schema={purchases:table('id','asaasPaymentId','paymentStatus'),asaasEvents:table('eventId'),users:table('id','email'),stockMovements:table('id','userId','referenceId'),resellerProfiles:table('id')};
+const schema={purchases:table('id','asaasPaymentId','paymentStatus'),asaasEvents:table('eventId'),users:table('id','email'),stockMovements:table('id','userId','referenceId'),resellerProfiles:table('id'),indicatorCampaigns:table('id','cashbackMode','cashbackValue')};
 const paid={id:'p1',email:'buyer@test.com',paymentStatus:'paid',boxes:20,kit:'kit20',asaasPaymentId:'pay1'};
 function provision(initial){
  const state=memoryDb(schema,initial);
@@ -100,3 +100,19 @@ test('fallback Resend preserva chave de idempotência nos reenvios de boas-vinda
 });
 
 test('falha de mensuração não impede provisionamento do pagamento confirmado',async()=>{const s=webhook({purchases:[{...paid,paymentStatus:'payment_pending'}]},{'@/lib/purchase-measurement':{enqueueConfirmedPurchase:async()=>{throw Error('TRACKING_OFFLINE')},runPurchaseMeasurementQueue:async()=>{}}});assert.equal((await s.call(event)).status,200);assert.equal(s.rows.purchases[0].paymentStatus,'paid');assert.equal(s.releases,1)});
+
+test('pagamento de campanha apura cashback sobre produtos uma vez e estorno retira a venda', async () => {
+ const s = webhook({
+  purchases: [{ ...paid, campaignId: 'camp1', paymentStatus: 'payment_pending', shippingStatus: 'awaiting_payment',
+    indicatorCashbackCents: null, productTotalCents: 10000, totalCents: 12500, shippingCents: 2000, interestCents: 500 }],
+  indicatorCampaigns: [{ id: 'camp1', cashbackMode: 'percent', cashbackValue: 500 }],
+ }, { '@/lib/indicator-cashback.mjs': await import('../lib/indicator-cashback.mjs') });
+ assert.equal((await s.call(event)).status, 200);
+ assert.equal(s.rows.purchases[0].indicatorCashbackCents, 500);
+ assert.ok(s.rows.purchases[0].asaasVerifiedAt);
+ assert.equal((await s.call(event)).status, 200);
+ assert.equal(s.rows.asaasEvents.length, 1);
+ assert.equal((await s.call({ ...event, id: 'evt2', event: 'PAYMENT_REFUNDED' })).status, 200);
+ assert.equal(s.rows.purchases[0].paymentStatus, 'cancelled');
+ assert.equal(s.rows.purchases[0].asaasVerifiedAt, null);
+});

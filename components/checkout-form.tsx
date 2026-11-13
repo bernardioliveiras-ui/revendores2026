@@ -36,7 +36,7 @@ const display = {
   kit50: { label: "KIT50", boxes: 50, totalCents: 349500, unitCents: 6990 },
 } as const;
 
-export function CheckoutForm({texts={}}:{texts?:LandingTexts}={}) {
+export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCode?:string}={}) {
   const quoteSequence = useRef(0);
   const quoteController = useRef<AbortController | null>(null);
   const submitInFlight = useRef(false);
@@ -158,6 +158,7 @@ export function CheckoutForm({texts={}}:{texts?:LandingTexts}={}) {
       paymentMethod,
       installments: paymentMethod === "credit" ? installments : 1,
       campaignCode,
+      ...(salesCode ? { salesCode } : {}),
       utmSource: attribution.utmSource || "",
       utmMedium: attribution.utmMedium || "",
       utmCampaign: attribution.utmCampaign || "",

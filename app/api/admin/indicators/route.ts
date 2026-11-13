@@ -24,7 +24,7 @@ export async function GET(request:Request){
     .from(indicatorProfiles).innerJoin(users,eq(users.id,indicatorProfiles.userId)),
    db.select().from(indicatorCampaigns).orderBy(desc(indicatorCampaigns.createdAt)),
    db.select({id:purchases.id,orderNumber:purchases.orderNumber,campaignId:purchases.campaignId,
-    name:purchases.name,kit:purchases.kit,createdAt:purchases.createdAt,asaasVerifiedAt:purchases.asaasVerifiedAt,
+    name:purchases.name,phone:purchases.phone,paymentMethod:purchases.paymentMethod,asaasPaymentId:purchases.asaasPaymentId,asaasInvoiceUrl:purchases.asaasInvoiceUrl,kit:purchases.kit,createdAt:purchases.createdAt,asaasVerifiedAt:purchases.asaasVerifiedAt,
     paymentStatus:purchases.paymentStatus,productTotalCents:purchases.productTotalCents,shippingCents:purchases.shippingCents,
     interestCents:purchases.interestCents,totalCents:purchases.totalCents,indicatorCashbackCents:purchases.indicatorCashbackCents,utmSource:purchases.utmSource,utmMedium:purchases.utmMedium})
     .from(purchases).orderBy(desc(purchases.createdAt)),

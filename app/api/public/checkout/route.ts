@@ -25,6 +25,12 @@ export async function POST(request: Request) {
   try {
     const payload = await request.json().catch(()=>null) as Record<string, unknown> | null;
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) return Response.json({error:"Dados inválidos."},{status:400});
+    const isSalesCheckout = Object.hasOwn(payload, "salesCode");
+    const salesCode = payload.salesCode;
+    const salesCampaign = isSalesCheckout && validCampaignCode(salesCode) ? await resolveCampaign(salesCode) : null;
+    if (isSalesCheckout && !salesCampaign) {
+      return Response.json({ error: "Este link de vendas está indisponível." }, { status: 404 });
+    }
     const kit = getKit(payload.kit);
     const data = {
       name: clean(payload.name, 120), email: email(payload.email), phone: digits(payload.phone, 15), cpfCnpj: digits(payload.cpfCnpj, 14),
@@ -64,7 +70,7 @@ export async function POST(request: Request) {
     // Nunca aceitar um ID de campanha arbitrário: validar código público e parceiro ativo.
     const submittedCode = clean(payload.campaignCode,64);
     const code = validCampaignCode(submittedCode) ? submittedCode : campaignCookieFromRequest(request);
-    const campaign = code ? await resolveCampaign(code) : null;
+    const campaign = salesCampaign || (code ? await resolveCampaign(code) : null);
     const now = new Date().toISOString();
     purchaseId = crypto.randomUUID();
     const number = orderNumber();

@@ -20,10 +20,10 @@ export async function POST(request:Request) {
    const [existing]=await tx.select().from(indicatorCampaigns).where(eq(indicatorCampaigns.indicatorUserId,indicatorUserId)).limit(1).for("update");
    const now=new Date().toISOString();
    if(existing){await tx.update(indicatorCampaigns).set({name,active:1,updatedAt:now}).where(eq(indicatorCampaigns.id,existing.id));
-    return Response.json({saved:true,publicPath:`/c/${existing.publicCode}`,code:existing.publicCode},{headers:privateResponseHeaders});}
+    return Response.json({saved:true,publicPath:`/c/${existing.publicCode}`,salesPath:`/v/${existing.publicCode}`,code:existing.publicCode},{headers:privateResponseHeaders});}
    const id=crypto.randomUUID(),code=randomBytes(16).toString("hex");
    await tx.insert(indicatorCampaigns).values({id,indicatorUserId,name,publicCode:code,active:1,clickCount:0,createdAt:now,updatedAt:now});
-   return Response.json({saved:true,publicPath:`/c/${code}`,code},{status:201,headers:privateResponseHeaders});
+   return Response.json({saved:true,publicPath:`/c/${code}`,salesPath:`/v/${code}`,code},{status:201,headers:privateResponseHeaders});
   });
  }catch(error){return indicatedError(error)}
 }

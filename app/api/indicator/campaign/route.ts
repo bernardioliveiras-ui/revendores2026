@@ -15,7 +15,7 @@ export async function GET(request:Request) {
   const user=await requireIndicator(request);await requireIndicatorTerms(user.id);await ensureCampaignSchema();
   const [campaign]=await getDb().select().from(indicatorCampaigns).where(eq(indicatorCampaigns.indicatorUserId,user.id)).limit(1);
   if(!campaign)return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:null},{headers:privateResponseHeaders});
-  const orders=await getDb().select({id:purchases.id,campaignId:purchases.campaignId,paymentStatus:purchases.paymentStatus,
+  const orders=await getDb().select({id:purchases.id,campaignId:purchases.campaignId,paymentStatus:purchases.paymentStatus,paymentMethod:purchases.paymentMethod,asaasPaymentId:purchases.asaasPaymentId,
     productTotalCents:purchases.productTotalCents,totalCents:purchases.totalCents,shippingCents:purchases.shippingCents,
     interestCents:purchases.interestCents,asaasVerifiedAt:purchases.asaasVerifiedAt,indicatorCashbackCents:purchases.indicatorCashbackCents})
     .from(purchases).where(eq(purchases.campaignId,campaign.id));
@@ -23,7 +23,7 @@ export async function GET(request:Request) {
     paymentStatus:indicatorExternalOrders.paymentStatus,productTotalCents:indicatorExternalOrders.productTotalCents,
     asaasVerifiedAt:indicatorExternalOrders.asaasVerifiedAt,indicatorCashbackCents:indicatorExternalOrders.indicatorCashbackCents})
     .from(indicatorExternalOrders).where(eq(indicatorExternalOrders.campaignId,campaign.id));
-  return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:{...summarizeCampaign(campaign,[...orders,...externalOrders.map(order=>({...order,totalCents:order.productTotalCents,shippingCents:0,interestCents:0}))]),cashbackMode:campaign.cashbackMode,cashbackValue:campaign.cashbackValue,publicPath:`/c/${campaign.publicCode}`}}, {headers:privateResponseHeaders});
+  return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:{...summarizeCampaign(campaign,[...orders,...externalOrders.map(order=>({...order,totalCents:order.productTotalCents,shippingCents:0,interestCents:0}))]),cashbackMode:campaign.cashbackMode,cashbackValue:campaign.cashbackValue,publicPath:`/c/${campaign.publicCode}`,salesPath:`/v/${campaign.publicCode}`}}, {headers:privateResponseHeaders});
  }catch(error){return indicatedError(error)}
 }
 export async function POST(request:Request) {
@@ -37,11 +37,11 @@ export async function POST(request:Request) {
    const now=new Date().toISOString();
    if(existing){if(!existing.active)return Response.json({error:"Campanha pausada pelo BKO."},{status:403});
     await tx.update(indicatorCampaigns).set({name,updatedAt:now}).where(eq(indicatorCampaigns.id,existing.id));
-    return Response.json({saved:true,publicPath:`/c/${existing.publicCode}`},{headers:privateResponseHeaders});}
+    return Response.json({saved:true,publicPath:`/c/${existing.publicCode}`,salesPath:`/v/${existing.publicCode}`},{headers:privateResponseHeaders});}
    const code=randomBytes(16).toString("hex");
    await tx.insert(indicatorCampaigns).values({id:crypto.randomUUID(),indicatorUserId:user.id,
     name,publicCode:code,active:1,clickCount:0,createdAt:now,updatedAt:now});
-   return Response.json({saved:true,publicPath:`/c/${code}`},{status:201,headers:privateResponseHeaders});
+   return Response.json({saved:true,publicPath:`/c/${code}`,salesPath:`/v/${code}`},{status:201,headers:privateResponseHeaders});
   });
  }catch(error){return indicatedError(error)}
 }

@@ -5,7 +5,7 @@ const schema={purchases:table('id','paymentStatus')};
 const kits=load('lib/kits.ts');
 const pricing=load('lib/checkout/pricing.ts',{'@/lib/checkout/shipping-rates':load('lib/checkout/shipping-rates.ts'),'@/lib/checkout/shipping-additions':load('lib/checkout/shipping-additions.ts')});
 const data={kit:'kit20',name:'Comprador de teste',email:'buyer@example.test',phone:'11999999999',cpfCnpj:'12345678909',postalCode:'01001000',street:'Praça da Sé',number:'1',district:'Sé',city:'São Paulo',state:'SP',acceptedTerms:'yes',shippingType:'economical',paymentMethod:'pix',installments:1};
-function checkout({failure=false,concurrentPaid=false,measurementFailure=false}={}){const s=memoryDb(schema);let charged;const {POST}=load('app/api/public/checkout/route.ts',{'@/lib/purchase-measurement':{capturePurchaseMeasurement:async()=>{if(measurementFailure)throw Error('TRACKING_OFFLINE');return null}},'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/campaigns':{campaignCookieFromRequest:()=>null,validCampaignCode:()=>false,resolveCampaign:async()=>null},'@/lib/kits':kits,'@/lib/checkout/pricing':pricing,'@/lib/postal-code':{lookupPostalCode:async()=>({state:'SP'}),PostalLookupError:class extends Error{}},'@/lib/asaas':{AsaasRequestError:class extends Error{},createCheckoutCustomer:async()=>({id:'cus1'}),createPayment:async(input)=>{charged=input;if(concurrentPaid)s.rows.purchases[0].paymentStatus='paid';if(failure)throw Error('TEST_PROVIDER_FAILURE');return {id:'pay1',invoiceUrl:'https://sandbox.asaas.com/i/test',installment:input.installments>1?'ins1':undefined}}}});return {...s,POST,get charged(){return charged}};}
+function checkout({failure=false,concurrentPaid=false,measurementFailure=false,activeSalesCode,legacyCode}={}){const s=memoryDb(schema);let charged;const {POST}=load('app/api/public/checkout/route.ts',{'@/lib/purchase-measurement':{capturePurchaseMeasurement:async()=>{if(measurementFailure)throw Error('TRACKING_OFFLINE');return null}},'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,'@/lib/campaigns':{campaignCookieFromRequest:()=>legacyCode,validCampaignCode:value=>typeof value==="string"&&/^[a-f0-9]{32}$/.test(value),resolveCampaign:async value=>value===activeSalesCode?{id:"sales-campaign"}:value===legacyCode?{id:"legacy-campaign"}:null},'@/lib/kits':kits,'@/lib/checkout/pricing':pricing,'@/lib/postal-code':{lookupPostalCode:async()=>({state:'SP'}),PostalLookupError:class extends Error{}},'@/lib/asaas':{AsaasRequestError:class extends Error{},createCheckoutCustomer:async()=>({id:'cus1'}),createPayment:async(input)=>{charged=input;if(concurrentPaid)s.rows.purchases[0].paymentStatus='paid';if(failure)throw Error('TEST_PROVIDER_FAILURE');return {id:'pay1',invoiceUrl:'https://sandbox.asaas.com/i/test',installment:input.installments>1?'ins1':undefined}}}});return {...s,POST,get charged(){return charged}};}
 const req=(body,referer)=>new Request('https://example.test',{method:'POST',body:JSON.stringify(body),headers:referer?{referer}:{}});
 test('origem de checkout não persiste dados pessoais de query ou fragmento',async()=>{
  const s=checkout();assert.equal((await s.POST(req(data,'https://example.test/?email=buyer@example.test#phone=11999999999'))).status,200);
@@ -22,3 +22,24 @@ test('dados sem aceite não criam compra',async()=>{const s=checkout();assert.eq
 test('UF incoerente com CEP não inicia cobrança',async()=>{const s=checkout();assert.equal((await s.POST(req({...data,state:'RJ'}))).status,400);assert.equal(s.rows.purchases.length,0)});
 
 test('falha opcional de mensuração não impede criar pagamento',async()=>{const s=checkout({measurementFailure:true});assert.equal((await s.POST(req(data))).status,200);assert.equal(s.rows.purchases[0].paymentStatus,'payment_pending');assert.ok(s.charged)});
+
+test('explicit sales link beats legacy session attribution and creates a hosted PIX invoice', async () => {
+ const salesCode = 'a'.repeat(32), legacyCode = 'b'.repeat(32);
+ const s = checkout({ activeSalesCode: salesCode, legacyCode });
+ const result = await s.POST(req({ ...data, salesCode, campaignCode: legacyCode }));
+ assert.equal(result.status, 200);
+ assert.equal(s.rows.purchases[0].campaignId, 'sales-campaign');
+ assert.equal(s.rows.purchases[0].asaasPaymentId, 'pay1');
+ assert.equal(s.charged.billingType, 'PIX');
+ assert.equal((await result.json()).invoiceUrl, 'https://sandbox.asaas.com/i/test');
+});
+
+test('invalid or paused sales link does not charge or fall back to the old campaign', async () => {
+ const legacyCode = 'b'.repeat(32);
+ const s = checkout({ legacyCode });
+ for (const salesCode of ['c'.repeat(32), 'invalid']) {
+  assert.equal((await s.POST(req({ ...data, salesCode, campaignCode: legacyCode }))).status, 404);
+ }
+ assert.equal(s.rows.purchases.length, 0);
+ assert.equal(s.charged, undefined);
+});
