@@ -41,6 +41,11 @@
   ],
   "exclude": [
     "node_modules",
-    "examples"
+    "examples",
+    "server.ts",
+    "vite.config.ts",
+    "src",
+    "integrations",
+    "utils"
   ]
 }
