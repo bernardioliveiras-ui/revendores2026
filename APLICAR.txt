@@ -1,4 +1,7 @@
-Substitua os dois arquivos da pasta lib no GitHub, salve e publique a versao nova na Hostinger. Depois clique em Sincronizar com Asaas para MIXMWFD7KYD9F90.
-A atualizacao cria asaas_events caso ausente e acrescenta purchase_id caso ausente, sem apagar registros. Requer permissoes CREATE/ALTER ja usadas nas preparacoes do sistema.
-O log recebido mostra falha na leitura dessa tabela, mas nao inclui o codigo MySQL: esta correcao cobre a lacuna de preparacao identificada no codigo e passa a registrar code/errno/sqlState para diagnosticar outras causas. Se persistir, envie as novas linhas asaas_webhook_failed.
-Build e 28 testes direcionados aprovados. Banco real ainda nao acessado.
+Atualizacao pequena para o BKO atual.
+1. Substitua components/indicator-admin.tsx no GitHub.
+2. Adicione lib/indicator-search.mjs.
+3. Salve e publique a nova versao na Hostinger.
+4. Abra CRM Seller / Influenciadores. Cole o link, codigo ou mensagem do WhatsApp na busca com lupa. O codigo completo abre a carteira correspondente.
+O card Cashback total apurado mostra todo o historico retornado pelo BKO. A lista e a linha de cashback no periodo respeitam o filtro de datas. Somente compras confirmadas e verificadas entram na soma. Nao equivale a saldo liberado nem desconta repasses pagos.
+Build de producao e 8 testes de busca/contabilizacao aprovados. Nenhuma alteracao no banco.
