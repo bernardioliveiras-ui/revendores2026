@@ -9,33 +9,33 @@ const price = (RETAIL_UNIT_CENTS / 100).toLocaleString("pt-BR", { style: "curren
 
 export function RetailCheckout({ code }: { code: string }) {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#003d2a] via-[#07583d] to-[#002b20] text-[#e9fff2]">
-      <div className="mx-auto max-w-6xl px-4 py-5 sm:px-8 sm:py-8">
-        <header className="mb-5 flex items-center justify-between border-b border-[#dbe4dd] pb-4">
-          <div className="flex items-center gap-3"><Image src="/brand/lordnutri-mark.png" alt="LORD NUTRI" width={56} height={56} className="h-14 w-14 object-contain" /><span className="text-xl font-bold tracking-wider">LORD NUTRI</span></div>
-          <span className="text-sm font-semibold text-[#c5e9d5]">Checkout MIX10 PRO</span>
+    <main className="retail-checkout">
+      <div className="retail-container">
+        <header className="retail-header">
+          <div className="retail-brand">
+            <Image src="/brand/lordnutri-mark.png" alt="" width={56} height={56} unoptimized />
+            <div><strong>LORD NUTRI</strong><span>GROUP</span></div>
+          </div>
+          <span className="retail-header-label">MIX10 PRO</span>
         </header>
-        <a className="mb-5 flex min-h-12 items-center justify-center rounded-xl border border-[#8ec5a9] bg-[#e7f3e9] px-4 py-3 text-center text-sm font-semibold text-[#06452f]"
-          href={`https://wa.me/5511934924155?text=${encodeURIComponent("Olá, equipe LORD NUTRI! Preciso de ajuda com minha compra do MIX10 PRO. Código do link: " + code)}`}
-          target="_blank" rel="noopener noreferrer">Suporte LORD NUTRI pelo WhatsApp · (11) 93492-4155</a>
-        <div className="grid items-start gap-6 lg:grid-cols-[1fr_1fr] lg:gap-9">
-          <section aria-labelledby="mix10-title" className="min-w-0 overflow-hidden rounded-3xl border border-[#dbe4dd] bg-[#e7f3e9] text-[#102b21]">
-            <Image src={media + "/produto.webp"} alt="Embalagens MIX10 PRO da Lord Nutri" width={1448} height={1086}
-              sizes="(max-width: 1023px) 100vw, 540px" className="block h-auto w-full" preload />
-            <div className="p-5 sm:p-7">
+        <div className="retail-grid">
+          <section aria-labelledby="mix10-title" className="retail-product">
+            <Image src={media + "/produto-original.png"} alt="Embalagens MIX10 PRO da Lord Nutri" width={1448} height={1086}
+              unoptimized className="retail-product-image" preload />
+            <div className="retail-product-copy">
               <h1 id="mix10-title" className="text-4xl font-black tracking-tight">MIX10 PRO</h1>
               <p className="mt-2 text-base text-[#456257]">Suplemento alimentar · 30 cápsulas por caixa</p>
               <p className="mt-4 text-2xl font-bold text-[#066247]">{price} <span className="text-sm font-medium">por caixa</span></p>
               <a href="#pedido" className="mt-4 inline-block font-semibold underline underline-offset-4 lg:hidden">Escolher quantidade</a>
             </div>
           </section>
-          <section id="pedido" aria-label="Dados e pagamento do pedido" className="retail-order min-w-0 scroll-mt-4 text-[#102b21] lg:col-start-2 lg:row-start-1 lg:row-span-2">
+          <section id="pedido" aria-label="Dados e pagamento do pedido" className="retail-order">
             <CheckoutForm salesCode={code} />
           </section>
-          <section aria-label="Conheça a fórmula MIX10 PRO" className="min-w-0 overflow-hidden rounded-3xl border border-[#96c3a9] bg-[#e7f3e9] lg:col-start-1 lg:row-start-2">
-            <a href={media + "/formula.webp"} target="_blank" rel="noopener noreferrer" aria-label="Abrir flyer da fórmula em tamanho maior">
-              <Image src={media + "/formula.webp"} alt="Flyer MIX10 PRO com os ingredientes da fórmula" width={1024} height={1536}
-                sizes="(max-width: 1023px) 100vw, 540px" className="block h-auto w-full" />
+          <section aria-label="Conheça a fórmula MIX10 PRO" className="retail-flyer">
+            <a href={media + "/formula-original.png"} target="_blank" rel="noopener noreferrer" aria-label="Abrir flyer da fórmula em tamanho maior">
+              <Image src={media + "/formula-original.png"} alt="Flyer MIX10 PRO com os ingredientes da fórmula" width={1024} height={1536}
+                unoptimized className="retail-flyer-image" />
             </a>
           </section>
         </div>

@@ -40,7 +40,7 @@ export function CheckoutFunnel({ admin = false }: { admin?: boolean }) {
       <div><span>PIX pendentes</span><strong>{rows.filter(row=>row.paymentStatus==="payment_pending"&&row.paymentMethod==="pix"&&row.asaasPaymentId).length}</strong></div>
       <div><span>Carrinhos abandonados</span><strong>{abandoned.length}</strong></div>
     </div>
-    <p className="crm-quiet">Últimos 1.000 acessos registrados. Um checkout é iniciado ao preencher o pedido. Após 30 minutos sem atividade e sem pagamento confirmado, aparece para recuperação. Atualização a cada minuto.</p>
+    
     <div className="crm-v2-order-list">
       {abandoned.map(row=>{
         const url=contact(row);
@@ -49,7 +49,7 @@ export function CheckoutFunnel({ admin = false }: { admin?: boolean }) {
           {url?<a className="secondary-button compact" href={url} target="_blank" rel="noopener noreferrer">Chamar no WhatsApp</a>:<small>Telefone ainda não informado</small>}
         </article>;
       })}
-      {!abandoned.length?<p>Nenhum carrinho para recuperação neste momento.</p>:null}
+      
     </div>
   </section>;
 }

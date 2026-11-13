@@ -1040,3 +1040,46 @@ body { overflow-x: clip; }
 @media(max-width:720px){.maintenance-counts>div{grid-template-columns:1fr auto}.bko-tabs button{padding:10px 12px;font-size:12px}}
 
 .retail-order .checkout-card{background:#e7f3e9;border:1px solid #96c3a9;box-shadow:0 18px 50px #001e2050}.retail-order .checkout-summary{background:#cfe8d7}.retail-order .primary-button{background:#006341}.retail-order input,.retail-order select{min-width:0}.retail-order .form-grid>label{min-width:0}
+
+/* Layout exclusivo do checkout avulso. */
+.retail-checkout{min-height:100vh;background:linear-gradient(135deg,#003d2a,#07583d 55%,#002b20);color:#e9fff2}
+.retail-container{width:min(1180px,100%);margin:0 auto;padding:24px 28px 40px}
+.retail-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid #74a88d}
+.retail-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.retail-brand img{display:block;width:56px;height:56px;object-fit:contain;flex-shrink:0}
+.retail-brand strong{display:block;color:#f3d692;font-family:Georgia,"Times New Roman",serif;font-size:26px;font-weight:700;letter-spacing:.025em;line-height:1.1;white-space:nowrap}
+.retail-brand span{display:block;color:#e3c688;font-size:11px;letter-spacing:.3em;line-height:1.5;margin-top:5px}
+.retail-header-label{font-size:13px;color:#c5e9d5;white-space:nowrap}
+.retail-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"product order" "flyer order";gap:24px;align-items:start}
+.retail-product{grid-area:product;min-width:0;overflow:hidden;border:1px solid #96c3a9;border-radius:24px;background:#e7f3e9;color:#102b21}
+.retail-product-image,.retail-flyer-image{display:block;width:100%;height:auto}
+.retail-product-copy{padding:24px}
+.retail-order{grid-area:order;min-width:0;scroll-margin-top:16px;color:#102b21}
+.retail-flyer{grid-area:flyer;min-width:0;overflow:hidden;border:1px solid #96c3a9;border-radius:24px;background:#e7f3e9}
+.retail-checkout a.secondary-button{color:#06452f;background:#d3eddd;border:1px solid #5c9576;line-height:1.45;text-align:center}
+.retail-order .form-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.retail-order .shipping-options,.retail-order .payment-options{grid-template-columns:minmax(0,1fr)}
+.retail-order input,.retail-order select{max-width:100%;font-size:16px}
+.retail-order .choice-card{grid-template-columns:auto minmax(0,1fr) auto}
+.retail-order .choice-card span{min-width:0;overflow-wrap:anywhere}
+.retail-order .checkout-breakdown{grid-template-columns:minmax(0,1fr) auto}
+.retail-order .primary-button,.retail-order .secondary-button{white-space:normal;max-width:100%}
+@media(max-width:900px){
+ .retail-container{padding:16px 16px 28px}
+ .retail-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"product" "order" "flyer";gap:18px}
+ .retail-header{margin-bottom:18px;padding-bottom:14px}
+ .retail-product-copy{padding:20px}
+ .retail-product,.retail-flyer,.retail-order .checkout-card{border-radius:20px}
+ .retail-order .checkout-card{padding:22px 18px}
+ .retail-order .form-grid{grid-template-columns:minmax(0,1fr)}
+ .retail-order .cep-row{grid-template-columns:minmax(0,1fr)}
+ .retail-order .quote-button{width:100%;min-height:46px}
+}
+@media(max-width:400px){
+ .retail-container{padding-left:12px;padding-right:12px}
+ .retail-brand{gap:8px}
+ .retail-brand img{width:44px;height:44px}
+ .retail-brand strong{font-size:21px}
+ .retail-header-label{font-size:11px}
+ .retail-order .checkout-card{padding:18px 14px}
+}
