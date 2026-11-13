@@ -115,7 +115,7 @@ export function checkoutAttribution() {
   if (!measurementEnabled) return {};
   try { return readCheckoutAttribution(window.localStorage, originalLanding || window.location.href, consent()); } catch { return {}; }
 }
-export function trackCheckout(event: "begin_checkout" | "order_created", details: { kit: "kit20" | "kit50"; totalCents: number; orderNumber?: string }) {
+export function trackCheckout(event: "begin_checkout" | "order_created", details: { kit: "kit20" | "kit50" | "mix10-unit"; totalCents: number; orderNumber?: string }) {
   try {
     if (!measurementEnabled || !isTrackingPage(window.location.pathname)) return;
     initializeMeasurement();

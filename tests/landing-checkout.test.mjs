@@ -29,7 +29,7 @@ test('public checkout collects reseller data, calculates freight and never accep
 
   const route = await read('app/api/public/checkout/route.ts');
   assert.match(route, /getKit\(payload\.kit\)/);
-  assert.match(route, /calculateShipping\(data\.postalCode, kit\.boxes\)/);
+  assert.match(route, /calculateShipping\(data\.postalCode, kit\.boxes, retail\)/);
   assert.match(route, /calculateInstallment\(baseCents, installments\)/);
   assert.doesNotMatch(route, /payload\.(total|totalCents|unitPrice|unitPriceCents|price|shippingCents|interestCents)/);
   assert.match(route, /createPayment/);

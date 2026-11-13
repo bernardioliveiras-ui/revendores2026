@@ -11,3 +11,18 @@ test('consulta válida fornece endereço junto com frete',async()=>{const r=awai
 test('falha temporária da consulta de CEP retorna erro recuperável',async()=>{const r=await quote(async()=>{throw Error('unavailable')})(req('01001000'));assert.equal(r.status,503)});
 test('ViaCEP com erro true é tratado como CEP inexistente',async()=>{const original=globalThis.fetch;globalThis.fetch=async()=>({ok:true,json:async()=>({erro:true})});try{const {lookupPostalCode}=load('lib/postal-code.ts');assert.equal(await lookupPostalCode('99999999'),null)}finally{globalThis.fetch=original}});
 test('ViaCEP retorna endereço normalizado para preenchimento',async()=>{const original=globalThis.fetch;globalThis.fetch=async()=>({ok:true,json:async()=>({logradouro:'Praça da Sé',bairro:'Sé',localidade:'São Paulo',uf:'SP'})});try{const {lookupPostalCode}=load('lib/postal-code.ts');assert.deepEqual(await lookupPostalCode('01001000'),address)}finally{globalThis.fetch=original}});
+
+test('cotação avulsa soma o subtotal e recalcula frete e encargos conforme a quantidade', async () => {
+ const request = quantity => new Request('https://example.test', {
+  method: 'POST', body: JSON.stringify({ retail: true, quantity, postalCode: '01001000' }),
+ });
+ const handler = quote(async () => address);
+ const one = await (await handler(request(1))).json();
+ const two = await (await handler(request(2))).json();
+ assert.equal(two.kit.productTotalCents, 21980);
+ assert.ok(two.shippingOptions[0].priceCents > one.shippingOptions[0].priceCents);
+ const shipping = two.shippingOptions[0];
+ assert.equal(shipping.pix.chargedValueCents, 21980 + shipping.priceCents);
+ assert.equal(shipping.credit[2].chargedValueCents, shipping.pix.chargedValueCents + shipping.credit[2].interestCents);
+ for (const invalid of [0, 6, 1.5, '2']) assert.equal((await handler(request(invalid))).status, 400);
+});

@@ -49,8 +49,11 @@ export function providerConfigured(provider: PurchaseProvider, config: PurchaseM
 export function buildPurchaseRequest(provider: PurchaseProvider, purchase: MeasuredPurchase, snapshot: PurchaseSnapshot | null, confirmedAt: string, config: PurchaseMeasurementConfig, now = Date.now()): PurchaseRequest | null {
   const confirmed = Date.parse(confirmedAt);
   if (!providerConfigured(provider, config) || !snapshot || purchase.paymentStatus !== "paid" || Date.parse(snapshot.expiresAt) <= now || !Number.isFinite(confirmed) || confirmed > now || now - confirmed > (provider === "ga4" ? 72 * 3600000 : 7 * 86400000)) return null;
-  if (!["kit20", "kit50"].includes(purchase.kit) || !token(purchase.id, 80) || !token(purchase.orderNumber, 60) || ![purchase.productTotalCents, purchase.shippingCents, purchase.interestCents, purchase.totalCents].every(value => Number.isSafeInteger(value) && value >= 0)) return null;
-  const page = new URL("/", config.appUrl).href;
+  if (!["kit20", "kit50", "mix10-unit"].includes(purchase.kit) || !token(purchase.id, 80) || !token(purchase.orderNumber, 60) || ![purchase.productTotalCents, purchase.shippingCents, purchase.interestCents, purchase.totalCents].every(value => Number.isSafeInteger(value) && value >= 0)) return null;
+  const retail = purchase.kit === "mix10-unit";
+  const quantity = retail ? Math.max(1, purchase.boxes) : 1;
+  const unitPrice = purchase.productTotalCents / quantity / 100;
+  const page = new URL(retail ? "/comprar" : "/", config.appUrl).href;
   if (provider === "ga4") {
     if (!snapshot.analyticsConsent || !snapshot.clientId || snapshot.ga4Id !== config.ga4Id) return null;
     const url = new URL("https://www.google-analytics.com/mp/collect");
@@ -58,12 +61,12 @@ export function buildPurchaseRequest(provider: PurchaseProvider, purchase: Measu
     return { provider, url: url.href, headers: { "content-type": "application/json" }, body: {
       client_id: snapshot.clientId, timestamp_micros: confirmed * 1000,
       consent: { ad_user_data: snapshot.adsConsent ? "GRANTED" : "DENIED", ad_personalization: "DENIED" },
-      events: [{ name: "purchase", params: { transaction_id: purchase.orderNumber, currency: "BRL", value: purchase.productTotalCents / 100, shipping: purchase.shippingCents / 100, payment_interest: purchase.interestCents / 100, payment_total: purchase.totalCents / 100, ...(snapshot.sessionId ? { session_id: Number(snapshot.sessionId) } : {}), page_location: page, items: [{ item_id: purchase.kit, item_name: purchase.kit.toUpperCase(), price: purchase.productTotalCents / 100, quantity: 1 }] } }],
+      events: [{ name: "purchase", params: { transaction_id: purchase.orderNumber, currency: "BRL", value: purchase.productTotalCents / 100, shipping: purchase.shippingCents / 100, payment_interest: purchase.interestCents / 100, payment_total: purchase.totalCents / 100, ...(snapshot.sessionId ? { session_id: Number(snapshot.sessionId) } : {}), page_location: page, items: [{ item_id: purchase.kit, item_name: purchase.kit.toUpperCase(), price: unitPrice, quantity }] } }],
     } };
   }
   if (!snapshot.adsConsent || snapshot.metaPixelId !== config.metaPixelId || (!snapshot.fbp && !snapshot.fbc)) return null;
   return { provider, url: `https://graph.facebook.com/${config.metaVersion}/${config.metaPixelId}/events`, headers: { "content-type": "application/json", authorization: `Bearer ${config.metaToken}` }, body: {
     ...(config.metaTestCode ? { test_event_code: config.metaTestCode } : {}),
-    data: [{ event_name: "Purchase", event_id: `purchase:${purchase.id}`, event_time: Math.floor(confirmed / 1000), action_source: "website", event_source_url: page, user_data: { ...(snapshot.fbp ? { fbp: snapshot.fbp } : {}), ...(snapshot.fbc ? { fbc: snapshot.fbc } : {}), ...(snapshot.userAgent ? { client_user_agent: snapshot.userAgent } : {}) }, custom_data: { currency: "BRL", value: purchase.totalCents / 100, order_id: purchase.orderNumber, content_ids: [purchase.kit], content_type: "product", contents: [{ id: purchase.kit, quantity: 1, item_price: purchase.productTotalCents / 100 }], num_items: 1 } }],
+    data: [{ event_name: "Purchase", event_id: `purchase:${purchase.id}`, event_time: Math.floor(confirmed / 1000), action_source: "website", event_source_url: page, user_data: { ...(snapshot.fbp ? { fbp: snapshot.fbp } : {}), ...(snapshot.fbc ? { fbc: snapshot.fbc } : {}), ...(snapshot.userAgent ? { client_user_agent: snapshot.userAgent } : {}) }, custom_data: { currency: "BRL", value: purchase.totalCents / 100, order_id: purchase.orderNumber, content_ids: [purchase.kit], content_type: "product", contents: [{ id: purchase.kit, quantity, item_price: unitPrice }], num_items: quantity } }],
   } };
 }

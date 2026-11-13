@@ -77,12 +77,13 @@ export async function createPayment(input: {
   billingType: "PIX" | "CREDIT_CARD";
   installments: number;
   dueDate: string;
+  description?: string;
 }) {
   const body: Record<string, unknown> = {
     customer: input.customerId,
     billingType: input.billingType,
     dueDate: input.dueDate,
-    description: `${input.orderNumber} - Programa de Revendedores MIX10 PRO`,
+    description: `${input.orderNumber} - ${input.description || "Programa de Revendedores MIX10 PRO"}`,
     externalReference: input.purchaseId,
   };
 

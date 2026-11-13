@@ -2,7 +2,7 @@
 import { landingText, type LandingTexts } from "@/lib/landing-texts";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import type { KitId } from "@/lib/kits";
+import { getRetailProduct, MAX_RETAIL_BOXES, RETAIL_SKU, RETAIL_UNIT_CENTS, type KitId } from "@/lib/kits";
 import { checkoutAttribution, checkoutMeasurement, rememberCheckoutMeasurement, trackCheckout } from "@/lib/measurement-browser";
 
 type Installment = {
@@ -26,7 +26,7 @@ type ShippingOption = {
 type QuoteResponse = {
   postalCode: string;
   address: {street: string; district: string; city: string; state: string};
-  kit: { id: KitId; label: string; boxes: number; productTotalCents: number };
+  kit: { id: KitId | typeof RETAIL_SKU; label: string; boxes: number; productTotalCents: number };
   shippingOptions: ShippingOption[];
 };
 
@@ -51,9 +51,10 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [quoteError, setQuoteError] = useState("");
-  const selected = useMemo(() => display[kit], [kit]);
+  const [quantity, setQuantity] = useState(1);
+  const selected = salesCode ? getRetailProduct(quantity)! : display[kit];
 
-  const activeQuote = quote?.kit.id === kit && quote.postalCode === postalCode.replace(/\D/g, "") ? quote : null;
+  const activeQuote = quote?.kit.id === (salesCode ? RETAIL_SKU : kit) && (!salesCode || quote.kit.boxes === quantity) && quote.postalCode === postalCode.replace(/\D/g, "") ? quote : null;
   const selectedShipping = useMemo(
     () => activeQuote?.shippingOptions.find((item) => item.id === shippingType) || null,
     [activeQuote, shippingType],
@@ -84,7 +85,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
     setQuoteBusy(false);
   }
 
-  async function loadQuote(rawPostalCode: string, requestedKit = kit) {
+  async function loadQuote(rawPostalCode: string, requestedKit = kit, requestedQuantity = quantity) {
     const sequence = ++quoteSequence.current;
     quoteController.current?.abort();
     const controller = new AbortController();
@@ -102,7 +103,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
         method: "POST",
         headers: { "content-type": "application/json" },
         signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10000)]),
-        body: JSON.stringify({ postalCode: cleanPostalCode, kit: requestedKit }),
+        body: JSON.stringify({ postalCode: cleanPostalCode, ...(salesCode ? { retail: true, quantity: requestedQuantity } : { kit: requestedKit }) }),
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || landingText(texts, "checkout.quoteUnavailable"));
@@ -151,14 +152,14 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
       if (/^[a-f0-9]{32}$/.test(direct)) { sessionStorage.setItem("ln_campaign",direct); campaignCode=direct; }
       else campaignCode=sessionStorage.getItem("ln_campaign") || "";
     } catch { /* Cookie do redirecionamento também é aceito no servidor. */ }
-    trackCheckout("begin_checkout", { kit, totalCents: selected.totalCents });
+    trackCheckout("begin_checkout", { kit: salesCode ? RETAIL_SKU : kit, totalCents: selected.totalCents });
     const payload = {
       ...Object.fromEntries(form.entries()),
       shippingType,
       paymentMethod,
       installments: paymentMethod === "credit" ? installments : 1,
       campaignCode,
-      ...(salesCode ? { salesCode } : {}),
+      ...(salesCode ? { salesCode, quantity } : {}),
       utmSource: attribution.utmSource || "",
       utmMedium: attribution.utmMedium || "",
       utmCampaign: attribution.utmCampaign || "",
@@ -175,7 +176,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || landingText(texts, "checkout.paymentUnavailable"));
       rememberCheckoutMeasurement(body.measurement);
-      trackCheckout("order_created", { kit, totalCents: finalCents, orderNumber: body.orderNumber });
+      trackCheckout("order_created", { kit: salesCode ? RETAIL_SKU : kit, totalCents: finalCents, orderNumber: body.orderNumber });
       window.location.href = body.invoiceUrl;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : landingText(texts, "checkout.paymentUnavailable"));
@@ -186,6 +187,25 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
 
   return (
     <form className="checkout-card" data-cms-text-protected="1" onSubmit={submit}>
+      {salesCode ? <>
+        <h3>Seu pedido</h3>
+        <div className="form-grid">
+          <label>Quantidade de caixas
+            <select className="mt-2 block min-h-11 w-full rounded-xl border border-[#cbdad2] bg-white px-3 text-base" value={quantity} disabled={busy} onChange={event => {
+              const next = Number(event.target.value);
+              setQuantity(next);
+              invalidateQuote();
+              setQuoteError("");
+              if (postalCode.replace(/\D/g, "").length === 8) void loadQuote(postalCode, kit, next);
+            }}>
+              {Array.from({ length: MAX_RETAIL_BOXES }, (_, index) => index + 1).map(value =>
+                <option key={value} value={value}>{value} {value === 1 ? "caixa" : "caixas"}</option>
+              )}
+            </select>
+          </label>
+          <p>{money(RETAIL_UNIT_CENTS)} por caixa</p>
+        </div>
+      </> : <>
       <div className="section-kicker">{landingText(texts, "checkout.004")}</div>
       <h3>{landingText(texts, "checkout.005")}</h3>
 
@@ -197,13 +217,14 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
         ))}
       </div>
       <input type="hidden" name="kit" value={kit} />
+      </>}
 
       <div className="checkout-summary checkout-breakdown" aria-live="polite">
         <span>{landingText(texts, "checkout.010")}</span><strong>{money(selected.totalCents)}</strong>
         <span>{landingText(texts, "checkout.011")}</span><strong>{selectedShipping ? money(selectedShipping.priceCents) : landingText(texts, "checkout.012")}</strong>
-        <span>{landingText(texts, "checkout.013")}</span><strong>{selectedShipping ? money(feeCents) : landingText(texts, "checkout.014")}</strong>
+        <span>{salesCode ? "Encargos do cartão" : landingText(texts, "checkout.013")}</span><strong>{selectedShipping ? money(feeCents) : landingText(texts, "checkout.014")}</strong>
         <span className="checkout-total-label">{landingText(texts, "checkout.015")}</span><strong className="checkout-total-value">{selectedShipping ? money(finalCents) : landingText(texts, "checkout.016")}</strong>
-        <small>{landingText(texts, "checkout.017")}</small>
+        <small>{salesCode ? "O pagamento é concluído no Asaas." : landingText(texts, "checkout.017")}</small>
       </div>
 
       <div className="form-grid">
@@ -285,7 +306,7 @@ export function CheckoutForm({texts={}, salesCode}:{texts?:LandingTexts; salesCo
 
       <label className="consent"><input required type="checkbox" name="acceptedTerms" value="yes" /> {landingText(texts, "checkout.047")}</label>
       {error ? <div className="form-error">{error}</div> : null}
-      <button className="primary-button full" disabled={busy || quoteBusy || !selectedShipping}>{busy ? landingText(texts, "checkout.048") : selectedShipping ? <>{landingText(texts,"checkout.paymentCta")} · {money(finalCents)}</> : landingText(texts, "checkout.049")}</button>
+      <button className="primary-button full" disabled={busy || quoteBusy || !selectedShipping}>{busy ? landingText(texts, "checkout.048") : selectedShipping ? <>{salesCode ? "Pagar no Asaas" : landingText(texts,"checkout.paymentCta")} · {money(finalCents)}</> : landingText(texts, "checkout.049")}</button>
     </form>
   );
 }

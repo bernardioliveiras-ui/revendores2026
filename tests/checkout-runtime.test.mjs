@@ -26,9 +26,12 @@ test('falha opcional de mensuração não impede criar pagamento',async()=>{cons
 test('explicit sales link beats legacy session attribution and creates a hosted PIX invoice', async () => {
  const salesCode = 'a'.repeat(32), legacyCode = 'b'.repeat(32);
  const s = checkout({ activeSalesCode: salesCode, legacyCode });
- const result = await s.POST(req({ ...data, salesCode, campaignCode: legacyCode }));
+ const result = await s.POST(req({ ...data, salesCode, quantity: 2, campaignCode: legacyCode }));
  assert.equal(result.status, 200);
  assert.equal(s.rows.purchases[0].campaignId, 'sales-campaign');
+ assert.equal(s.rows.purchases[0].boxes, 2);
+ assert.equal(s.rows.purchases[0].productTotalCents, 21980);
+ assert.equal(s.charged.valueCents, 21980 + s.rows.purchases[0].shippingCents);
  assert.equal(s.rows.purchases[0].asaasPaymentId, 'pay1');
  assert.equal(s.charged.billingType, 'PIX');
  assert.equal((await result.json()).invoiceUrl, 'https://sandbox.asaas.com/i/test');
@@ -38,8 +41,21 @@ test('invalid or paused sales link does not charge or fall back to the old campa
  const legacyCode = 'b'.repeat(32);
  const s = checkout({ legacyCode });
  for (const salesCode of ['c'.repeat(32), 'invalid']) {
-  assert.equal((await s.POST(req({ ...data, salesCode, campaignCode: legacyCode }))).status, 404);
+  assert.equal((await s.POST(req({ ...data, salesCode, quantity: 2, campaignCode: legacyCode }))).status, 404);
  }
  assert.equal(s.rows.purchases.length, 0);
  assert.equal(s.charged, undefined);
+});
+
+test('cartão avulso cobra o total cotado e não aceita valor adulterado', async () => {
+ const salesCode = 'a'.repeat(32);
+ const s = checkout({ activeSalesCode: salesCode });
+ const r = await s.POST(req({ ...data, salesCode, quantity: 3, paymentMethod: 'credit', installments: 3, totalCents: 1 }));
+ assert.equal(r.status, 200);
+ const order = s.rows.purchases[0];
+ assert.equal(order.boxes, 3);
+ assert.equal(order.productTotalCents, 32970);
+ assert.equal(order.welcomeStatus, 'not_required');
+ assert.equal(s.charged.billingType, 'CREDIT_CARD');
+ assert.equal(s.charged.valueCents, order.productTotalCents + order.shippingCents + order.interestCents);
 });

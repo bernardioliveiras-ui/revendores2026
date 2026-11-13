@@ -35,7 +35,7 @@ export function normalizePostalCode(value: unknown) {
   return typeof value === "string" ? value.replace(/\D/g, "").slice(0, 8) : "";
 }
 
-export function calculateShipping(postalCode: string, quantity: number): ShippingQuote[] | null {
+export function calculateShipping(postalCode: string, quantity: number, retail = false): ShippingQuote[] | null {
   const cleanCep = Number(normalizePostalCode(postalCode));
   if (!Number.isFinite(cleanCep) || normalizePostalCode(postalCode).length !== 8) return null;
 
@@ -51,8 +51,9 @@ export function calculateShipping(postalCode: string, quantity: number): Shippin
   if (!region) return null;
 
   // Preserva o cálculo do checkout anterior: adicional padrão + embalagem de uma remessa.
-  const additional = shippingAdditions[1 as keyof typeof shippingAdditions] || 0;
-  const packagingCost = getPackagingCost(1);
+  const shipmentBoxes = retail ? quantity : 1;
+  const additional = shippingAdditions[shipmentBoxes as keyof typeof shippingAdditions] || 0;
+  const packagingCost = getPackagingCost(shipmentBoxes);
   const totalAdditional = additional + packagingCost;
   const economical = Math.max(region.economical, 25.8) + totalAdditional;
   const express = Math.max(region.express, 27.6) + totalAdditional;

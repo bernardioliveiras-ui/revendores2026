@@ -116,3 +116,11 @@ test('pagamento de campanha apura cashback sobre produtos uma vez e estorno reti
  assert.equal(s.rows.purchases[0].paymentStatus, 'cancelled');
  assert.equal(s.rows.purchases[0].asaasVerifiedAt, null);
 });
+
+test('pedido avulso pago não cria acesso nem estoque de revendedor', async () => {
+ const s = provision({ purchases: [{ ...paid, kit: 'mix10-unit', boxes: 1 }] });
+ const result = await s.provisionPaidPurchase('p1');
+ assert.equal(result.released, false);
+ assert.equal(s.rows.users.length, 0);
+ assert.equal(s.rows.stockMovements.length, 0);
+});

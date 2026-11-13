@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { purchases } from "@/db/schema";
 import { createCheckoutCustomer, createPayment, AsaasRequestError } from "@/lib/asaas";
-import { getKit } from "@/lib/kits";
+import { getKit, getRetailProduct } from "@/lib/kits";
 import { calculateInstallment, calculateShipping, MAX_CARD_INSTALLMENTS, type PaymentMethod, type ShippingType } from "@/lib/checkout/pricing";
 
 function clean(value: unknown, max = 180) { return typeof value === "string" ? value.trim().slice(0, max) : ""; }
@@ -31,7 +31,9 @@ export async function POST(request: Request) {
     if (isSalesCheckout && !salesCampaign) {
       return Response.json({ error: "Este link de vendas está indisponível." }, { status: 404 });
     }
-    const kit = getKit(payload.kit);
+    const retail = Boolean(salesCampaign);
+    const kit = retail ? getRetailProduct(payload.quantity) : getKit(payload.kit);
+    if (retail && !kit) return Response.json({ error: "Selecione uma quantidade válida de caixas." }, { status: 400 });
     const data = {
       name: clean(payload.name, 120), email: email(payload.email), phone: digits(payload.phone, 15), cpfCnpj: digits(payload.cpfCnpj, 14),
       postalCode: digits(payload.postalCode, 8), street: clean(payload.street, 220), number: clean(payload.number, 32), complement: clean(payload.complement, 160),
@@ -53,7 +55,7 @@ export async function POST(request: Request) {
     const address = await lookupPostalCode(data.postalCode);
     if (!address) return Response.json({error:"CEP não encontrado."},{status:422});
     if (address.state !== data.state) return Response.json({error:"A UF deve corresponder ao CEP informado."},{status:400});
-    const shippingOptions = calculateShipping(data.postalCode, kit.boxes);
+    const shippingOptions = calculateShipping(data.postalCode, kit.boxes, retail);
     const shipping = shippingOptions?.find((item) => item.id === shippingType);
     if (!shipping) return Response.json({ error: "Não foi possível calcular o frete para esse CEP." }, { status: 422 });
 
@@ -88,6 +90,7 @@ export async function POST(request: Request) {
       totalCents: chargedTotalCents,
       paymentStatus: "payment_pending", shippingStatus: "awaiting_payment", campaignId: campaign?.id || null,
       utmSource: clean(payload.utmSource, 120), utmMedium: clean(payload.utmMedium, 120), utmCampaign: clean(payload.utmCampaign, 180), utmContent: clean(payload.utmContent, 180), landingPage: landingPage(request),
+      ...(retail ? { welcomeStatus: "not_required" } : {}),
       createdAt: now, updatedAt: now,
     });
 
@@ -100,6 +103,7 @@ export async function POST(request: Request) {
       valueCents: chargedTotalCents,
       billingType: paymentMethod === "pix" ? "PIX" : "CREDIT_CARD",
       installments,
+      ...(retail ? { description: `MIX10 PRO · ${kit.boxes} caixa(s)` } : {}),
       dueDate: dueDate(),
     });
     if (!asaasPayment.id || !asaasPayment.invoiceUrl) throw new Error("O Asaas não retornou o link de pagamento.");

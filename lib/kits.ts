@@ -17,6 +17,14 @@ export const KITS = {
   },
 } as const;
 
+export const RETAIL_SKU = "mix10-unit";
+export const RETAIL_UNIT_CENTS = 10990;
+export const MAX_RETAIL_BOXES = 5;
+export function getRetailProduct(quantity: unknown) {
+  if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 1 || quantity > MAX_RETAIL_BOXES) return null;
+  return { id: RETAIL_SKU, label: "MIX10 PRO", boxes: quantity, unitPriceCents: RETAIL_UNIT_CENTS, totalCents: RETAIL_UNIT_CENTS * quantity };
+}
+
 export type KitId = keyof typeof KITS;
 
 export function getKit(value: unknown) {

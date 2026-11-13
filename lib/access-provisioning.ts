@@ -14,6 +14,7 @@ async function provisionAttempt(purchaseId: string) {
     const [p] = await tx.select(operationalPurchaseFields).from(purchases).where(eq(purchases.id, purchaseId)).limit(1).for("update");
     if (!p) throw new Error("PURCHASE_NOT_FOUND");
     if (p.paymentStatus !== "paid") throw new Error("PAYMENT_REQUIRED");
+    if (p.kit === "mix10-unit") return { released: false, email: p.email, password: null, userId: null, stockApplied: false };
     const now = new Date().toISOString();
 
     const ensureStockEntry = async (userId: string) => {

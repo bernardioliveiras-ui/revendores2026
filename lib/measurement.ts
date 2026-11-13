@@ -75,7 +75,7 @@ export function readCheckoutAttribution(storage: StorageLike, href: string, cons
 }
 type Commands = { google: (...args: unknown[]) => void; meta: (...args: unknown[]) => void; loadScript: (id: string, src: string) => void };
 type CheckoutEvent = "begin_checkout" | "order_created";
-type CheckoutDetails = { kit: "kit20" | "kit50"; totalCents: number; orderNumber?: string };
+type CheckoutDetails = { kit: "kit20" | "kit50" | "mix10-unit"; totalCents: number; orderNumber?: string };
 function googleConsent(consent: TrackingConsent) {
   return { analytics_storage: consent.analytics ? "granted" : "denied", ad_storage: consent.ads ? "granted" : "denied", ad_user_data: consent.ads ? "granted" : "denied", ad_personalization: consent.ads ? "granted" : "denied" };
 }
@@ -132,7 +132,7 @@ export function createMeasurementRuntime(input: MeasurementConfig, commands: Com
     },
     checkout(event: CheckoutEvent, details: CheckoutDetails) {
       if (!currentConsent.analytics && !currentConsent.ads) return;
-      if (!["kit20", "kit50"].includes(details.kit) || !Number.isSafeInteger(details.totalCents) || details.totalCents < 0) return;
+      if (!["kit20", "kit50", "mix10-unit"].includes(details.kit) || !Number.isSafeInteger(details.totalCents) || details.totalCents < 0) return;
       const orderId = token(details.orderNumber || null, 80);
       if (event === "order_created" && orderId) { if (orderIds.has(orderId)) return; orderIds.add(orderId); }
       const value = details.totalCents / 100;

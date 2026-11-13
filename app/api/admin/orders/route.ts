@@ -19,7 +19,7 @@ export async function PATCH(request: Request) {
     const access=await provisionPaidPurchase(id);
     // Even a manual payment confirmation must not dispatch messages.
     // The separate authenticated /api/admin/welcome action is the only welcome trigger.
-    return Response.json({updated:true,welcomePending:true,...access});
+    return Response.json({updated:true,welcomePending:p.kit !== "mix10-unit",...access});
   } catch(error) {
     if(error instanceof Error&&error.message==="UNAUTHORIZED")return Response.json({error:"Faça login novamente."},{status:401});
     if(error instanceof Error&&error.message==="FORBIDDEN")return Response.json({error:"Acesso restrito ao BKO."},{status:403});
