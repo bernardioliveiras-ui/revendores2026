@@ -1,10 +1,12 @@
 import { landingText, type LandingTexts } from "@/lib/landing-texts";
+import { parseAnvisaNotification } from "@/lib/anvisa-notification";
 /* eslint-disable @next/next/no-img-element */
 // Conteúdo publicado em 09/10/2026, incorporado ao código sem dependência do Studio.
 import { BrandLogo } from '@/components/brand-logo';
 import { CheckoutForm } from '@/components/checkout-form';
 import { ProfitSimulator } from '@/components/profit-simulator';
 export function LandingSections({texts={}}:{texts?:LandingTexts}={}) {
+  const anvisa = parseAnvisaNotification(landingText(texts, "mix10pro.007"));
   return <>
 <section id={"lord-nutri"} className={"lnr-section lnr-opportunity"}>
         <div className={"lnr-shell"}>
@@ -95,10 +97,10 @@ export function LandingSections({texts={}}:{texts?:LandingTexts}={}) {
             </div>
             <div className={"lnr-product-visual"}>
               <img src={"/brand/mix10-box-transparent-v3-web.webp"} alt={landingText(texts, "mix10pro.008")} loading={"lazy"} decoding={"async"} width={"800"} height={"1067"} />
-              <p className={"lnr-anvisa"} aria-label={"Processo de Notificação ANVISA número 25351155726202677"}>
-                <span className={"lnr-anvisa-line"}>{"Processo de Notificação"}</span>
-                <span className={"lnr-anvisa-line"}>{"ANVISA n°"}</span>
-                <strong className={"lnr-anvisa-line"}>{"25351155726202677"}</strong>
+              <p className={"lnr-anvisa"} aria-label={anvisa.fullText}>
+                {anvisa.heading ? <span className={"lnr-anvisa-line"}>{anvisa.heading}</span> : null}
+                {anvisa.subtitle ? <span className={"lnr-anvisa-line"}>{anvisa.subtitle}</span> : null}
+                {anvisa.number ? <strong className={"lnr-anvisa-line"}>{anvisa.number}</strong> : null}
               </p>
               <span>{landingText(texts, "mix10pro.009")}</span>
             </div>

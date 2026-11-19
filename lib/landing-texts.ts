@@ -1,6 +1,11 @@
 import fields from "@/data/landing-texts.json";
 export type LandingTexts = Record<string,string>;
 export const LANDING_TEXT_FIELDS = fields;
+const LEGACY_ANVISA_TEXTS = new Set([
+  "Processo de Notificação Anvisa N°",
+  "Processo de Notificação Anvisa N° 2535115572620267",
+  "Processo de Notificação Anvisa N° 25351155726202677",
+]);
 export class LandingTextError extends Error {
   constructor(message:string,public status=400){super(message);}
 }
@@ -25,5 +30,9 @@ export function validateLandingTexts(value:unknown):LandingTexts {
 }
 export function resolveLandingTexts(value:unknown):LandingTexts {
   const defaults=Object.fromEntries(Object.entries(fields).map(([key,field])=>[key,field.text]));
-  try{return {...defaults,...validateLandingTexts(value)};}catch{return defaults;}
+  try{
+    const result={...defaults,...validateLandingTexts(value)};
+    if(LEGACY_ANVISA_TEXTS.has(result["mix10pro.007"]?.trim()))result["mix10pro.007"]=defaults["mix10pro.007"];
+    return result;
+  }catch{return defaults;}
 }

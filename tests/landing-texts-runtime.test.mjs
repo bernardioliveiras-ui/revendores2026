@@ -25,6 +25,25 @@ test('Studio aceita somente campos de texto conhecidos e preserva os espaços',(
  assert.equal(m.landingText({},'inicio.title'),'Vem realizar seus sonhos ');
  assert.equal(m.landingText({'inicio.title':'Título novo'},'inicio.title'),'Título novo ','mantém a separação do próximo trecho destacado sem exigir um espaço digitado');
 });
+
+test('o texto padrão ANVISA confirmado substitui somente versões antigas, preservando personalizações',()=>{
+ const m=model();
+ const expected='Processo de Notificação Anvisa Nº 25351.205227/2026-38';
+ assert.equal(m.resolveLandingTexts({})['mix10pro.007'],expected);
+ assert.equal(m.resolveLandingTexts({'mix10pro.007':'Processo de Notificação Anvisa N°                            '})['mix10pro.007'],expected);
+ assert.equal(m.resolveLandingTexts({'mix10pro.007':'Processo de Notificação Anvisa N° 25351155726202677'})['mix10pro.007'],expected);
+ assert.equal(m.resolveLandingTexts({'mix10pro.007':'Minha notificação personalizada'})['mix10pro.007'],'Minha notificação personalizada');
+});
+
+test('notificação salva como rascunho não publica, mas publicação persiste o novo número',async()=>{
+ const {module:s}=store();const original=await s.readLandingTextDocument();
+ const value='Processo de Notificação ANVISA Nº 25351.205227/2026-38 (revisado)';
+ const draft=await s.writeLandingTextDocument({...original.texts,'mix10pro.007':value},original.revision,false);
+ assert.notEqual((await s.readPublishedLandingTexts())['mix10pro.007'],value);
+ assert.equal((await s.readLandingTextDocument()).texts['mix10pro.007'],value);
+ await s.writeLandingTextDocument(draft.texts,draft.revision,true);
+ assert.equal((await s.readPublishedLandingTexts())['mix10pro.007'],value);
+});
 test('rascunho não altera LP; publicação é atômica e rejeita versão antiga',async()=>{
  const {module:s}=store();const original=await s.readLandingTextDocument();
  const draft=await s.writeLandingTextDocument({'inicio.title':'Meu título em rascunho'},original.revision,false);

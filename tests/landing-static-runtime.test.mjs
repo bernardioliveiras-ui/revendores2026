@@ -42,6 +42,26 @@ test('texto publicado aparece no título preservando as seções da LP',async()=
  for(const id of ['inicio','lord-nutri','mix10pro','modelo','simulador','kits','duvidas','checkout'])assert.ok(html.includes(`id="${id}"`));
 });
 
+test('a notificação ANVISA editada no Studio aparece na LP e na prévia, sem o número fixo anterior',async()=>{
+ const {default:Home}=component('app/page.tsx',{
+  '@/lib/landing-texts-store':{readPublishedLandingTexts:async()=>({'mix10pro.007':'Processo de Notificação Anvisa Nº 25351.205227/2026-38'})},
+ });
+ const html=renderToStaticMarkup(await Home());
+ assert.match(html,/Processo de Notificação/);
+ assert.match(html,/25351\.205227\/2026-38/);
+ assert.doesNotMatch(html,/25351155726202677/);
+ assert.match(html,/aria-label="Processo de Notificação Anvisa Nº 25351\.205227\/2026-38"/);
+});
+
+test('texto livre da notificação é visível e escapado sem HTML injetado',async()=>{
+ const {default:Home}=component('app/page.tsx',{
+  '@/lib/landing-texts-store':{readPublishedLandingTexts:async()=>({'mix10pro.007':'Aviso atualizado <teste>'})},
+ });
+ const html=renderToStaticMarkup(await Home());
+ assert.match(html,/Aviso atualizado &lt;teste&gt;/);
+ assert.doesNotMatch(html,/<teste>/);
+});
+
 test('sem edições o HTML da LP é idêntico ao ZIP 1.8.0, incluindo formulário e simulador',async()=>{
  const {default:Home}=component('app/page.tsx',{'@/lib/landing-texts-store':{readPublishedLandingTexts:async()=>({})}});
  assert.equal(renderToStaticMarkup(await Home()),readFileSync(new URL('tests/fixtures/landing-1.8.0-original.html',root),'utf8'));
