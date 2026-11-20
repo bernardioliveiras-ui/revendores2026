@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* Ocultar barra e tooltips do Google Translate */
+body {
+    top: 0px !important; 
+}
+.goog-te-banner-frame.skiptranslate, 
+.skiptranslate > iframe.goog-te-banner-frame {
+    display: none !important;
+}
+.goog-tooltip, .goog-tooltip:hover {
+    display: none !important;
+}
+.goog-text-highlight {
+    background-color: transparent !important;
+    border: none !important; 
+    box-shadow: none !important;
+}
+#google_translate_element {
+    display: none !important;
+}
+
+@keyframes banner-marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-banner-marquee {
+  display: flex;
+  width: max-content;
+  animation: banner-marquee 32s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-banner-marquee {
+    animation: none !important;
+    transform: none !important;
+    width: 100% !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    white-space: normal !important;
+  }
+}
+

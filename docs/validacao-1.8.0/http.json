@@ -1,0 +1,52 @@
+[
+  {
+    "path": "/sitemap.xml",
+    "status": 200,
+    "robots": null
+  },
+  {
+    "path": "/robots.txt",
+    "status": 200,
+    "robots": null
+  },
+  {
+    "path": "/manifest.webmanifest",
+    "status": 200,
+    "robots": null
+  },
+  {
+    "path": "/favicon.svg",
+    "status": 200,
+    "robots": null
+  },
+  {
+    "path": "/icon.png",
+    "status": 200,
+    "robots": null
+  },
+  {
+    "path": "/apple-icon.png",
+    "status": 200,
+    "robots": null
+  },
+  {
+    "path": "/api/public/cms/manual",
+    "status": 410,
+    "robots": "noindex, nofollow, noarchive"
+  },
+  {
+    "path": "/api/public/cms/landing",
+    "status": 410,
+    "robots": "noindex, nofollow, noarchive"
+  },
+  {
+    "path": "/api/admin/studio/base-css",
+    "status": 404,
+    "robots": "noindex, nofollow, noarchive"
+  },
+  {
+    "path": "/api/internal/measurement/retry",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive"
+  }
+]

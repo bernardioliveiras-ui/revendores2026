@@ -1,0 +1,7 @@
+Atualizacao pequena para o BKO atual.
+1. Substitua components/indicator-admin.tsx no GitHub.
+2. Adicione lib/indicator-search.mjs.
+3. Salve e publique a nova versao na Hostinger.
+4. Abra CRM Seller / Influenciadores. Cole o link, codigo ou mensagem do WhatsApp na busca com lupa. O codigo completo abre a carteira correspondente.
+O card Cashback total apurado mostra todo o historico retornado pelo BKO. A lista e a linha de cashback no periodo respeitam o filtro de datas. Somente compras confirmadas e verificadas entram na soma. Nao equivale a saldo liberado nem desconta repasses pagos.
+Build de producao e 8 testes de busca/contabilizacao aprovados. Nenhuma alteracao no banco.
