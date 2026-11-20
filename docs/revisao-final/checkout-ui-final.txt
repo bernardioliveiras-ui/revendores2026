@@ -1,5 +1,0 @@
-addressAutofill true
-staleQuoteRejected true
-streetClearedAfterCepEdit true
-campaignPersistedThroughKitSelection true
-kit50Selected true
