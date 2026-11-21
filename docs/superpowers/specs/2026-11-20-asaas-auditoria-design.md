@@ -1,6 +1,6 @@
 # LORD NUTRI — desenho proposto da auditoria de conciliação Asaas
 
-**Data:** 20/11/2026. **Situação:** proposta para aprovação; **não implementada, não migrada, não ativada**.
+**Data:** 20/11/2026. **Situação atual:** proposta aprovada exclusivamente em homologação; tabela `asaas_reconciliation_audit` criada manualmente no banco de testes pelo responsável (16 colunas InnoDB, conforme captura SSH). Serviços e rota BKO implementados **somente no worktree isolado**, com testes mock; **não publicados, não conectados ao banco real pelo executor e não ativados em produção**. Nenhuma migration financeira aplicada.
 
 ## Objetivo e limites
 

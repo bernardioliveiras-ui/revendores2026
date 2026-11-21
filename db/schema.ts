@@ -1,4 +1,4 @@
-import { index, int, mysqlTable, uniqueIndex, varchar, text } from "drizzle-orm/mysql-core";
+import { char, datetime, index, int, mysqlEnum, mysqlTable, smallint, tinyint, uniqueIndex, varchar, text } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: varchar("id", { length: 80 }).primaryKey(),
@@ -289,6 +289,32 @@ export const asaasEvents = mysqlTable("asaas_events", {
   paymentId: varchar("payment_id", { length: 120 }),
   receivedAt: varchar("received_at", { length: 40 }).notNull(),
 }, (table) => [index("idx_asaas_event_payment").on(table.paymentId)]);
+
+/** Log append-only das tentativas administrativas de conciliação (não financeiro). */
+export const asaasReconciliationAudit = mysqlTable("asaas_reconciliation_audit", {
+  recordId: char("record_id", { length: 36 }).primaryKey(),
+  attemptId: char("attempt_id", { length: 36 }).notNull(),
+  phase: mysqlEnum("phase", ["started", "finished"]).notNull(),
+  requestId: varchar("request_id", { length: 96 }).notNull(),
+  actorId: varchar("actor_id", { length: 80 }),
+  purchaseId: varchar("purchase_id", { length: 80 }),
+  paymentId: varchar("payment_id", { length: 120 }),
+  configuredEnvironment: mysqlEnum("configured_environment", ["sandbox", "production"]),
+  consultedEnvironment: mysqlEnum("consulted_environment", ["sandbox", "production"]),
+  endpointAction: varchar("endpoint_action", { length: 96 }).notNull(),
+  safeErrorCode: varchar("safe_error_code", { length: 64 }),
+  httpStatus: smallint("http_status", { unsigned: true }),
+  reasonSummary: varchar("reason_summary", { length: 180 }),
+  outcome: mysqlEnum("outcome", ["started", "approved", "rejected", "provider_error", "internal_error"]).notNull(),
+  providerConsulted: tinyint("provider_consulted").notNull().default(0),
+  attemptedAt: datetime("attempted_at", { mode: "date", fsp: 3 }).notNull(),
+}, (table) => [
+  uniqueIndex("uq_ara_attempt_phase").on(table.attemptId, table.phase),
+  index("idx_ara_purchase_time").on(table.purchaseId, table.attemptedAt),
+  index("idx_ara_payment_time").on(table.paymentId, table.attemptedAt),
+  index("idx_ara_request").on(table.requestId),
+  index("idx_ara_outcome_time").on(table.outcome, table.attemptedAt),
+]);
 
 export const purchaseMeasurement = mysqlTable("purchase_measurement", {
   purchaseId: varchar("purchase_id", { length: 80 }).primaryKey(),

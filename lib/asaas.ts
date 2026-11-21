@@ -24,20 +24,27 @@ export function getAsaasConfig() {
   };
 }
 
-async function asaasRequest<T>(path: string, init: RequestInit = {}) {
-  const config = getAsaasConfig();
+export type AsaasConfig = ReturnType<typeof getAsaasConfig>;
+
+async function asaasRequest<T>(path: string, init: RequestInit = {}, config: AsaasConfig = getAsaasConfig()) {
   if (!config.apiKey) throw new AsaasRequestError("A conta Asaas ainda não foi conectada.", 503);
-  const response = await fetch(`${config.baseUrl}${path}`, {
-    ...init,
-    cache: "no-store",
-    signal: init.signal || AbortSignal.timeout(20000),
-    headers: {
-      "content-type": "application/json",
-      "user-agent": `Mix10Pro/2.0 (${config.environment})`,
-      access_token: config.apiKey,
-      ...init.headers,
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${config.baseUrl}${path}`, {
+      ...init,
+      cache: "no-store",
+      signal: init.signal || AbortSignal.timeout(20000),
+      headers: {
+        "content-type": "application/json",
+        "user-agent": `Mix10Pro/2.0 (${config.environment})`,
+        access_token: config.apiKey,
+        ...init.headers,
+      },
+    });
+  } catch {
+    // Falhas de rede e timeout não devem revelar URL, chave ou erro interno.
+    throw new AsaasRequestError("Não foi possível consultar o Asaas.", 502);
+  }
   const body = (await response.json().catch(() => ({}))) as AsaasErrorBody & T;
   if (!response.ok) {
     throw new AsaasRequestError(body.errors?.[0]?.description || "O Asaas não conseguiu concluir a solicitação.", response.status);
@@ -101,6 +108,6 @@ export async function createPayment(input: {
   });
 }
 
-export async function getPayment(id: string) {
-  return asaasRequest<AsaasPayment>(`/payments/${encodeURIComponent(id)}`);
+export async function getPayment(id: string, config?: AsaasConfig) {
+  return asaasRequest<AsaasPayment>(`/payments/${encodeURIComponent(id)}`, {}, config);
 }

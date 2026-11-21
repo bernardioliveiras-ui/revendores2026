@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {load,memoryDb,operators,table} from './runtime-loader.mjs';
+import {asaasAuditStub} from './helpers/asaas-audit-stub.mjs';
 function fixture(options={}){
  const p={id:'p1',orderNumber:'MIX1',kit:'mix10-unit',campaignId:'c1',asaasPaymentId:'pay1',asaasCustomerId:'cus1',totalCents:10990,paymentStatus:'payment_pending'};
  const schema={purchases:table('id','orderNumber')};const s=memoryDb(schema,{purchases:[{...p,...options.purchase}]});let calls=0;
@@ -9,6 +10,7 @@ function fixture(options={}){
  'drizzle-orm':operators,'@/db':{getDb:()=>s.db},'@/db/schema':schema,
  '@/lib/auth':{requireAdmin:async()=>{if(options.auth)throw Error(options.auth)}},
  '@/lib/asaas':{AsaasRequestError,getAsaasConfig:()=>({configured:true,environment:'sandbox'}),getPayment:async()=>({id:'pay1',customer:'cus1',externalReference:'p1',value:109.9,status:'RECEIVED',...options.remote})},
+ '@/lib/asaas-reconciliation-audit':asaasAuditStub,
  '@/lib/env':{getOptionalEnv:()=> 'secret'},'@/lib/campaign-schema':{ensureCampaignSchema:async()=>{}},
  '@/lib/billing-webhook':{handleBillingWebhook:async request=>{calls++;const b=await request.json();assert.equal(b.payment.id,'pay1');assert.equal(request.headers.get('asaas-access-token'),'secret');Object.assign(s.rows.purchases[0],{paymentStatus:'paid',asaasVerifiedAt:'now'});return Response.json({received:true})}}
  });

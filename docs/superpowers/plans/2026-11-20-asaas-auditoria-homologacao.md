@@ -37,10 +37,10 @@
 **Interfaces:**
 - Produces: banco exclusivo com `DATABASE_*` de homologação configurados apenas no processo isolado e aprovação da tabela `asaas_reconciliation_audit`.
 
-- [ ] **Step 1:** Obter autorização de DDL **não financeiro** exclusivo de homologação; recusar credenciais de produção.
-- [ ] **Step 2:** Validar `SELECT DATABASE(), CURRENT_USER(), CONNECTION_ID(), @@version` com duas conexões distintas.
-- [ ] **Step 3:** Confirmar constraints existentes e aplicar **somente após aprovação** o schema aditivo da proposta.
-- [ ] **Step 4:** Verificar que a tabela não contém dados reais e não alterou tabelas financeiras.
+- [x] **Step 1:** Obter autorização de DDL **não financeiro** exclusivo de homologação; recusar credenciais de produção.
+- [x] **Step 2:** Validar `SELECT DATABASE(), CURRENT_USER(), CONNECTION_ID(), @@version` com duas conexões distintas.
+- [x] **Step 3:** Confirmar constraints existentes e aplicar **somente após aprovação** o schema aditivo da proposta (instalador manual executado pelo responsável em homologação).
+- [x] **Step 4:** Verificar que a tabela não contém dados reais e não alterou tabelas financeiras (instalador não insere linhas; sem revisão independente do ambiente da aplicação).
 
 ### Task 2: Repositório de auditoria e seleção única do ambiente
 
@@ -54,10 +54,10 @@
 - Consumes: tabela aprovada da Task 1.
 - Produces: `beginReconciliationAudit(input): Promise<{attemptId,requestId}>`, `finishReconciliationAudit(attemptId,result): Promise<void>` e `getPaymentWithConfig(id,config)` que revela o ambiente efetivamente usado sem expor chave.
 
-- [ ] **Step 1 (RED):** Testar `started` append-only, falha de INSERT e correlação `finished`; testar que payload sensível nunca chega ao SQL.
-- [ ] **Step 2:** Executar `node --experimental-strip-types --test tests/asaas-reconciliation-audit.test.mjs` e confirmar falha pelo contrato ausente.
-- [ ] **Step 3 (GREEN):** Implementar apenas os serviços listados, códigos/motivos fixos e ambiente congelado por tentativa.
-- [ ] **Step 4:** Rodar testes específicos e `npx tsc --noEmit`; resolver apenas regressões diretas.
+- [x] **Step 1 (RED):** Testar `started` append-only, falha de INSERT e correlação `finished`; testar que payload sensível nunca chega ao SQL.
+- [x] **Step 2:** Executar `node --experimental-strip-types --test tests/asaas-reconciliation-audit.test.mjs` e confirmar falha pelo contrato ausente.
+- [x] **Step 3 (GREEN):** Implementar apenas os serviços listados, códigos/motivos fixos e ambiente congelado por tentativa.
+- [x] **Step 4:** Rodar testes específicos e `npx tsc --noEmit`; resolver apenas regressões diretas. **Validação real do SQL segue pendente.**
 
 ### Task 3: Integrar à conciliação BKO sem alterar fluxo financeiro
 
@@ -71,10 +71,10 @@
 - Consumes: `beginReconciliationAudit`, `finishReconciliationAudit`, `getPaymentWithConfig` da Task 2.
 - Produces: confirmação somente após Asaas válido, HTTP 502 auditado no erro de provedor e ambiente consultado registrado.
 
-- [ ] **Step 1 (RED):** Incluir testes para erro `AsaasRequestError` 502 com `finished` gravado antes de responder, sucesso/rejeição, PATCH legado e falha de storage.
-- [ ] **Step 2:** Rodar testes específicos e confirmar falhas por ausência de auditoria.
-- [ ] **Step 3 (GREEN):** Integrar a auditoria às decisões existentes sem reescrever cálculo, webhook, transação, estoque ou acesso.
-- [ ] **Step 4:** Rodar testes específicos, 13 cenários mock e confirmar que retornos/erro são compatíveis.
+- [x] **Step 1 (RED):** Incluir testes para erro `AsaasRequestError` 502 com `finished` gravado antes de responder, sucesso/rejeição, PATCH legado e falha de storage.
+- [x] **Step 2:** Rodar testes específicos e confirmar falhas por ausência de auditoria.
+- [x] **Step 3 (GREEN):** Integrar a auditoria às decisões existentes sem reescrever cálculo, webhook, transação, estoque ou acesso.
+- [x] **Step 4:** Rodar testes específicos, 13 cenários mock e confirmar que retornos/erro são compatíveis; testes reais ainda pendentes.
 
 ### Task 4: Integração real de concorrência
 
@@ -107,4 +107,4 @@
 
 ## Estado atual deste plano
 
-**Somente especificação e preparação documental autorizadas/concluídas nesta sessão.** Tasks 1–5 dependem dos dois portões externos: MySQL real de homologação e aprovação da proposta de tabela de auditoria não financeira. Nenhuma etapa acima foi presumida como executada.
+**Tasks 1–3 concluídas localmente no âmbito permitido.** A tabela de homologação foi criada pelo responsável via SSH, com sintaxe e estrutura verificadas. A implementação TypeScript passou pelos testes com mocks e typecheck/build local; **ainda não foi executada contra o MySQL real nem publicada**. Para a Task 4, o executor manual `tests/lote0-homologation-mysql.mjs` e os testes dos gates foram preparados e validados localmente, **sem conexão remota ou INSERT**. O ensaio real do executor, a concorrência dos handlers financeiros e a Task 5 dependem de runtime Node 22 isolado e de confirmar que a base está desligada do site online (`docs/EXECUCAO-AUDITORIA-NODE22-2026-11-20.md`). Não há autorização para Lote 1 ou deploy.

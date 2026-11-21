@@ -1,0 +1,243 @@
+/* LORD NUTRI: camada visual isolada para os três portais autenticados.
+ * Nenhuma regra de estoque, cashback, pagamento ou atribuição é definida em CSS. */
+
+.lord-admin-shell,
+.reseller-portal,
+.portal-influencer {
+  --lord-ink: #081d30;
+  --lord-gold: #bb8d3c;
+  --lord-gold-soft: #f7edd8;
+  --lord-edge: #e6ded2;
+  --lord-muted: #607081;
+  background: #f6f5f2;
+  color: var(--lord-ink);
+}
+
+.lord-admin-shell { display: flex; align-items: stretch; min-height: 100vh; }
+.lord-admin-sidebar {
+  position: sticky;
+  top: 0;
+  flex: 0 0 250px;
+  width: 250px;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 25px 14px 22px;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(175deg,#061727 0%,#0b2b43 85%);
+  color: #f8f4e9;
+  scrollbar-width: thin;
+}
+.lord-admin-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 0 13px 29px; }
+.lord-admin-brand .compact-logo,
+.influencer-sidebar-brand .compact-logo { width: 73px; height: 74px; margin-bottom: 6px; }
+.lord-admin-brand .compact-logo img,
+.influencer-sidebar-brand .compact-logo img { width: 100%; height: 100%; object-fit: contain; }
+.lord-admin-brand span,
+.influencer-sidebar-brand span { letter-spacing: .17em; font-weight: 700; font-size: 10px; color: #d5b574; }
+.lord-admin-brand strong,
+.influencer-sidebar-brand strong { font-size: 16px; letter-spacing: -.02em; }
+.lord-sidebar-label,
+.influencer-sidebar-caption { display: block; padding: 0 13px 9px; font-size: 10px; letter-spacing: .16em; font-weight: 800; color: #9bb1c4; }
+.lord-admin-sidebar .bko-tabs { display: flex; flex-direction: column; gap: 4px; margin: 0; }
+.lord-admin-sidebar .bko-tabs button,
+.lord-admin-shortcuts button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #c9d7e0;
+  text-align: left;
+  padding: 12px 13px;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  cursor: pointer;
+  box-shadow: none;
+}
+.lord-admin-sidebar .bko-tabs button:hover,
+.lord-admin-sidebar .bko-tabs button.active,
+.lord-admin-shortcuts button:hover,
+.lord-admin-shortcuts button.active {
+  background: #193a52;
+  color: white;
+  border-color: #91713e;
+  box-shadow: inset 3px 0 var(--lord-gold);
+}
+.lord-admin-shortcuts { margin-top: 20px; padding-top: 18px; border-top: 1px solid #ffffff22; }
+.lord-admin-shortcuts .lord-sidebar-label { padding-bottom: 8px; }
+.lord-admin-shortcuts button { font-size: 12px; }
+.lord-sidebar-footer,
+.influencer-sidebar-footer { margin-top: auto; padding: 24px 13px 0; font-size: 11px; line-height: 1.5; color: #b2c3d0; }
+.lord-admin-main { flex: 1; min-width: 0; }
+.lord-admin-main .portal-header { width: 100%; height: 74px; background: #fff; border-bottom: 1px solid var(--lord-edge); }
+.lord-admin-main .portal-body.admin-only { max-width: 1520px; width: 100%; padding: 28px 32px 54px; }
+.lord-admin-shell .portal-title { align-items: center; gap: 18px; margin-bottom: 20px; }
+.lord-admin-shell .portal-title h1 { margin: 5px 0; font-size: clamp(27px,3vw,37px); font-weight: 700; line-height: 1.13; font-family: system-ui,-apple-system,"Segoe UI",sans-serif; color: var(--lord-ink); }
+.lord-admin-shell .portal-title p { color: var(--lord-muted); font-size: 14px; }
+.lord-admin-shell .section-kicker { color: #976d27; letter-spacing: .13em; }
+.lord-data-note { padding: 11px 14px; border: 1px solid #e3d8be; background: #fffcf5; border-radius: 12px; font-size: 12px; color: #765e32; margin: 0 0 18px; }
+.lord-admin-shell .metric-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+.lord-admin-shell .metric-card,
+.reseller-portal .metric-card {
+  min-width: 0;
+  padding: 21px 22px;
+  background: white;
+  border: 1px solid var(--lord-edge);
+  border-top: 3px solid var(--lord-gold);
+  border-radius: 16px;
+  box-shadow: 0 7px 26px #0b233708;
+}
+.lord-admin-shell .metric-card span,
+.reseller-portal .metric-card span { color: var(--lord-muted); font-size: 12px; font-weight: 650; }
+.lord-admin-shell .metric-card strong,
+.reseller-portal .metric-card strong { font-size: clamp(22px,2.4vw,29px); font-family: system-ui,-apple-system,"Segoe UI",sans-serif; color: var(--lord-ink); }
+.lord-admin-shell .portal-card,
+.reseller-portal .portal-card,
+.portal-influencer .portal-card {
+  background: #fff;
+  border: 1px solid var(--lord-edge);
+  border-radius: 19px;
+  box-shadow: 0 12px 32px #0c2b3b0a;
+}
+.lord-admin-shell .portal-card h2,
+.reseller-portal .portal-card h2,
+.portal-influencer .portal-card h2 { color: var(--lord-ink); }
+.lord-admin-shell .ghost-button,
+.reseller-portal .ghost-button { background: #fff; border: 1px solid #d9cbb2; color: var(--lord-ink); font-weight: 700; }
+.lord-admin-shell .ghost-button:hover,
+.reseller-portal .ghost-button:hover { border-color: var(--lord-gold); background: #fffaf1; }
+.lord-admin-shell .simple-table > div,
+.reseller-portal .simple-table > div { border-top-color: #ede9e2; }
+.lord-admin-shell .purchase-row,
+.reseller-portal .purchase-row { border-top-color: #ede9e2; }
+.lord-admin-shell .credential-card { background: #082035; border: 1px solid #aa8749; }
+
+/* Revendedor: preserva o layout e cada formulário de negócio existente. */
+.reseller-portal .portal-layout { grid-template-columns: 250px minmax(0,1fr); }
+.reseller-portal .portal-sidebar {
+  position: sticky;
+  top: 72px;
+  align-self: start;
+  height: calc(100vh - 72px);
+  overflow: auto;
+  background: linear-gradient(175deg,#061727,#0b2c47);
+  padding: 28px 16px;
+}
+.reseller-portal .portal-sidebar .side-brand .compact-logo { background: transparent; height: 82px; }
+.reseller-portal .portal-sidebar button { min-height: 45px; font-size: 13px; }
+.reseller-portal .portal-sidebar button.active { box-shadow: inset 3px 0 var(--lord-gold); }
+.reseller-portal .portal-content { width: 100%; padding: 29px 35px 62px; }
+.reseller-portal .portal-title h1 { font-family: system-ui,-apple-system,"Segoe UI",sans-serif; font-size: clamp(27px,3vw,37px); }
+.reseller-portal .portal-actions-grid button { border: 1px solid var(--lord-edge); border-radius: 17px; box-shadow: 0 7px 24px #0b233708; }
+.reseller-portal .portal-actions-grid button:focus-visible { outline-color: var(--lord-gold); }
+.reseller-portal .delivery-card { border-top: 3px solid #d4a457; }
+.reseller-portal .delivery-steps li.complete b { background: #102d45; }
+.reseller-portal .delivery-tracking-link { display: inline-block; margin-left: 9px; font-weight: 750; color: #8b5c13; font-size: 12px; }
+.reseller-portal .delivery-last-update { display: block; margin-top: 10px; color: #617381; font-size: 11px; }
+
+/* Influenciador: dados e campanhas reais, sem valores ilustrativos. */
+.portal-influencer-active .influencer-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 248px;
+  padding: 26px 15px 23px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(175deg,#061727,#0b2c47);
+  color: white;
+  z-index: 20;
+}
+.influencer-sidebar-brand { display: flex; flex-direction: column; align-items: flex-start; padding: 0 14px 32px; gap: 4px; }
+.influencer-sidebar nav { display: grid; gap: 5px; }
+.influencer-sidebar nav a { color: #c7d6df; font-size: 13px; font-weight: 700; padding: 13px 14px; border-radius: 11px; text-decoration: none; border: 1px solid transparent; }
+.influencer-sidebar nav a:hover,
+.influencer-sidebar nav a:focus-visible { color: white; background: #193a52; border-color: #91713e; }
+.portal-influencer-active .indicator-top,
+.portal-influencer-active .indicator-content { margin-left: 248px; }
+.portal-influencer .indicator-top { padding: 10px 30px; min-height: 73px; border-bottom: 1px solid var(--lord-edge); background: #fff; gap: 16px; }
+.portal-influencer .indicator-top .compact-logo { height: 49px; width: 83px; }
+.influencer-welcome { margin-left: auto; color: #34495b; font-size: 13px; font-weight: 700; }
+.portal-influencer-active .indicator-content { width: auto; max-width: 1680px; padding: 28px 35px 80px; }
+.portal-influencer .indicator-content h1 { font-family: system-ui,-apple-system,"Segoe UI",sans-serif; font-size: clamp(28px,3vw,37px); color: var(--lord-ink); }
+.portal-influencer .influencer-page-head p { font-size: 14px; color: var(--lord-muted); }
+.portal-influencer .influencer-overview-metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(165px,1fr)); margin: 23px 0 8px; }
+.portal-influencer .influencer-overview-metrics > div { border: 1px solid var(--lord-edge); border-top: 3px solid var(--lord-gold); border-radius: 15px; padding: 18px; background: #fff; }
+.portal-influencer .influencer-overview-metrics > div span { color: var(--lord-muted); font-size: 12px; }
+.portal-influencer .influencer-overview-metrics > div strong { color: var(--lord-ink); font-size: clamp(21px,2vw,27px); overflow-wrap: anywhere; }
+.portal-influencer .cashback-alert { border: 1px solid #e4d4b4; background: #fffaf1; color: #6f521c; border-radius: 15px; margin: 16px 0; }
+.portal-influencer .influencer-cashback-card { margin-top: 22px; }
+.portal-influencer .influencer-cashback-card .indicator-stats { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.portal-influencer .influencer-cashback-card .indicator-stats > div { background: #fcfbf9; }
+.portal-influencer .influencer-materials { margin-top: 26px; }
+.portal-influencer .influencer-materials-head h2 { margin: 6px 0; font-size: 22px; }
+.portal-influencer .influencer-materials-head p { color: var(--lord-muted); font-size: 13px; }
+.portal-influencer .crm-campaign-link input { background: #fffdfa; }
+.portal-influencer .portal-card .card-title { gap: 12px; }
+.portal-influencer #influencer-campaign,
+.portal-influencer #influencer-cashback,
+.portal-influencer #influencer-materials,
+.portal-influencer #influencer-overview { scroll-margin-top: 92px; }
+
+@media (max-width: 1050px) {
+  .lord-admin-sidebar { flex-basis: 208px; width: 208px; }
+  .lord-admin-main .portal-body.admin-only { padding: 25px 20px 55px; }
+  .lord-admin-shell .metric-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .reseller-portal .portal-layout { grid-template-columns: 210px minmax(0,1fr); }
+  .reseller-portal .portal-content { padding: 26px 22px 52px; }
+  .portal-influencer-active .influencer-sidebar { width: 210px; }
+  .portal-influencer-active .indicator-content,
+  .portal-influencer-active .indicator-top { margin-left: 210px; }
+  .portal-influencer-active .indicator-content { padding: 26px 22px 60px; }
+}
+@media (max-width: 780px) {
+  .lord-admin-shell { display: block; }
+  .lord-admin-sidebar { width: 100%; height: auto; min-height: 0; position: relative; padding: 10px 14px; overflow: visible; }
+  .lord-admin-brand { flex-direction: row; align-items: center; gap: 11px; padding: 0 4px 9px; }
+  .lord-admin-brand .compact-logo { width: 42px; height: 46px; margin: 0; }
+  .lord-admin-brand span { display: none; }
+  .lord-admin-brand strong { font-size: 14px; }
+  .lord-admin-sidebar > .lord-sidebar-label,
+  .lord-admin-shortcuts .lord-sidebar-label,
+  .lord-sidebar-footer { display: none; }
+  .lord-admin-sidebar .bko-tabs { display: flex; flex-direction: row; gap: 6px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: thin; }
+  .lord-admin-sidebar .bko-tabs button { width: auto; flex: 0 0 auto; white-space: nowrap; min-height: 40px; padding: 10px 13px; font-size: 12px; }
+  .lord-admin-shortcuts { display: flex; gap: 5px; margin: 4px 0 0; padding: 4px 0 0; overflow-x: auto; }
+  .lord-admin-shortcuts button { width: auto; flex: 0 0 auto; min-height: 34px; padding: 8px 12px; font-size: 11px; }
+  .lord-admin-main .portal-header { position: relative; top: auto; height: 61px; }
+  .lord-admin-main .portal-body.admin-only { padding: 20px 14px 45px; }
+  .lord-admin-shell .portal-title { align-items: flex-start; }
+  .reseller-portal .portal-layout { display: block; }
+  .reseller-portal .portal-sidebar { position: relative; top: auto; height: auto; overflow: visible; padding: 10px; }
+  .reseller-portal .portal-sidebar .side-brand { display: none; }
+  .reseller-portal .portal-sidebar nav { display: flex; flex-direction: row; gap: 5px; overflow-x: auto; }
+  .reseller-portal .portal-sidebar button { white-space: nowrap; width: auto; flex: 0 0 auto; }
+  .portal-influencer-active .influencer-sidebar { position: relative; width: 100%; height: auto; overflow: visible; padding: 11px 14px; }
+  .influencer-sidebar-brand { flex-direction: row; align-items: center; padding: 0 4px 10px; }
+  .influencer-sidebar-brand .compact-logo { width: 45px; height: 44px; margin: 0 6px 0 0; }
+  .influencer-sidebar-brand span,
+  .influencer-sidebar-caption,
+  .influencer-sidebar-footer { display: none; }
+  .influencer-sidebar-brand strong { font-size: 14px; }
+  .influencer-sidebar nav { display: flex; gap: 4px; overflow-x: auto; }
+  .influencer-sidebar nav a { white-space: nowrap; padding: 10px 12px; }
+  .portal-influencer-active .indicator-content,
+  .portal-influencer-active .indicator-top { margin-left: 0; }
+  .portal-influencer .indicator-top { padding: 9px 15px; }
+  .portal-influencer-active .indicator-content { padding: 22px 15px 50px; }
+  .portal-influencer .influencer-cashback-card .indicator-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 480px) {
+  .lord-admin-shell .metric-grid,
+  .reseller-portal .metric-grid.reseller { grid-template-columns: repeat(2,minmax(0,1fr))!important; gap: 9px; }
+  .lord-admin-shell .metric-card,
+  .reseller-portal .metric-card { padding: 13px 11px; }
+  .lord-admin-shell .metric-card strong,
+  .reseller-portal .metric-card strong { font-size: 20px; overflow-wrap: anywhere; }
+  .lord-admin-shell .portal-title { flex-wrap: wrap; }
+  .portal-influencer .influencer-overview-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+  .portal-influencer .influencer-overview-metrics > div { padding: 13px 11px; }
+  .influencer-welcome { display: none; }
+}

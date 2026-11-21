@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {load,memoryDb,operators,table} from './runtime-loader.mjs';
+import {asaasAuditStub} from './helpers/asaas-audit-stub.mjs';
 const schema={purchases:table('id','userId','paymentStatus'),users:table('id','email'),authSessions:table('userId'),resellerProfiles:table('userId'),stockMovements:table('id','userId','referenceId')};
 const pending={id:'p1',email:'buyer@example.test',name:'Buyer',phone:'',kit:'kit20',boxes:20,paymentStatus:'payment_pending',shippingStatus:'awaiting_payment',totalCents:10990,asaasPaymentId:'pay1',asaasCustomerId:'cus1'};
 function backoffice({role='admin',purchase=pending,remoteStatus='CONFIRMED'}={}){
@@ -10,6 +11,7 @@ function backoffice({role='admin',purchase=pending,remoteStatus='CONFIRMED'}={})
  class AsaasRequestError extends Error{}
  const syncDeps={...deps,
   '@/lib/asaas':{AsaasRequestError,getAsaasConfig:()=>({configured:true,environment:'sandbox'}),getPayment:async()=>{asaasLookups++;return {id:'pay1',customer:'cus1',externalReference:'p1',value:109.90,status:remoteStatus}}},
+  '@/lib/asaas-reconciliation-audit':asaasAuditStub,
   '@/lib/env':{getOptionalEnv:key=>key==='ASAAS_WEBHOOK_TOKEN'?'test-only-token':undefined},
   '@/lib/campaign-schema':{ensureCampaignSchema:async()=>{}},
   '@/lib/billing-webhook':{handleBillingWebhook:async request=>{

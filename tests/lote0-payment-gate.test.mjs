@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {load,memoryDb,operators,table} from './runtime-loader.mjs';
+import {asaasAuditStub} from './helpers/asaas-audit-stub.mjs';
 
 const schema={purchases:table('id','orderNumber'),users:table('id'),stockMovements:table('referenceId')};
 const basePurchase={id:'p1',orderNumber:'LORD-101',kit:'kit20',asaasPaymentId:'pay1',asaasCustomerId:'cus1',asaasInstallmentId:null,
@@ -23,6 +24,7 @@ function fixture({purchase={},remote={},environment='sandbox',asaasOffline=false
    getAsaasConfig:()=>({configured:true,apiKey:'test-only',environment,baseUrl:environment==='sandbox'?'https://api-sandbox.asaas.com/v3':'https://api.asaas.com/v3'}),
    getPayment:async()=>{lookups++;if(asaasOffline)throw new AsaasRequestError('OFFLINE');return {...baseRemote,...remote}}
   },
+  '@/lib/asaas-reconciliation-audit':asaasAuditStub,
   '@/lib/env':{getOptionalEnv:key=>key==='ASAAS_WEBHOOK_TOKEN'?'test-token':undefined},
   '@/lib/campaign-schema':{ensureCampaignSchema:async()=>{}},
   '@/lib/billing-webhook':{handleBillingWebhook:async request=>{

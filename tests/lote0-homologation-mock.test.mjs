@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {load,memoryDb,operators,table} from './runtime-loader.mjs';
+import {asaasAuditStub} from './helpers/asaas-audit-stub.mjs';
 
 const schema={
  purchases:table('id','orderNumber','asaasPaymentId','asaasInstallmentId','paymentStatus'),
@@ -46,6 +47,7 @@ function environment({saved={},remote={},asaasEnvironment='sandbox',offline=fals
     return {...payment};
    }
   },
+  '@/lib/asaas-reconciliation-audit':asaasAuditStub,
   '@/lib/campaign-schema':{ensureCampaignSchema:async()=>{}},
   '@/lib/runtime-schema':{ensureOperationalSchema:async()=>{}},
   '@/lib/purchase-fields':{operationalPurchaseFields:{}},
