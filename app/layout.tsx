@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   keywords: ["LORD NUTRI", "MIX10 PRO", "revendedor MIX10 PRO", "revenda de suplementos", "programa de revendedores", "suplemento alimentar"],
   referrer: "origin",
   applicationName: "LORD NUTRI Revendedores",
-  icons: { icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/icon.png", sizes: "512x512", type: "image/png" }], apple: [{ url: "/apple-icon.png", sizes: "512x512", type: "image/png" }] },
+  icons: {
+    icon: [{ url: "/favicon-32.png", sizes: "32x32", type: "image/png" }, { url: "/icon.png", sizes: "512x512", type: "image/png" }],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-icon.png", sizes: "512x512", type: "image/png" }],
+  },
   authors: [{ name: "LORD NUTRI" }],
   creator: "LORD NUTRI",
   publisher: "LORD GROUP NETWORK EPP",
@@ -32,7 +36,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#111810" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#071d2f" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="pt-BR"><body><TrafficAttribution />{children}</body></html>;

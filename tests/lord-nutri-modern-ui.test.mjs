@@ -22,9 +22,22 @@ test("revendedor recebe a marca original e rastreio com atualização identifica
   assert.doesNotMatch(portal, /\(R\$ 67,90\/unidade\)/);
 });
 
+test("resumo visual usa o estoque verdadeiro e abre o formulário real de vendas", () => {
+  assert.match(portal, /className="lord-hero reseller-hero"/);
+  assert.match(portal, /className="lord-hero-highlight"[\s\S]*?stock\.stock/);
+  assert.match(portal, /onClick=\{\(\)=>setView\("sales"\)\}/);
+  assert.doesNotMatch(portal, />42<\/strong>/);
+});
+
 test("influenciador apresenta campanha individual da API, sem TORREI global nem cashback V2 fictício", () => {
   assert.match(indicator, /campaign\.name/);
   assert.match(indicator, /campaign\.salesPath/);
   assert.match(indicator, /portal-influencer/);
   assert.doesNotMatch(indicator, /TORREI|R\$ 20,00 por caixa/);
+});
+
+test("resumo visual do influenciador exibe a campanha da API sem nome de demonstração", () => {
+  assert.match(indicator, /className="lord-hero influencer-hero"/);
+  assert.match(indicator, /campaign\?\.name/);
+  assert.match(indicator, /href="#influencer-campaign"/);
 });
