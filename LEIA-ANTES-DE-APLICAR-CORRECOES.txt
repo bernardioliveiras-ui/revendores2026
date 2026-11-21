@@ -22,7 +22,17 @@ O QUE FOI CORRIGIDO
   pelo navegador do cliente.
 - Workflow GitHub Actions agenda consultas a cada 10 minutos, SE devidamente
   configurado e efetivamente executado pela plataforma GitHub.
-- CSS completo do layout incluido em app/portal-modern.css.
+- BKO separa compras por canal sem mover dados do banco:
+  * Acessos e Pedidos: apenas KIT20, KIT50 e KIT100 de revenda.
+  * Influenciadores: compras unitarias com campanha e cashback atribuido.
+  * Vendas avulsas: MIX10 unitario sem campanha; nao gera acesso de revendedor.
+  * Expedicao: todos os pedidos pagos, por ser uma operacao compartilhada.
+- O contador "Acessos pendentes" considera SOMENTE kits pagos e verificados
+  no Asaas. Compras unitarias nao criam pendencia de acesso.
+- Visao Geral distingue totais da loja inteira dos canais de kits,
+  campanhas e vendas avulsas. Compras recentes mostram sua origem.
+- CSS do projeto esta incluido em app/portal-modern.css; a equivalencia
+  visual com cada tela da demo ainda exige conferencia no BKO autenticado.
 
 ATIVACAO DO RASTREIO REAL — OBRIGATORIA
 1. No painel da Hostinger, configure como variaveis privadas:
@@ -62,4 +72,4 @@ LIMITES DESTA ENTREGA
 - Rastreio, valores e alertas devem ser validados com credenciais e pedidos
   de teste oficiais antes de habilitar automacoes financeiras em producao.
 
-VALIDACAO LOCAL: 383 testes de 383 aprovados; tsc sem erros; npm run build OK.
+VALIDACAO LOCAL: 386 testes de 386 aprovados; tsc sem erros; npm run build OK.

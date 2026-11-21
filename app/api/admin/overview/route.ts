@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import { affiliateReferrals, purchases, sales, stockMovements, users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { repairPaidPurchaseStockForAllResellers } from "@/lib/stock-repair";
+import { countPendingResellerAccess, segmentPurchases } from "@/lib/purchase-segments.mjs";
 
 import { ensureOperationalSchema } from "@/lib/runtime-schema";
 function signed(type: string, boxes: number) { if (type === "entry" || type === "adjustment_in") return boxes; if (type === "sale" || type === "adjustment_out") return -boxes; return 0; }
@@ -30,6 +31,7 @@ export async function GET(request: Request) {
     try { referralRows = await db.select().from(affiliateReferrals); } catch (error) { console.error("admin_referrals_optional_failed", error); referralRows = []; }
     const paid = purchaseRows.filter((p) => p.paymentStatus === "paid");
     const asaasVerified = paid.filter(p=>!!p.asaasVerifiedAt);
+    const verifiedChannels = segmentPurchases(asaasVerified);
     const stockByUser = new Map<string, number>();
     for (const row of stockRows) stockByUser.set(row.userId, (stockByUser.get(row.userId) || 0) + signed(row.type, row.boxes));
     const soldByUser = new Map<string, number>();
@@ -41,7 +43,10 @@ export async function GET(request: Request) {
     const metrics = {
       activeResellers: userRows.filter((u) => u.role === "reseller" && u.status === "active").length,
       paidPurchases: asaasVerified.length,
-      pendingAccess: paid.filter((p) => !p.accessReleasedAt).length,
+      pendingAccess: countPendingResellerAccess(asaasVerified),
+      resellerKitCount: verifiedChannels.resellerKits.length,
+      influencerUnitCount: verifiedChannels.influencerUnits.length,
+      directUnitCount: verifiedChannels.directUnits.length,
       kitRevenueCents: asaasVerified.reduce((sum, p) => sum + Math.max(0,p.productTotalCents || p.totalCents-p.shippingCents-p.interestCents), 0),
       boxesSold: saleRows.reduce((sum, row) => sum + row.boxes, 0),
       grossSalesCents: saleRows.reduce((sum, row) => sum + row.totalValueCents, 0),

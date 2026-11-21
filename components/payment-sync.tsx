@@ -11,7 +11,7 @@ export function PaymentSync({purchaseId,onUpdated}:{purchaseId?:string;onUpdated
   }catch(e){setMessage(e instanceof Error?e.message:"Falha ao consultar.")}finally{setBusy(false)}
  }
  return <div className="payment-sync" style={{margin:"12px 0"}}>
- {!purchaseId?<label style={{display:"block",marginBottom:8}}>Consultar pagamento de revendedor ou influenciador<input value={number} onChange={e=>setNumber(e.target.value)} placeholder="Número do pedido · MIX…" maxLength={80} style={{display:"block",maxWidth:"100%",padding:10}}/></label>:null}
+ {!purchaseId?<label style={{display:"block",marginBottom:8}}>Consultar pagamento de kit do revendedor<input value={number} onChange={e=>setNumber(e.target.value)} placeholder="Número do pedido do kit · MIX…" maxLength={80} style={{display:"block",maxWidth:"100%",padding:10}}/></label>:null}
  <button type="button" className="secondary-button compact" disabled={busy||(!purchaseId&&!number.trim())} onClick={()=>void sync()}>{busy?"Consultando Asaas…":"Sincronizar com Asaas"}</button>
  {message?<p role="status" style={{fontSize:13,overflowWrap:"anywhere"}}>{message}</p>:null}
  </div>;

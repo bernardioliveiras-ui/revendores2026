@@ -15,7 +15,7 @@ test('BKO portal exposes access release, logistics and metrics without reseller-
   const dashboard=await read('components/bko-control-dashboard.tsx');
   assert.match(src,/BkoControlDashboard/);
   for(const label of ['Liberar acesso','Em separação','Em percurso','Entregue'])assert.ok(src.includes(label),label);
-  for(const label of ['Revendedores ativos','Vendas aprovadas','Produtos de compras verificadas'])assert.ok(dashboard.includes(label),label);
+  for(const label of ['Revendedores ativos','Vendas aprovadas','Todos os canais · compras verificadas','Acessos pendentes · kits'])assert.ok(dashboard.includes(label),label);
   assert.match(src,/Abrir WhatsApp/);
 });
 

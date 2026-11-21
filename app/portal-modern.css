@@ -418,6 +418,28 @@
 .lord-demo-network strong { display:block; margin:10px 0; font-size:22px; color:#0e2d45; overflow-wrap:anywhere; }
 .lord-demo-network svg { color:#b48d50; width:20px; height:20px; }
 .lord-demo-integrations-note { margin:20px 0 0; padding:13px 15px; background:#fffaf0; border:1px solid #e9dfce; color:#7a6847; font-size:11px; line-height:1.6; border-radius:11px; }
+.lord-demo-channel-split { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:15px; margin-top:17px; }
+.lord-demo-channel-split button { border:1px solid #e7e2d9; background:#fff; text-align:left; border-radius:15px; min-width:0; padding:19px; display:flex; flex-direction:column; gap:8px; box-shadow:0 5px 18px #122e4110; cursor:pointer; }
+.lord-demo-channel-split button:hover,.lord-demo-channel-split button:focus-visible { outline:2px solid #d4ac62; outline-offset:1px; background:#fffdf8; }
+.lord-demo-channel-split button>span { color:#98733b; font-size:10px; letter-spacing:1.2px; font-weight:900; }
+.lord-demo-channel-split button>strong { color:#0a2236; font-size:27px; font-weight:850; }
+.lord-demo-channel-split button>small { color:#788895; font-size:11px; line-height:1.5; }
+.bko-channel-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:18px 0; }
+.bko-channel-kpis>div { border:1px solid #e7e2d9; background:#fffdf9; border-radius:13px; padding:17px; }
+.bko-channel-kpis span { display:block; color:#708191; font-size:12px; }
+.bko-channel-kpis strong { display:block; color:#0a2236; margin-top:9px; font-size:24px; font-weight:850; }
+.bko-channel-filters { display:flex; gap:14px; align-items:end; flex-wrap:wrap; margin:18px 0; }
+.bko-channel-filters label { flex:1 1 190px; display:grid; gap:7px; font-size:12px; color:#5b6e7f; font-weight:750; }
+.bko-channel-filters input,.bko-channel-filters select { width:100%; border:1px solid #d7ddd9; border-radius:9px; background:white; padding:12px; color:#112c40; min-height:43px; }
+.bko-direct-sales .card-title { align-items:center; }
+.bko-reseller-orders .admin-purchase-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:18px; }
+.bko-reseller-orders .purchase-row { display:flex; flex-direction:column; align-items:stretch; gap:16px; background:#fffdf9; border:1px solid #ebe1d2; border-radius:13px; padding:19px; min-width:0; }
+.bko-reseller-orders .purchase-row h3 { color:#0a2236; font-size:15px; margin:7px 0; overflow-wrap:anywhere; }
+.bko-reseller-orders .purchase-row>div:first-child { min-width:0; overflow-wrap:anywhere; }
+.bko-reseller-orders .purchase-row .purchase-actions { flex-wrap:wrap; gap:8px; }
+.bko-reseller-orders .portal-form-help { color:#6d7d89; font-size:12px; }
+@media (max-width:780px) { .lord-demo-channel-split { grid-template-columns:1fr; } .bko-channel-kpis { grid-template-columns:1fr; } }
+@media (max-width:950px) { .bko-reseller-orders .admin-purchase-list { grid-template-columns:1fr; } }
 
 /* O portal do revendedor e o de influenciador utilizam a mesma estrutura
  * visual da demonstração, mas preservam formulários e permissões reais. */
