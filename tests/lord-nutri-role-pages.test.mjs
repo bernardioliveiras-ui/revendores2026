@@ -21,9 +21,11 @@ test('revendedor mantém cinco módulos da demonstração e indicações sem exp
 
 test('BKO mostra cartões independentes por campanha real e seus links próprios', async () => {
   const source = await readFile(new URL('../components/indicator-admin.tsx',import.meta.url),'utf8');
-  assert.match(source,/className="lord-admin-campaign-grid"/);
+  assert.match(source,/className="grid three reference-cards"/);
   assert.match(source,/campaigns\.map\(c=>/);
   assert.match(source,/c\.publicCode/);
   assert.match(source,/indicators\.find\(i=>i\.userId===c\.indicatorUserId\)/);
+  assert.ok(source.indexOf('className="grid three reference-cards"') < source.indexOf('<CheckoutFunnel admin'));
+  assert.match(source, /openProfile\(m.campaign\)/);
   assert.doesNotMatch(source,/exemplo\.test/);
 });

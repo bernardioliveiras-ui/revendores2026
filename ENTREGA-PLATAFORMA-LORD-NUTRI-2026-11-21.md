@@ -1,6 +1,6 @@
 # LORD NUTRI — Plataforma dos três perfis
 
-Pacote de atualização visual para o projeto Next.js existente de revendedores.
+Registro da entrega anterior. Para o ZIP atual, consulte o [README](README.md) e as [instruções de publicação](COMO-SUBIR-NO-GITHUB.md).
 
 ## Origem e preservação
 
