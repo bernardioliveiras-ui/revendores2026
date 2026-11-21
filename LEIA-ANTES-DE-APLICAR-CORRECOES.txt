@@ -1,45 +1,65 @@
-LORD NUTRI — CORREÇÕES PARCIAIS (21/11/2026)
+LORD NUTRI — PLATAFORMA E AUTOMACOES (21/11/2026)
 
-ESTE ZIP É UM PATCH, NÃO É A PLATAFORMA INTEIRA.
-Não substitua o repositório por este ZIP sozinho. Extraia e copie suas pastas e arquivos
-POR CIMA de uma cópia de trabalho do projeto correspondente ao pacote
-"LORD-NUTRI-Plataforma-Completa-GitHub(1).zip" (implantação 0224ec9).
-Mantenha um backup da pasta e do banco antes de qualquer publicação.
+Este ZIP contem o projeto completo para atualizar o codigo no GitHub.
+Nao contem node_modules, build .next, arquivos .env, credenciais ou exportacoes CSV.
+Antes de sobrescrever os arquivos locais, faca uma copia do seu projeto atual.
+O ZIP nao e um backup do banco MariaDB: preserve o banco separadamente.
 
-O QUE FOI ALTERADO
-- Link amigável /v/nome-da-campanha, com redirecionamento para o mesmo código
-  financeiro original. Links hexadecimais antigos continuam funcionando.
-- Novo slug permanente: nome da campanha é normalizado na criação;
-  se renomeado, o endereço original permanece válido para não quebrar divulgação.
-- Migração aditiva no MariaDB: coluna public_slug e índice único na tabela
-  indicator_campaigns; atribuições/pedidos e public_code não são substituídos.
-- BKO Expedição: indicadores, busca, lista em tabela, detalhes do rastreamento,
-  dados da última consulta e registro de etiqueta via operação existente.
-- Revendedor: botão Ver rastreamento e visualização das três etapas e evento real.
-- BKO: não oferece liberação de acesso de revendedor para compra avulsa MIX10.
-- Influenciador: segunda linha financeira com aprovação, disponibilidade e pago,
-  porém SEM INVENTAR VALORES: aparece traço até existir conciliação de repasses.
-- Configurações e Auditoria: diagnóstico de Asaas/Correios e operações de
-  manutenção mantidas em detalhe avançado fechado por padrão.
+O QUE FOI CORRIGIDO
+- Editar o nome da campanha no portal do influenciador ou BKO muda o link de
+  vendas no mesmo salvamento: /v/nome-da-campanha (sem codigo hexadecimal).
+- Quando ja existir uma campanha com o mesmo nome, o sistema usa um sufixo
+  numerico para manter URLs unicas (ex.: /v/promo-2).
+- O identificador interno de atribuicao de vendas NAO muda ao renomear.
+- Links antigos deixam de ser a referencia apos renomear. Este e o comportamento
+  solicitado para uma plataforma ainda em implantacao, sem links divulgados.
+- Expedicao BKO: busca, indicadores, tabela, detalhes e ultimo evento consultado.
+- Nova acao "Sincronizar Correios agora" restrita ao BKO.
+- Consultas validas sem evento e falhas dos Correios ficam diferenciadas:
+  "Ultima consulta valida" e "Ultima tentativa"; eventos anteriores preservados.
+- BKO e revendedor atualizam as telas de operacao a cada 30 segundos quando
+  o navegador estiver visivel. Os Correios sao consultados PELO SERVIDOR, nao
+  pelo navegador do cliente.
+- Workflow GitHub Actions agenda consultas a cada 10 minutos, SE devidamente
+  configurado e efetivamente executado pela plataforma GitHub.
+- CSS completo do layout incluido em app/portal-modern.css.
 
-O QUE AINDA ESTÁ PENDENTE (NÃO HOMOLOGADO)
-- Nova tabela de Acessos e Pedidos com filtros e detalhe no padrão da demo.
-- Biblioteca unificada de Materiais com público Revendedores/Influenciadores.
-- Livro-razão e homologação das aprovações e pagamentos de cashback ao influenciador.
-- Testes integrados com Asaas real, Correios real e dados financeiros em banco isolado.
-- Validação visual exata da demo, autorização de publicação e correções de
-  vulnerabilidades das dependências.
+ATIVACAO DO RASTREIO REAL — OBRIGATORIA
+1. No painel da Hostinger, configure como variaveis privadas:
+   CORREIOS_USUARIO, CORREIOS_CODIGO_ACESSO, CORREIOS_CONTRATO e
+   CORREIOS_CRON_TOKEN (segredo forte de pelo menos 32 caracteres).
+2. No GitHub do repositorio, Settings > Secrets and variables > Actions:
+   - Secrets: CORREIOS_CRON_TOKEN (MESMO valor configurado na Hostinger).
+   - Variables: PORTAL_URL=https://revendedores.mix10pro.com.br
+3. Confirme que Actions esta habilitado, que a branch principal contem
+   .github/workflows/correios.yml e que a rotina foi executada com sucesso.
+   O agendamento do GitHub pode atrasar. Nao e rastreamento instantaneo.
+4. Para cada pedido pago, cadastre etiqueta valida (ex.: AA123456789BR)
+   e use transportadora Correios. Sem etiqueta ou sem credenciais oficiais,
+   o sistema nao tem como consultar o objeto real.
+5. No BKO > Integracoes confira o diagnostico e em Expedicao clique em
+   "Sincronizar Correios agora" para a primeira verificacao.
+6. Abra o pedido no portal do revendedor e confira o evento, a etapa e
+   os horarios. A ausencia de eventos ainda depende da resposta dos Correios.
 
-CUIDADOS ANTES DE SUBIR
-1. Verifique que o banco de HOMOLOGAÇÃO contém SOMENTE dados de teste, sem pedidos reais.
-2. A migração automática de public_slug é aditiva, mas exige permissão ALTER TABLE.
-   Faça backup e execute primeiro em banco isolado. NÃO aplique cegamente na produção.
-3. Confira GitHub Actions (workflow Rastreio Correios): secrets.CORREIOS_CRON_TOKEN,
-   vars.PORTAL_URL e o histórico de execuções. Na Hostinger, configure o mesmo token
-   e credenciais dos Correios em variáveis privadas, sem publicá-las em GitHub.
-4. No BKO > Configurações e Auditoria, consulte o último agendamento real dos Correios.
-5. Execute localmente: node --test tests/*.test.mjs e npm run build.
-6. Somente após homologar, publique com GitHub Desktop e avalie os logs da Hostinger.
+ANTES DO DEPLOY
+- Faca backup do codigo e banco. Nao apague ou 'zere' dados para aplicar esta
+  atualizacao. Revise migracoes pendentes em ambiente isolado primeiro.
+- Nunca publique DATABASE_PASSWORD, ASAAS_API_KEY, segredos Correios ou .env.
+- Confira a configuracao do banco da aplicacao na Hostinger; um build aprovado
+  nao comprova que o banco real esta acessivel.
+- Rode localmente: node --test tests/*.test.mjs ; npm run build.
+- Extraia os ARQUIVOS do ZIP na pasta do projeto git local (nao envie apenas
+  o arquivo .zip ao GitHub). Revise as alteracoes no GitHub Desktop e faca push.
+- Espere o deploy e teste as tres contas separadas: BKO, Revendedor,
+  Influenciador. Inspecione os logs e respostas da plataforma.
 
-CHECAGEM LOCAL DO PATCH: 377 testes aprovados, zero falhas; npm run build aprovado.
-NENHUMA ALTERAÇÃO FOI EXECUTADA NO BANCO ONLINE NESTA PREPARAÇÃO.
+LIMITES DESTA ENTREGA
+- A integracao real Asaas, estoque, repasses e cashback nao foram homologados
+  nesta sessao contra provedores reais. Os testes sao locais e simulados.
+- Nao foram executados pagamento, estorno, liberacao de dinheiro, alteracao
+  no banco real, chamadas ao Asaas/CORREIOS reais ou deploy de producao.
+- Rastreio, valores e alertas devem ser validados com credenciais e pedidos
+  de teste oficiais antes de habilitar automacoes financeiras em producao.
+
+VALIDACAO LOCAL: 383 testes de 383 aprovados; tsc sem erros; npm run build OK.

@@ -40,5 +40,5 @@ yarn-error.log*
 *.jsonl.gz
 
 # Exportações comerciais locais
-/public/**/*.[cC][sS][vV]
-/public/**/*.[cC][sS][cC]
+/public/leads_mix10pro_*.csv
+/public/coupons_mix10pro_*.csv

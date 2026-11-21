@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./portal-modern.css";
-import "./portal-referencia.css";
 import { getSiteUrl } from "@/lib/seo";
 import { TrafficAttribution } from "@/components/traffic-attribution";
 

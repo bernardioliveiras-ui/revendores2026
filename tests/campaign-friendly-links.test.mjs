@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { load } from './runtime-loader.mjs';
+import { load, memoryDb, operators, table } from './runtime-loader.mjs';
 import { campaignSlug, reserveCampaignSlugs } from '../lib/campaign-slug.mjs';
 
 test('a URL legível usa o nome da campanha sem expor o identificador técnico', () => {
@@ -53,4 +53,69 @@ test('redirecionamento legado do link /c também preserva o cookie técnico',asy
   assert.equal(res.status,302);
   assert.equal(new URL(res.headers.get('location')).searchParams.get('campanha'),code);
   assert.match(res.headers.get('set-cookie'),new RegExp(`ln_campaign=${code}`));
+});
+
+test('renomear campanha própria troca imediatamente o link e conserva o código de atribuição', async()=>{
+  const code='d'.repeat(32);
+  const indicatorCampaigns=table('id','indicatorUserId','name','publicSlug','publicCode','active','updatedAt');
+  const state=memoryDb({indicatorCampaigns},{indicatorCampaigns:[{id:'c1',indicatorUserId:'u1',name:'Mix Sponda',publicSlug:'mix-sponda',publicCode:code,active:1}]});
+  const {POST}=load('app/api/indicator/campaign/route.ts',{
+    'drizzle-orm':operators,
+    '@/db':{getDb:()=>state.db},'@/db/schema':{indicatorCampaigns},
+    '@/lib/auth':{requireIndicator:async()=>({id:'u1'})},
+    '@/lib/indicator-terms-store':{requireIndicatorTerms:async()=>{}},
+    '@/lib/campaign-schema':{ensureCampaignSchema:async()=>{}},
+    '@/lib/campaign-slug.mjs':{campaignSlug},
+    '@/lib/indicator-security':{cleanText:v=>String(v||'').trim(),indicatedError:e=>Response.json({error:e.message},{status:500}),privateResponseHeaders:{}},
+    '@/lib/asaas':{getAsaasConfig:()=>({environment:'sandbox'})},
+    '@/lib/campaign-metrics.mjs':{summarizeCampaign:()=>({})},
+  });
+  const r=await POST(new Request('https://teste.local/api/indicator/campaign',{method:'POST',body:JSON.stringify({name:'Spondinha'})}));
+  assert.equal(r.status,200);
+  assert.deepEqual((await r.json()).salesPath,'/v/spondinha');
+  assert.equal(state.rows.indicatorCampaigns[0].publicSlug,'spondinha');
+  assert.equal(state.rows.indicatorCampaigns[0].publicCode,code);
+});
+
+test('renomear para nome já usado reserva sufixo e não muda campanha de outra pessoa', async()=>{
+  const indicatorCampaigns=table('id','indicatorUserId','name','publicSlug','publicCode','active','updatedAt');
+  const rows=[{id:'c1',indicatorUserId:'u1',name:'Minha camp',publicSlug:'minha-camp',publicCode:'1'.repeat(32),active:1},
+    {id:'c2',indicatorUserId:'u2',name:'Promo',publicSlug:'promo',publicCode:'2'.repeat(32),active:1}];
+  const state=memoryDb({indicatorCampaigns},{indicatorCampaigns:rows});
+  const {POST}=load('app/api/indicator/campaign/route.ts',{
+    'drizzle-orm':operators,'@/db':{getDb:()=>state.db},'@/db/schema':{indicatorCampaigns},
+    '@/lib/auth':{requireIndicator:async()=>({id:'u1'})},'@/lib/indicator-terms-store':{requireIndicatorTerms:async()=>{}},
+    '@/lib/campaign-schema':{ensureCampaignSchema:async()=>{}},'@/lib/campaign-slug.mjs':{campaignSlug},
+    '@/lib/indicator-security':{cleanText:v=>String(v||'').trim(),indicatedError:e=>Response.json({error:e.message},{status:500}),privateResponseHeaders:{}},
+    '@/lib/asaas':{getAsaasConfig:()=>({environment:'sandbox'})},'@/lib/campaign-metrics.mjs':{summarizeCampaign:()=>({})},
+  });
+  const result=await POST(new Request('https://teste.local/api/indicator/campaign',{method:'POST',body:JSON.stringify({name:'Promo'})}));
+  assert.equal((await result.json()).salesPath,'/v/promo-2');
+  assert.equal(state.rows.indicatorCampaigns[1].publicSlug,'promo');
+});
+
+test('BKO também altera o endereço amigável ao salvar nome da campanha',async()=>{
+  const indicatorCampaigns=table('id','indicatorUserId','name','publicSlug','publicCode','active','updatedAt');
+  const indicatorProfiles=table('userId','role','status','id');
+  const users=table('id','role','status');
+  const code='7'.repeat(32);
+  const state=memoryDb({indicatorCampaigns,indicatorProfiles,users},{
+    indicatorCampaigns:[{id:'c1',indicatorUserId:'u1',name:'Mix Sponda',publicSlug:'mix-sponda',publicCode:code,active:1}],
+    indicatorProfiles:[{userId:'u1',id:'u1',role:'indicator',status:'active'}],
+    users:[{id:'u1',role:'indicator',status:'active'}],
+  });
+  const select=state.db.select;
+  state.db.select=(...args)=>({from:(tableRef)=>{const query=select(...args).from(tableRef);query.innerJoin=()=>query;return query;}});
+  const {POST}=load('app/api/admin/indicators/campaign/route.ts',{
+    'drizzle-orm':operators,'@/db':{getDb:()=>state.db},'@/db/schema':{indicatorCampaigns,indicatorProfiles,users},
+    '@/lib/auth':{requireAdmin:async()=>({id:'admin'})},'@/lib/campaign-schema':{ensureCampaignSchema:async()=>{}},
+    '@/lib/campaign-slug.mjs':{campaignSlug},'@/lib/indicator-cashback.mjs':{validCampaignCashback:()=>true},
+    '@/lib/indicator-security':{cleanText:v=>String(v||'').trim(),indicatedError:e=>Response.json({error:e.message},{status:500}),privateResponseHeaders:{}},
+  });
+  const response=await POST(new Request('https://teste.local/api/admin/indicators/campaign',{method:'POST',body:JSON.stringify({indicatorUserId:'u1',name:'Spondinha'})}));
+  assert.equal(response.status,200);
+  const payload=await response.json();
+  assert.equal(payload.salesPath,'/v/spondinha');
+  assert.equal(payload.code,code);
+  assert.equal(state.rows.indicatorCampaigns[0].publicSlug,'spondinha');
 });

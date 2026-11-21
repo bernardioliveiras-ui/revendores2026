@@ -20,14 +20,3 @@ test('o build não exige que a pasta pública antiga exista',async()=>{
  const root=await mkdtemp(join(tmpdir(),'lordnutri-manual-'));
  try{const r=spawnSync(process.execPath,[script],{cwd:root,encoding:'utf8'});assert.equal(r.status,0,r.stderr)}finally{await rm(root,{recursive:true,force:true})}
 });
-test('build limpa CSV e CSC de public e subpastas, mantém planilhas privadas e aceita nova execução',async()=>{
- const root=await mkdtemp(join(tmpdir(),'lordnutri-public-'));
- try {
-  await mkdir(join(root,'public','antigo'),{recursive:true});
-  await mkdir(join(root,'private'));
-  for(const name of ['public/lead.CsV','public/antigo/cupom.CSC','public/logo.png','private/pedido.csv']) await writeFile(join(root,name),'fixture');
-  for(let i=0;i<2;i++) assert.equal(spawnSync(process.execPath,[script],{cwd:root}).status,0);
-  await assert.rejects(access(join(root,'public/lead.CsV')));await assert.rejects(access(join(root,'public/antigo/cupom.CSC')));
-  await access(join(root,'public/logo.png'));await access(join(root,'private/pedido.csv'));
- } finally {await rm(root,{recursive:true,force:true});}
-});

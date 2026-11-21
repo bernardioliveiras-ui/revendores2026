@@ -2,12 +2,6 @@
 
 Projeto completo para GitHub e Hostinger. O site usa Next.js, Node 22 e MySQL/MariaDB. A landing, os checkouts, as APIs, as migrações, as mídias e os materiais privados estão incluídos. Para publicar no Windows, siga [o passo a passo do GitHub Desktop](COMO-SUBIR-NO-GITHUB.md).
 
-## Visual dos três perfis
-
-Abra `private/demonstracao/index.html` no navegador para visualizar a demo enviada. O BKO autenticado também oferece os três atalhos de demonstração. Os portais de operação usam o menu, as cores e os cartões da referência e carregam os dados da conta autenticada. Na área **Influenciadores**, os cartões de **Campanhas e links** vêm logo depois dos indicadores. O ranking permite buscar pelo nome, campanha, código ou link completo e abrir a carteira do parceiro.
-
-Antes de publicar por cima de um clone antigo, execute `LIMPAR-PUBLIC.cmd` dentro dele e inclua as exclusões no commit. O build aplica a mesma limpeza a todo arquivo `.csv` e `.csc` dentro de `public`.
-
 ## Acessos
 
 | Perfil | Endereço após o deploy | O que a conta pode fazer |
@@ -46,7 +40,7 @@ Cada execução prioriza os 12 pedidos há mais tempo sem consulta, incluindo os
 
 ## Verificações desta entrega
 
-Build Next.js com TypeScript aprovado no Node 22.23.5. A suíte automatizada passou. No Chromium, foram conferidas a prévia de cada perfil e a tela de campanhas em 390, 1050 e 1440 pixels de largura. Foram testados o login de cada perfil, o diagnóstico do BKO, o evento de entrega em Meus Pedidos e o cashback do influenciador. Também foi usado um servidor MariaDB local isolado com checkout PIX de kit, cartão para campanha, recebimento duplicado de webhook, controle de acesso dos três perfis, entrada única de estoque, cashback, agendador e leitura do evento pelo revendedor. As respostas do Asaas, dos Correios e do serviço de CEP foram simuladas nessa verificação. O acesso às contas de produção, o disparo pelo GitHub Actions e a confirmação de um objeto real precisam ser verificados após configurar o ambiente.
+Build Next.js com TypeScript aprovado no Node 22.23.5. Os 368 testes automatizados passaram. No Chromium, foram conferidos o login de cada perfil, o diagnóstico do BKO, o evento de entrega em Meus Pedidos e o cashback do influenciador. Também foi usado um servidor MariaDB local isolado com checkout PIX de kit, cartão para campanha, recebimento duplicado de webhook, controle de acesso dos três perfis, entrada única de estoque, cashback, agendador e leitura do evento pelo revendedor. As respostas do Asaas, dos Correios e do serviço de CEP foram simuladas nessa verificação. O acesso às contas de produção, o disparo pelo GitHub Actions e a confirmação de um objeto real precisam ser verificados após configurar o ambiente.
 
 A página inicial e seus textos foram preservados do ZIP de 21/11. A referência visual dos testes da landing foi atualizada com HTML renderizado de uma extração independente desse original. O texto padrão de notificação do produto nessa versão difere do que consta na referência de 1.8.0. A conferência do número regulatório fica com o titular. O lint geral ainda aponta ocorrências em código anterior, incluindo o servidor Vite legado. O fluxo de produção usa Next.js.
 

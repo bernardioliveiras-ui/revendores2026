@@ -4,7 +4,6 @@ import { readFileSync } from "node:fs";
 
 const portal = readFileSync(new URL("../app/painel/portal-client.tsx", import.meta.url), "utf8");
 const indicator = readFileSync(new URL("../components/indicator-portal.tsx", import.meta.url), "utf8");
-const frame = readFileSync(new URL("../components/portal-frame.tsx", import.meta.url), "utf8");
 const layout = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
 test("BKO oferece oito módulos principais e mantém acesso às subáreas legadas", () => {
@@ -12,21 +11,20 @@ test("BKO oferece oito módulos principais e mantém acesso às subáreas legada
     assert.ok(portal.includes(`\"${section}\"`), `Módulo ausente: ${section}`);
   }
   for (const id of ['"sales"', '"content"', '"maintenance"']) assert.ok(portal.includes(id));
-  assert.match(portal, /<PortalFrame role="admin"/);
-  assert.match(layout, /portal-referencia\.css/);
+  assert.match(portal, /lord-admin-sidebar/);
+  assert.match(layout, /portal-modern\.css/);
 });
 
 test("revendedor recebe a marca original e rastreio com atualização identificada como CRM", () => {
   assert.match(portal, /PORTAL DO REVENDEDOR/);
-  assert.match(portal, /<PortalFrame role="reseller"/);
-  assert.match(frame, /src="\/brand\/lordnutri-mark\.png"/);
+  assert.match(portal, /BrandLogo compact mark/);
   assert.match(portal, /Última atualização registrada no CRM/);
   assert.doesNotMatch(portal, /\(R\$ 67,90\/unidade\)/);
 });
 
 test("resumo visual usa o estoque verdadeiro e abre o formulário real de vendas", () => {
-  assert.match(portal, /className="box hero"/);
-  assert.match(portal, /className="hero-side"[\s\S]*?stock\.stock/);
+  assert.match(portal, /className="lord-hero reseller-hero"/);
+  assert.match(portal, /className="lord-hero-highlight"[\s\S]*?stock\.stock/);
   assert.match(portal, /onClick=\{\(\)=>setView\("sales"\)\}/);
   assert.doesNotMatch(portal, />42<\/strong>/);
 });
@@ -39,7 +37,7 @@ test("influenciador apresenta campanha individual da API, sem TORREI global nem 
 });
 
 test("resumo visual do influenciador exibe a campanha da API sem nome de demonstração", () => {
-  assert.match(indicator, /className="box hero"/);
+  assert.match(indicator, /className="lord-hero influencer-hero"/);
   assert.match(indicator, /campaign\?\.name/);
   assert.match(indicator, /navigate\("campaigns"\)/);
 });

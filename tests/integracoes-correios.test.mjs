@@ -27,7 +27,7 @@ test("consulta em andamento respeita troca de etiqueta, erro do provedor e entre
     "@/lib/purchase-fields":{operationalPurchaseFields:{}}, "@/lib/delivery-progress":load("lib/delivery-progress.ts"),
     "@/lib/order-notification":{sendOrderStatusEmail:async (id,stage)=>notifications.push(stage)},
   });
-  const observe=(event,issue)=>update("p","",undefined,undefined,{originalCode:code,originalCarrier:"Correios",event,issue});
+  const observe=(event,issue)=>update("p","",undefined,undefined,{originalCode:code,originalCarrier:"Correios",event,issue,failed:issue?.startsWith("Correios HTTP")});
   const event={description:"Objeto em trânsito",stage:"shipped",at:"2026-11-15T15:10:11"};
   await observe(event);await observe(event);await observe({...event,description:"Objeto postado",at:"2026-11-14T15:10:11"});
   assert.equal(state.rows.purchases[0].postalEvent,"Objeto em trânsito");
@@ -39,6 +39,25 @@ test("consulta em andamento respeita troca de etiqueta, erro do provedor e entre
   assert.equal((await observe({...event,stage:"delivered"})).ignored,true);
   await update("p","delivered");
   assert.deepEqual(notifications,["shipped","delivered"]);
+});
+
+test("consulta sem evento registra horário, e falha posterior preserva última consulta bem-sucedida",async()=>{
+  const schema={purchases:table("id")};
+  const state=memoryDb(schema,{purchases:[{id:"p",paymentStatus:"paid",shippingStatus:"shipped",trackingCode:code,carrier:"Correios"}]});
+  const {updatePurchaseShipping:update}=load("lib/shipping.ts",{
+    "drizzle-orm":operators,"@/db":{getDb:()=>state.db},"@/db/schema":schema,
+    "@/lib/purchase-fields":{operationalPurchaseFields:{}},"@/lib/delivery-progress":load("lib/delivery-progress.ts"),
+    "@/lib/order-notification":{sendOrderStatusEmail:async()=>{}},
+  });
+  const original={originalCode:code,originalCarrier:"Correios"};
+  await update("p","",undefined,undefined,{...original,event:null,issue:"Objeto sem evento disponível para este contrato.",failed:false});
+  const row=state.rows.purchases[0];
+  assert.ok(row.postalAttemptAt,"tentativa precisa ter data");
+  assert.ok(row.postalCheckedAt,"resposta válida sem evento também conta como consulta");
+  const successfulAt=row.postalCheckedAt;
+  await update("p","",undefined,undefined,{...original,event:null,issue:"Correios HTTP 503",failed:true});
+  assert.equal(row.postalCheckedAt,successfulAt,"erro não substitui a data da última consulta válida");
+  assert.equal(row.postalIssue,"Correios HTTP 503");
 });
 
 test("agendador rejeita token ausente ou incorreto e sinaliza falha parcial",async t=>{
@@ -53,6 +72,36 @@ test("agendador rejeita token ausente ou incorreto e sinaliza falha parcial",asy
   process.env.CORREIOS_CRON_TOKEN="a".repeat(40);
   assert.equal((await POST(request("Bearer wrong"))).status,401);assert.equal(calls,0);
   assert.equal((await POST(request("Bearer "+"a".repeat(40)))).status,502);assert.equal(calls,1);
+});
+
+test("sincronização manual dos Correios exige BKO autenticado e informa resumo sem segredos",async()=>{
+  let calls=0;
+  const {POST}=load("app/api/admin/shipping/sync/route.ts",{
+    "@/lib/auth":{requireAdmin:async request=>{if(request.headers.get("x-test-auth")==="no")throw Error("UNAUTHORIZED");if(request.headers.get("x-test-auth")==="reseller")throw Error("FORBIDDEN");}},
+    "@/lib/correios-sync":{runPostalSync:async()=>{calls++;return {busy:false,selected:3,verified:2,waiting:1,errors:0,skipped:0};}},
+  });
+  const request=auth=>new Request("https://test.example/api/admin/shipping/sync",{method:"POST",headers:{"x-test-auth":auth}});
+  assert.equal((await POST(request("no"))).status,401);
+  assert.equal((await POST(request("reseller"))).status,403);
+  assert.equal(calls,0,"acesso não autorizado nunca pode disparar o Correios");
+  const ok=await POST(request("admin"));
+  assert.equal(ok.status,200);
+  assert.deepEqual(await ok.json(),{busy:false,selected:3,verified:2,waiting:1,errors:0,skipped:0});
+  assert.equal(calls,1);
+});
+
+test("sincronização manual diferencia serviço indisponível de lote com erros",async()=>{
+  let fail=false;
+  const {POST}=load("app/api/admin/shipping/sync/route.ts",{
+    "@/lib/auth":{requireAdmin:async()=>{}},
+    "@/lib/correios-sync":{runPostalSync:async()=>{if(fail)throw Error("CORREIOS_CODIGO_ACESSO=segredo");return {busy:false,selected:1,verified:0,waiting:0,errors:1,skipped:0};}},
+  });
+  const req=()=>new Request("https://test.example",{method:"POST"});
+  assert.equal((await POST(req())).status,502);
+  fail=true;
+  const err=await POST(req());
+  assert.equal(err.status,503);
+  assert.doesNotMatch(JSON.stringify(await err.json()),/segredo/);
 });
 
 test("diagnóstico Asaas usa operações de leitura e identifica fila interrompida em produção", async t=>{

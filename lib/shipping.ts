@@ -6,7 +6,7 @@ import { canAdvanceShipping } from "@/lib/delivery-progress";
 import { sendOrderStatusEmail } from "@/lib/order-notification";
 import type { PostalEvent } from "@/lib/correios";
 
-type Observation = { originalCode: string; originalCarrier: string | null; event: PostalEvent | null; issue?: string };
+type Observation = { originalCode: string; originalCarrier: string | null; event: PostalEvent | null; issue?: string; failed?: boolean };
 function clean(value: unknown, fallback: string | null) {
   return typeof value === "string" ? value.trim().slice(0,120) || fallback : fallback;
 }
@@ -29,9 +29,9 @@ export async function updatePurchaseShipping(id: string, status: string, carrier
       const event = observation.event;
       patch.postalAttemptAt = now;
       patch.postalIssue = observation.issue || null;
+      if (!observation.failed) patch.postalCheckedAt = now;
       status = purchase.shippingStatus;
       if (event) {
-        patch.postalCheckedAt = now;
         if (!purchase.postalEventAt || Date.parse(event.at) >= Date.parse(purchase.postalEventAt)) {
           patch.postalEvent = event.description;
           patch.postalEventAt = event.at;

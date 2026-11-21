@@ -37,8 +37,14 @@ export async function POST(request:Request) {
    const [existing]=await tx.select().from(indicatorCampaigns).where(eq(indicatorCampaigns.indicatorUserId,user.id)).limit(1).for("update");
    const now=new Date().toISOString();
    if(existing){if(!existing.active)return Response.json({error:"Campanha pausada pelo BKO."},{status:403});
-    await tx.update(indicatorCampaigns).set({name,updatedAt:now}).where(eq(indicatorCampaigns.id,existing.id));
-    return Response.json({saved:true,publicPath:`/c/${existing.publicSlug||existing.publicCode}`,salesPath:`/v/${existing.publicSlug||existing.publicCode}`},{headers:privateResponseHeaders});}
+    const base=campaignSlug(name);let slug=base;
+    for(let n=2;;n++){
+     const [owner]=await tx.select({id:indicatorCampaigns.id}).from(indicatorCampaigns).where(eq(indicatorCampaigns.publicSlug,slug)).limit(1);
+     if(!owner||owner.id===existing.id)break;
+     slug=`${base}-${n}`;
+    }
+    await tx.update(indicatorCampaigns).set({name,publicSlug:slug,updatedAt:now}).where(eq(indicatorCampaigns.id,existing.id));
+    return Response.json({saved:true,publicPath:`/c/${slug}`,salesPath:`/v/${slug}`},{headers:privateResponseHeaders});}
    const code=randomBytes(16).toString("hex");
    const base=campaignSlug(name);let slug=base;
    for(let n=2;(await tx.select({id:indicatorCampaigns.id}).from(indicatorCampaigns).where(eq(indicatorCampaigns.publicSlug,slug)).limit(1)).length;n++)slug=`${base}-${n}`;

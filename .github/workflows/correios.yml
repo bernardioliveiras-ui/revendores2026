@@ -1,7 +1,7 @@
 name: Rastreio Correios
 on:
   schedule:
-    - cron: '17,47 * * * *'
+    - cron: '3,13,23,33,43,53 * * * *'
   workflow_dispatch:
 permissions: {}
 concurrency:

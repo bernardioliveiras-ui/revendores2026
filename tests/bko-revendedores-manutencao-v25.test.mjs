@@ -41,7 +41,7 @@ test('edição protege ADMIN, origem, email reservado e telefone inválido',asyn
 });
 test('BKO separa cadastro, pedidos e manutenção, com botão de edição',()=>{
  const ui=file('app/painel/portal-client.tsx');
- for(const term of ['Gerenciar revendedores','Acessos e Pedidos','Manutenção · Zerar testes','Editar cadastro','Salvar cadastro','Atualizar prévia','Copiar comando de limpeza'])assert.ok(ui.includes(term),term);
+ for(const term of ['Cadastros · Revendedores','Pedidos e acessos','Manutenção · Zerar testes','Editar cadastro','Salvar cadastro','Atualizar prévia','Copiar comando de limpeza'])assert.ok(ui.includes(term),term);
  assert.ok(!ui.includes('adminTab === "access" || adminTab === "shipping"'),'pedidos não podem ficar na aba de cadastros');
 });
 test('prévia de manutenção consulta contagens e não pode apagar',async()=>{

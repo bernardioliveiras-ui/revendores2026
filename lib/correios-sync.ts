@@ -39,7 +39,7 @@ export async function runPostalSync() {
             issue = /^Correios HTTP \d{3}$/.test(message) ? message : "Consulta aos Correios indisponível.";
           }
           const result = await updatePurchaseShipping(row.id, "", undefined, undefined, {
-            originalCode:row.tracking_code, originalCarrier:row.carrier, event, issue,
+            originalCode:row.tracking_code, originalCarrier:row.carrier, event, issue, failed,
           });
           if (result.ignored) summary.skipped++;
           else if (failed) summary.errors++;

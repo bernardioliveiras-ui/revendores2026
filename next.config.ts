@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
-    "/api/admin/demonstracao": ["./private/demonstracao/index.html"],
     "/api/reseller/manual": ["./private/manual/*.pdf"],
   },
   async headers() {

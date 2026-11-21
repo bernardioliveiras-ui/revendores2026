@@ -69,7 +69,7 @@ export function IndicatorAdmin(){
   const r=await fetch(url,{method,headers:{"content-type":"application/json"},body:JSON.stringify(body)}),b=await r.json();if(!r.ok)throw Error(b.error||"Não foi possível atualizar.");return b;
  }
  async function saveCampaign(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);setNotice("");
-  try{await fetchAction("/api/admin/indicators/campaign",{indicatorUserId:selected,name:campaignName});await load();setNotice("Campanha salva. Os links permanentes estão disponíveis.");setCampaignName("")}
+  try{await fetchAction("/api/admin/indicators/campaign",{indicatorUserId:selected,name:campaignName});await load();setNotice("Campanha salva. O link de vendas foi atualizado com o novo nome.");setCampaignName("")}
   catch(e){setNotice(e instanceof Error?e.message:"Erro ao salvar campanha.")}finally{setBusy(false)} }
  async function updateCashback(e:FormEvent<HTMLFormElement>){
   e.preventDefault();if(!campaign)return;const decimal=cashbackInput.trim().replace(",",".");

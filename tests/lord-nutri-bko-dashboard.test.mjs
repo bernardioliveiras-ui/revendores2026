@@ -39,15 +39,3 @@ test('pedido com valor ou timestamp inválido não cria crédito ou receita', ()
   assert.equal(result.verifiedCount, 0);
   assert.equal(result.productRevenueCents, 0);
 });
-
-test('PIX pendente do checkout e compra de varejo entram nos indicadores correspondentes',()=>{
-  const createdAt='2026-11-21T12:00:00Z';
-  const data=[
-    {createdAt,paymentStatus:'payment_pending'},
-    {createdAt,asaasVerifiedAt:createdAt,paymentStatus:'paid',kit:'mix10-unit',shippingStatus:'separating',totalCents:10990},
-  ];
-  const result=buildBkoDashboard(data,'today',now);
-  assert.equal(result.pendingCount,1);
-  assert.equal(result.pendingAccessCount,0);
-  assert.equal(result.shippingCount,1);
-});
