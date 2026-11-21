@@ -29,7 +29,7 @@ test('reseller replenishment creates an Asaas payment and paid webhook provision
 
 test('reseller navigation uses the requested order and sales allow direct quantity entry', async()=>{
   const src=await read('app/painel/portal-client.tsx');
-  assert.match(src, /\[\s*\["welcome","Boas Vindas"\], \["overview","Visão Geral"\], \["manual","Manual do Revendedor"\], \["stock","Estoque"\], \["sales","Vendas"\], \["delivery","Acompanhe seu Pedido"\]\s*\]/);
+  assert.match(src, /\[\["overview","Visão Geral"\],\["manual","Manual do Revendedor"\],\["stock","Estoque"\],\["sales","Vendas"\],\["delivery","Meus Pedidos"\],\["welcome","Boas-vindas"\]\]/);
   assert.match(src,/inputMode="numeric"/);
   assert.match(src,/Digite a quantidade/);
   assert.match(src,/Repor estoque e ir para o Asaas/);

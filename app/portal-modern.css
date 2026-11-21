@@ -317,3 +317,162 @@
   .portal-influencer .influencer-overview-metrics > div { padding: 13px 11px; }
   .influencer-welcome { display: none; }
 }
+
+/* Design original da plataforma LORD NUTRI BKO Preview, adaptado aos
+ * componentes autenticados. Somente a apresentação usa essas classes. */
+.lord-admin-shell, .reseller-portal, .portal-influencer { --lord-gold: #d4ac62; --lord-ink:#0a2236; --lord-edge:#e7e2d9; --lord-muted:#6c7885; background:#f7f7f5; }
+.lord-admin-sidebar { flex-basis:263px; width:263px; padding:0; background:linear-gradient(180deg,#061a2b,#0b2940); box-shadow:8px 0 28px #071d2f14; }
+.lord-admin-brand { flex-direction:row; align-items:center; gap:12px; padding:22px 17px; border-bottom:1px solid #ffffff17; }
+.lord-admin-brand .compact-logo { width:54px; height:60px; margin:0; flex:0 0 auto; }
+.lord-admin-brand>div:last-child { display:flex; flex-direction:column; gap:3px; }
+.lord-admin-brand span { font-size:14px; letter-spacing:1px; color:white; }
+.lord-admin-brand strong { font-size:10px; letter-spacing:1.6px; color:#e8c782; }
+.lord-admin-sidebar>.lord-sidebar-label { padding:25px 25px 10px; color:#b9a071; }
+.lord-admin-sidebar .bko-tabs, .lord-admin-shortcuts { padding-left:12px; padding-right:12px; }
+.lord-admin-sidebar .bko-tabs button, .lord-admin-shortcuts button { display:flex; align-items:center; gap:13px; padding:13px 14px; min-height:45px; color:#d3e0ea; font-weight:650; font-size:13px; border-radius:11px; }
+.lord-admin-sidebar .bko-tabs button svg, .lord-admin-shortcuts button svg { width:18px; height:18px; flex:0 0 auto; stroke-width:1.8; }
+.lord-admin-sidebar .bko-tabs button.active { background:#203a50; border-color:#d4ac6229; box-shadow:inset 3px 0 #d4ac62; }
+.lord-admin-sidebar .bko-tabs button.active svg { color:#e5be77; }
+.lord-admin-shortcuts { margin-top:14px; padding-top:15px; }
+.lord-admin-shortcuts .lord-sidebar-label { color:#b9a071; }
+.lord-sidebar-footer { padding:20px 23px; border-top:1px solid #ffffff20; font-size:12px; }
+.lord-sidebar-footer small { display:block; padding-top:5px; color:#a8bdc9; font-size:11px; }
+.lord-sidebar-online { color:#e8c67f; margin-right:7px; }
+.lord-admin-main .portal-header, .reseller-portal .portal-header { width:100%; height:79px; min-height:79px; background:white; border-color:#e7e2d9; padding:0 35px; }
+.lord-admin-main .portal-body.admin-only { max-width:1620px; padding:31px 34px 70px; }
+.lord-demo-topbar .lord-demo-breadcrumb { display:flex; align-items:center; gap:7px; font-size:12px; color:#748493; font-weight:650; letter-spacing:.1px; }
+.lord-demo-breadcrumb strong { color:#0a2236; }
+.lord-demo-breadcrumb-slash { color:#b6a99a; }
+.lord-demo-user { display:flex; align-items:center; gap:11px; }
+.lord-demo-user-avatar { width:37px; height:37px; display:grid; place-items:center; border-radius:50%; color:#6a491b; background:#fbecd0; font-size:12px; font-weight:850; }
+.lord-demo-user b, .lord-demo-user small { display:block; }
+.lord-demo-user b { color:#0a2236; font-size:12px; }
+.lord-demo-user small { color:#7c8997; font-size:11px; margin-top:3px; }
+.lord-demo-topbar .lord-demo-user button { border:1px solid #e7e2d9; color:#0a2236; background:#fff; border-radius:11px; height:39px; padding:8px 11px; display:flex; gap:7px; align-items:center; font-size:12px; font-weight:750; }
+.lord-demo-topbar .lord-demo-user button:hover { background:#fff7e9; border-color:#d4ac62; }
+.lord-demo-dashboard { font-family:Inter,"Segoe UI",system-ui,-apple-system,sans-serif; color:#0a2236; }
+.lord-demo-page-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:17px; margin-bottom:25px; flex-wrap:wrap; }
+.lord-demo-eyebrow { display:block; color:#aa7b30; font-size:11px; font-weight:850; letter-spacing:2px; margin-bottom:7px; }
+.lord-demo-page-heading h1 { font-family:inherit; font-size:clamp(28px,3vw,34px); letter-spacing:-1.1px; line-height:1.12; margin:0 0 8px; font-weight:800; }
+.lord-demo-page-heading p { color:#6c7885; font-size:13px; line-height:1.6; margin:0; }
+.lord-demo-filter { display:flex; flex-wrap:wrap; align-items:center; gap:5px; padding:5px; border:1px solid #e7e2d9; background:white; border-radius:11px; }
+.lord-demo-filter button { background:transparent; border:0; color:#71808f; border-radius:8px; padding:9px 10px; font:750 11px/1.2 inherit; font-size:11px; font-weight:750; cursor:pointer; }
+.lord-demo-filter button.active { color:#0b2c44; background:#fff1d7; box-shadow:0 1px 3px #d5b26f22; }
+.lord-demo-filter button:hover { background:#fff7e9; }
+.lord-demo-hero { min-height:179px; padding:30px 32px; display:flex; align-items:center; justify-content:space-between; gap:20px; border-radius:16px; position:relative; overflow:hidden; color:white; background:linear-gradient(116deg,#091e31 0%,#123650 65%,#254e68 100%); box-shadow:0 12px 31px #0b2d4612; }
+.lord-demo-hero::before { content:""; position:absolute; width:330px; height:330px; right:-105px; top:-170px; border:1px solid #ffffff32; border-radius:50%; box-shadow:0 0 0 54px #ffffff06,0 0 0 108px #ffffff06; pointer-events:none; }
+.lord-demo-hero>div { position:relative; }
+.lord-demo-hero>div:first-child { max-width:610px; }
+.lord-demo-hero>div:first-child>span { font-size:10px; letter-spacing:2px; color:#e9c77d; font-weight:900; }
+.lord-demo-hero h2 { color:white; font-size:24px; font-weight:800; letter-spacing:-.7px; margin:10px 0 8px; }
+.lord-demo-hero p { color:#dbe6ee; font-size:12px; line-height:1.65; max-width:550px; margin:0; }
+.lord-demo-hero button { margin-top:15px; display:inline-flex; align-items:center; gap:8px; background:#eac780; color:#493618; border:1px solid #eac780; border-radius:9px; padding:10px 15px; font-size:12px; font-weight:800; }
+.lord-demo-hero button:hover { background:#f2d99e; }
+.lord-demo-hero-number { min-width:170px; padding:16px 23px; border:1px solid #ffffff36; background:#ffffff13; text-align:center; border-radius:14px; }
+.lord-demo-hero-number strong { color:#ecca89; font-size:31px; display:block; line-height:1.1; }
+.lord-demo-hero-number span { display:block; margin-top:8px; color:#dce6eb; font-size:11px; }
+.lord-demo-section-caption { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:27px 0 13px; }
+.lord-demo-section-caption>span { color:#a57934; font-size:10px; font-weight:900; letter-spacing:1.5px; }
+.lord-demo-section-caption small { color:#81909b; font-size:11px; }
+.lord-demo-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:15px; }
+.lord-demo-stat { background:#fff; border:1px solid #e7e2d9; border-radius:15px; min-height:139px; padding:18px 19px; box-shadow:0 5px 18px #122e4110; min-width:0; }
+.lord-demo-stat-top { display:flex; align-items:flex-start; justify-content:space-between; gap:7px; margin-bottom:20px; }
+.lord-demo-stat-top>span:first-child { color:#687b8a; font-size:12px; font-weight:650; }
+.lord-demo-stat-icon { display:grid; place-items:center; width:32px; height:32px; flex:0 0 32px; border-radius:10px; background:#fff3dc; color:#a67c35; }
+.lord-demo-stat-icon svg { width:17px; height:17px; stroke-width:1.8; }
+.lord-demo-stat>strong { display:block; color:#0a2236; font-size:clamp(19px,2vw,26px); font-weight:850; letter-spacing:-.7px; overflow-wrap:anywhere; }
+.lord-demo-stat>small { display:block; color:#7b8995; font-size:11px; margin-top:9px; line-height:1.5; }
+.lord-demo-split { display:grid; grid-template-columns:1.48fr 1fr; gap:17px; margin-top:19px; }
+.lord-demo-split.lower { grid-template-columns:1fr 1fr; }
+.lord-demo-panel { border:1px solid #e7e2d9; border-radius:16px; background:white; padding:22px; box-shadow:0 5px 18px #122e4110; min-width:0; }
+.lord-demo-panel-heading { display:flex; justify-content:space-between; gap:10px; align-items:start; margin-bottom:19px; }
+.lord-demo-panel-heading h2 { color:#0a2236; font-size:16px; letter-spacing:-.35px; font-weight:800; margin:0; }
+.lord-demo-panel-heading p { color:#81909b; margin:4px 0 0; font-size:11px; line-height:1.45; }
+.lord-demo-panel-heading button { border:1px solid #e7e2d9; background:white; border-radius:9px; color:#16344c; font-weight:800; font-size:11px; padding:8px 10px; }
+.lord-demo-panel-heading button:hover { background:#fff8ea; }
+.lord-demo-tag { background:#fff5e2; color:#9a722c; padding:7px 10px; border-radius:999px; font-size:10px; font-weight:850; white-space:nowrap; }
+.lord-demo-chart { display:flex; gap:10px; align-items:end; height:190px; padding:7px 0 0; border-bottom:1px solid #e8e4dc; }
+.lord-demo-bar-slot { display:flex; flex:1; min-width:0; height:100%; align-items:center; justify-content:flex-end; gap:8px; flex-direction:column; }
+.lord-demo-bar { max-width:42px; width:80%; min-height:4px; background:linear-gradient(0deg,#0d3a58,#caa563); border-radius:6px 6px 1px 1px; }
+.lord-demo-bar-slot span { flex:0 0 16px; color:#81909b; font-size:10px; white-space:nowrap; }
+.lord-demo-panel-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:17px; font-size:11px; color:#798995; }
+.lord-demo-panel-footer b { color:#0b3553; }
+.lord-demo-alert { display:flex; width:100%; gap:11px; align-items:flex-start; text-align:left; border:1px solid #f0e2c6; background:#fff9eb; border-radius:11px; padding:13px; margin:8px 0; color:#ae8138; }
+.lord-demo-alert:hover { background:#fff3da; }
+.lord-demo-alert.calm { color:#3c769b; background:#f0f6f9; border-color:#e1eaf0; }
+.lord-demo-alert>span { display:block; flex:1; }
+.lord-demo-alert b { display:block; color:#16344c; font-size:12px; font-weight:800; }
+.lord-demo-alert small { display:block; font-size:11px; color:#7c8991; margin-top:5px; line-height:1.5; }
+.lord-demo-activity-list { display:grid; }
+.lord-demo-activity { display:flex; align-items:center; gap:11px; padding:12px 0; border-top:1px solid #eee9e1; min-width:0; }
+.lord-demo-activity:first-child { border:0; }
+.lord-demo-activity-icon { display:grid; place-items:center; color:#987338; background:#fff1d7; border-radius:10px; flex:0 0 35px; height:35px; }
+.lord-demo-activity>div { min-width:0; flex:1; }
+.lord-demo-activity b { font-size:12px; color:#18364f; display:block; overflow-wrap:anywhere; }
+.lord-demo-activity small { display:block; color:#83909c; font-size:11px; margin-top:4px; }
+.lord-demo-activity>strong { white-space:nowrap; font-size:12px; color:#1c4f6e; }
+.lord-demo-empty { padding:30px 0; color:#718291; font-size:12px; }
+.lord-demo-network { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.lord-demo-network>div { border:1px solid #eee5d6; background:#fffdf9; border-radius:13px; padding:17px 14px; min-width:0; }
+.lord-demo-network span { display:block; color:#718390; font-size:11px; line-height:1.4; }
+.lord-demo-network strong { display:block; margin:10px 0; font-size:22px; color:#0e2d45; overflow-wrap:anywhere; }
+.lord-demo-network svg { color:#b48d50; width:20px; height:20px; }
+.lord-demo-integrations-note { margin:20px 0 0; padding:13px 15px; background:#fffaf0; border:1px solid #e9dfce; color:#7a6847; font-size:11px; line-height:1.6; border-radius:11px; }
+
+/* O portal do revendedor e o de influenciador utilizam a mesma estrutura
+ * visual da demonstração, mas preservam formulários e permissões reais. */
+.reseller-portal .portal-sidebar { background:linear-gradient(180deg,#061a2b,#0b2940); padding:22px 12px; }
+.reseller-portal .portal-sidebar .side-brand { display:flex; flex-direction:row; align-items:center; gap:10px; padding:0 7px 24px; border-bottom:1px solid #ffffff1a; }
+.reseller-portal .portal-sidebar .side-brand .compact-logo { height:60px; width:54px; margin:0; flex:0 0 auto; }
+.reseller-portal .side-brand>div:last-child { display:flex; flex-direction:column; gap:5px; }
+.reseller-portal .side-brand strong { font-size:14px; color:#fff; margin:0; letter-spacing:.6px; }
+.reseller-portal .side-brand span { color:#e6c47d; letter-spacing:1.1px; font-size:9px; font-weight:850; }
+.reseller-portal .portal-sidebar .lord-sidebar-label { margin:22px 0 7px; color:#b9a071; }
+.reseller-portal .portal-sidebar nav button { display:flex; align-items:center; gap:12px; color:#d3e0ea; }
+.reseller-portal .portal-sidebar nav button svg { width:18px; height:18px; flex:0 0 auto; stroke-width:1.8; }
+.reseller-portal .portal-sidebar nav button.active { color:#fff; background:#203a50; box-shadow:inset 3px 0 #d4ac62; }
+.reseller-portal .portal-sidebar nav button.active svg { color:#edc884; }
+.lord-reseller-footer { padding:18px 13px 0; margin-top:auto; color:#b1c1cb; font-size:11px; line-height:1.6; border-top:1px solid #ffffff1a; }
+.reseller-portal .portal-content { max-width:1620px; padding:31px 34px 70px; }
+.reseller-portal .metric-card, .portal-influencer .influencer-overview-metrics>div { border-top:1px solid #e7e2d9; box-shadow:0 5px 18px #122e4110; }
+.reseller-portal .metric-card strong { font-weight:850; }
+.portal-influencer-active .influencer-sidebar { width:263px; background:linear-gradient(180deg,#061a2b,#0b2940); }
+.portal-influencer-active .indicator-top, .portal-influencer-active .indicator-content { margin-left:263px; }
+.portal-influencer .indicator-content { padding-top:31px; }
+.portal-influencer .influencer-page-head .section-kicker { color:#ac813d; }
+.portal-influencer .influencer-sidebar-caption { color:#b9a071; }
+.portal-influencer .influencer-sidebar nav a { display:flex; align-items:center; gap:11px; }
+.portal-influencer .influencer-sidebar nav a:hover { background:#203a50; box-shadow:inset 3px 0 #d4ac62; }
+@media (max-width:1250px) { .lord-demo-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .lord-demo-split, .lord-demo-split.lower { grid-template-columns:1fr; } .lord-demo-filter { width:100%; } }
+@media (max-width:1050px) { .lord-admin-sidebar { flex-basis:220px; width:220px; } .portal-influencer-active .influencer-sidebar { width:220px; } .portal-influencer-active .indicator-top,.portal-influencer-active .indicator-content { margin-left:220px; } }
+@media (max-width:780px) { .lord-admin-sidebar { flex-basis:auto; width:100%; } .lord-admin-brand { padding:8px 4px; border:0; } .lord-admin-sidebar .bko-tabs button,.lord-admin-shortcuts button { width:auto; flex:0 0 auto; } .lord-admin-main .portal-header,.reseller-portal .portal-header { padding:0 16px; height:66px; min-height:66px; } .lord-admin-main .portal-body.admin-only,.reseller-portal .portal-content { padding:22px 15px 55px; } .lord-demo-filter { flex-wrap:nowrap; overflow-x:auto; } .lord-demo-filter button { flex:0 0 auto; } .lord-demo-hero-number { display:none; } .lord-demo-hero { padding:26px 22px; } .reseller-portal .portal-sidebar .side-brand,.reseller-portal .portal-sidebar .lord-sidebar-label,.lord-reseller-footer { display:none; } .portal-influencer-active .influencer-sidebar { width:100%; } .portal-influencer-active .indicator-top,.portal-influencer-active .indicator-content { margin-left:0; } }
+@media (max-width:560px) { .lord-demo-user b,.lord-demo-user small,.lord-demo-user button span { display:none; } .lord-demo-hero h2 { font-size:20px; } .lord-demo-stats { gap:10px; } .lord-demo-stat { padding:13px 12px; min-height:128px; } .lord-demo-stat>strong { font-size:19px; } .lord-demo-stat-top { margin-bottom:10px; } .lord-demo-network { grid-template-columns:1fr; } .lord-demo-panel { padding:16px; } .lord-demo-section-caption small { display:none; } }
+
+.portal-influencer-active .influencer-sidebar { padding:0 12px 22px; }
+.portal-influencer .influencer-sidebar-brand { flex-direction:row; align-items:center; gap:9px; border-bottom:1px solid #ffffff1a; padding:21px 5px 23px; margin:0 -12px 0; }
+.portal-influencer .influencer-sidebar-brand .compact-logo { width:57px; height:64px; margin:0 0 0 10px; flex:0 0 auto; }
+.portal-influencer .influencer-sidebar-brand>div:last-child { display:flex; flex-direction:column; gap:4px; }
+.portal-influencer .influencer-sidebar-brand strong { color:white; font-size:14px; letter-spacing:.6px; }
+.portal-influencer .influencer-sidebar-brand span { color:#e6c47d; font-size:9px; letter-spacing:1.1px; line-height:1.45; font-weight:850; }
+.portal-influencer .influencer-sidebar-caption { padding:27px 14px 13px; }
+.portal-influencer .influencer-sidebar nav a { padding:13px 14px; font-size:13px; font-weight:650; }
+.portal-influencer .influencer-sidebar nav a svg { height:18px; width:18px; stroke-width:1.8; flex:0 0 auto; }
+.portal-influencer .influencer-sidebar nav a:first-child { background:#203a50; color:white; box-shadow:inset 3px 0 #d4ac62; }
+.portal-influencer .influencer-sidebar nav a:first-child svg { color:#e9c67d; }
+.portal-influencer .influencer-sidebar-footer { border-top:1px solid #ffffff1b; padding:19px 12px 0; margin-top:auto; }
+.portal-influencer .lord-indicator-top { height:79px; min-height:79px; display:flex; align-items:center; justify-content:space-between; padding:0 35px; }
+.portal-influencer .lord-indicator-top .lord-demo-user button { display:flex; align-items:center; gap:8px; border:1px solid #e7e2d9; background:#fff; border-radius:10px; padding:9px 12px; color:#20394c; font-size:12px; font-weight:750; }
+.portal-influencer .lord-indicator-top .lord-demo-user button:hover { background:#fff8ea; }
+.portal-influencer .influencer-overview-metrics { gap:14px; }
+.portal-influencer .influencer-overview-metrics>div { position:relative; padding:20px; min-height:133px; }
+.portal-influencer .influencer-overview-metrics>div strong { display:block; margin-top:20px; font-size:26px; }
+.portal-influencer .influencer-overview-metrics>div::after { content:"✓"; position:absolute; right:15px; top:15px; background:#fff4df; color:#b88734; border-radius:9px; width:29px; height:29px; display:grid; place-items:center; font-size:15px; }
+.portal-influencer .influencer-materials .folder-card, .portal-influencer .influencer-materials .material-card { border-color:#e7e2d9; }
+.portal-influencer .lord-influencer-profile { margin-top:24px; padding:24px; }
+.portal-influencer .lord-influencer-profile h2 { margin:9px 0 22px; }
+.portal-influencer .lord-influencer-profile>div { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:12px 0; border-top:1px solid #eee8de; font-size:13px; }
+.portal-influencer .lord-influencer-profile>div span { color:#7c8894; }
+.portal-influencer .lord-influencer-profile>div strong { overflow-wrap:anywhere; text-align:right; }
+.portal-influencer .lord-influencer-profile>p { font-size:12px; color:#7c8894; line-height:1.6; margin:17px 0; }
+@media(max-width:780px) { .portal-influencer .influencer-sidebar-brand { display:none; } .portal-influencer .influencer-sidebar-caption,.portal-influencer .influencer-sidebar-footer { display:none; } .portal-influencer .lord-indicator-top { padding:0 15px; height:66px; min-height:66px; } .portal-influencer .influencer-sidebar nav { margin-top:9px; } .portal-influencer .influencer-sidebar nav a { flex:0 0 auto; } }
+@media(max-width:560px) { .portal-influencer .lord-indicator-top .lord-demo-user b,.portal-influencer .lord-indicator-top .lord-demo-user small { display:none; } }

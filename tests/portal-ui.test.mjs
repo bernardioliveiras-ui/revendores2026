@@ -12,7 +12,10 @@ test('reseller portal shows sales, resources and delivery work areas',async()=>{
 
 test('BKO portal exposes access release, logistics and metrics without reseller-only clutter',async()=>{
   const src=await read('app/painel/portal-client.tsx');
-  for(const label of ['Liberar acesso','Em separação','Em percurso','Entregue','Revendedores ativos','Produtos vendidos (sem frete)'])assert.ok(src.includes(label),label);
+  const dashboard=await read('components/bko-control-dashboard.tsx');
+  assert.match(src,/BkoControlDashboard/);
+  for(const label of ['Liberar acesso','Em separação','Em percurso','Entregue'])assert.ok(src.includes(label),label);
+  for(const label of ['Revendedores ativos','Vendas aprovadas','Produtos de compras verificadas'])assert.ok(dashboard.includes(label),label);
   assert.match(src,/Abrir WhatsApp/);
 });
 
