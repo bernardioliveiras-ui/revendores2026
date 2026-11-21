@@ -225,9 +225,9 @@
 }
 .influencer-sidebar-brand { display: flex; flex-direction: column; align-items: flex-start; padding: 0 14px 32px; gap: 4px; }
 .influencer-sidebar nav { display: grid; gap: 5px; }
-.influencer-sidebar nav a { color: #c7d6df; font-size: 13px; font-weight: 700; padding: 13px 14px; border-radius: 11px; text-decoration: none; border: 1px solid transparent; }
-.influencer-sidebar nav a:hover,
-.influencer-sidebar nav a:focus-visible { color: white; background: #193a52; border-color: #91713e; }
+.influencer-sidebar nav button { color: #c7d6df; font-size: 13px; font-weight: 700; padding: 13px 14px; border-radius: 11px; text-decoration: none; border: 1px solid transparent; background:transparent; text-align:left; cursor:pointer; width:100%; font-family:inherit; }
+.influencer-sidebar nav button:hover,
+.influencer-sidebar nav button:focus-visible { color: white; background: #193a52; border-color: #91713e; }
 .portal-influencer-active .indicator-top,
 .portal-influencer-active .indicator-content { margin-left: 248px; }
 .portal-influencer .indicator-top { padding: 10px 30px; min-height: 73px; border-bottom: 1px solid var(--lord-edge); background: #fff; gap: 16px; }
@@ -296,7 +296,7 @@
   .influencer-sidebar-footer { display: none; }
   .influencer-sidebar-brand strong { font-size: 14px; }
   .influencer-sidebar nav { display: flex; gap: 4px; overflow-x: auto; }
-  .influencer-sidebar nav a { white-space: nowrap; padding: 10px 12px; }
+  .influencer-sidebar nav button { white-space: nowrap; padding: 10px 12px; width:auto; }
   .portal-influencer-active .indicator-content,
   .portal-influencer-active .indicator-top { margin-left: 0; }
   .portal-influencer .indicator-top { padding: 9px 15px; }
@@ -441,8 +441,8 @@
 .portal-influencer .indicator-content { padding-top:31px; }
 .portal-influencer .influencer-page-head .section-kicker { color:#ac813d; }
 .portal-influencer .influencer-sidebar-caption { color:#b9a071; }
-.portal-influencer .influencer-sidebar nav a { display:flex; align-items:center; gap:11px; }
-.portal-influencer .influencer-sidebar nav a:hover { background:#203a50; box-shadow:inset 3px 0 #d4ac62; }
+.portal-influencer .influencer-sidebar nav button { display:flex; align-items:center; gap:11px; }
+.portal-influencer .influencer-sidebar nav button:hover { background:#203a50; box-shadow:inset 3px 0 #d4ac62; }
 @media (max-width:1250px) { .lord-demo-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .lord-demo-split, .lord-demo-split.lower { grid-template-columns:1fr; } .lord-demo-filter { width:100%; } }
 @media (max-width:1050px) { .lord-admin-sidebar { flex-basis:220px; width:220px; } .portal-influencer-active .influencer-sidebar { width:220px; } .portal-influencer-active .indicator-top,.portal-influencer-active .indicator-content { margin-left:220px; } }
 @media (max-width:780px) { .lord-admin-sidebar { flex-basis:auto; width:100%; } .lord-admin-brand { padding:8px 4px; border:0; } .lord-admin-sidebar .bko-tabs button,.lord-admin-shortcuts button { width:auto; flex:0 0 auto; } .lord-admin-main .portal-header,.reseller-portal .portal-header { padding:0 16px; height:66px; min-height:66px; } .lord-admin-main .portal-body.admin-only,.reseller-portal .portal-content { padding:22px 15px 55px; } .lord-demo-filter { flex-wrap:nowrap; overflow-x:auto; } .lord-demo-filter button { flex:0 0 auto; } .lord-demo-hero-number { display:none; } .lord-demo-hero { padding:26px 22px; } .reseller-portal .portal-sidebar .side-brand,.reseller-portal .portal-sidebar .lord-sidebar-label,.lord-reseller-footer { display:none; } .portal-influencer-active .influencer-sidebar { width:100%; } .portal-influencer-active .indicator-top,.portal-influencer-active .indicator-content { margin-left:0; } }
@@ -455,10 +455,10 @@
 .portal-influencer .influencer-sidebar-brand strong { color:white; font-size:14px; letter-spacing:.6px; }
 .portal-influencer .influencer-sidebar-brand span { color:#e6c47d; font-size:9px; letter-spacing:1.1px; line-height:1.45; font-weight:850; }
 .portal-influencer .influencer-sidebar-caption { padding:27px 14px 13px; }
-.portal-influencer .influencer-sidebar nav a { padding:13px 14px; font-size:13px; font-weight:650; }
-.portal-influencer .influencer-sidebar nav a svg { height:18px; width:18px; stroke-width:1.8; flex:0 0 auto; }
-.portal-influencer .influencer-sidebar nav a:first-child { background:#203a50; color:white; box-shadow:inset 3px 0 #d4ac62; }
-.portal-influencer .influencer-sidebar nav a:first-child svg { color:#e9c67d; }
+.portal-influencer .influencer-sidebar nav button { padding:13px 14px; font-size:13px; font-weight:650; }
+.portal-influencer .influencer-sidebar nav button svg { height:18px; width:18px; stroke-width:1.8; flex:0 0 auto; }
+.portal-influencer .influencer-sidebar nav button[aria-current="page"] { background:#203a50; color:white; box-shadow:inset 3px 0 #d4ac62; }
+.portal-influencer .influencer-sidebar nav button[aria-current="page"] svg { color:#e9c67d; }
 .portal-influencer .influencer-sidebar-footer { border-top:1px solid #ffffff1b; padding:19px 12px 0; margin-top:auto; }
 .portal-influencer .lord-indicator-top { height:79px; min-height:79px; display:flex; align-items:center; justify-content:space-between; padding:0 35px; }
 .portal-influencer .lord-indicator-top .lord-demo-user button { display:flex; align-items:center; gap:8px; border:1px solid #e7e2d9; background:#fff; border-radius:10px; padding:9px 12px; color:#20394c; font-size:12px; font-weight:750; }
@@ -474,5 +474,61 @@
 .portal-influencer .lord-influencer-profile>div span { color:#7c8894; }
 .portal-influencer .lord-influencer-profile>div strong { overflow-wrap:anywhere; text-align:right; }
 .portal-influencer .lord-influencer-profile>p { font-size:12px; color:#7c8894; line-height:1.6; margin:17px 0; }
-@media(max-width:780px) { .portal-influencer .influencer-sidebar-brand { display:none; } .portal-influencer .influencer-sidebar-caption,.portal-influencer .influencer-sidebar-footer { display:none; } .portal-influencer .lord-indicator-top { padding:0 15px; height:66px; min-height:66px; } .portal-influencer .influencer-sidebar nav { margin-top:9px; } .portal-influencer .influencer-sidebar nav a { flex:0 0 auto; } }
+@media(max-width:780px) { .portal-influencer .influencer-sidebar-brand { display:none; } .portal-influencer .influencer-sidebar-caption,.portal-influencer .influencer-sidebar-footer { display:none; } .portal-influencer .lord-indicator-top { padding:0 15px; height:66px; min-height:66px; } .portal-influencer .influencer-sidebar nav { margin-top:9px; } .portal-influencer .influencer-sidebar nav button { flex:0 0 auto; } }
 @media(max-width:560px) { .portal-influencer .lord-indicator-top .lord-demo-user b,.portal-influencer .lord-indicator-top .lord-demo-user small { display:none; } }
+
+/* Os três perfis exibem páginas independentes, preservando os registros reais. */
+.lord-role-page { min-height:calc(100vh - 79px); }
+.lord-influencer-overview-panels { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:22px; }
+.lord-influencer-overview-panels .portal-card { margin:0; padding:23px; }
+.lord-influencer-overview-panels .portal-card h2 { margin:9px 0; font-size:19px; }
+.lord-influencer-overview-panels .portal-card p { color:#617386; font-size:13px; line-height:1.6; }
+.lord-influencer-overview-panels .portal-card button { margin-top:9px; }
+.lord-role-page .influencer-page-head { margin-bottom:22px; }
+.lord-role-page .portal-card { border-radius:16px; }
+.lord-role-page .indicator-form { display:flex; flex-wrap:wrap; align-items:end; gap:12px; }
+.lord-role-page .indicator-form label { flex:1 1 280px; }
+.lord-role-page .indicator-form button { flex:0 0 auto; min-height:43px; }
+.lord-admin-campaigns { margin:24px 0; border:1px solid #e6dfd3; border-radius:16px; background:#fff; padding:23px; }
+.lord-admin-campaigns-heading { display:flex; gap:12px; justify-content:space-between; align-items:start; margin-bottom:18px; }
+.lord-admin-campaigns-heading h3 { margin:0 0 6px; font-size:17px; color:#092840; }
+.lord-admin-campaigns-heading p { margin:0; color:#718195; font-size:12px; }
+.lord-admin-campaigns-heading>span { flex:0 0 auto; background:#fff4df; color:#99712b; padding:7px 10px; border-radius:99px; font-size:11px; font-weight:750; }
+.lord-admin-campaign-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.lord-admin-campaign-tile { min-width:0; border:1px solid #e6dfd3; border-radius:12px; padding:18px; }
+.lord-admin-campaign-code { display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-radius:99px; background:#f0f2f3; color:#667889; text-transform:uppercase; font-size:10px; font-weight:800; padding:6px 9px; }
+.lord-admin-campaign-tile h4 { font-size:14px; margin:12px 0 5px; color:#092840; }
+.lord-admin-campaign-url { font-size:11px; color:#6d9680; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0 0 14px; }
+.lord-admin-campaign-actions { display:flex; flex-wrap:wrap; gap:7px; }
+.lord-admin-campaign-actions button { font-size:11px; padding:8px 10px; min-height:34px; }
+.lord-admin-campaign-tile>small { display:block; margin-top:12px; color:#966130; }
+.lord-reseller-referrals-layout { display:grid; grid-template-columns:minmax(260px,0.8fr) minmax(350px,1.2fr); gap:18px; }
+.lord-reseller-referrals-layout>.portal-card { margin:0; }
+.lord-reseller-referral-items { display:grid; gap:10px; }
+.lord-reseller-referral-items article { border:1px solid #e7e2da; padding:15px; border-radius:12px; min-width:0; }
+.lord-reseller-referral-items article strong,.lord-reseller-referral-items article small { display:block; }
+.lord-reseller-referral-items article p { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#52816c; }
+.lord-material-library { margin-top:22px; }
+.lord-material-library-header h2 { font-size:17px; margin:0 0 5px; }
+.lord-material-library-header p { font-size:12px; color:#788795; margin:0 0 16px; }
+.lord-material-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.lord-material-tile { display:flex; align-items:flex-start; gap:14px; background:white; border:1px solid #e6dfd3; padding:17px; border-radius:15px; min-width:0; }
+.lord-material-icon { display:grid; place-items:center; flex:0 0 50px; width:50px; height:50px; border-radius:12px; background:#fff1d7; color:#a97424; }
+.lord-material-copy { min-width:0; }
+.lord-material-copy>small { color:#687a88; font-size:10px; border-radius:99px; background:#f0f2f3; padding:5px 8px; font-weight:750; }
+.lord-material-copy h3 { margin:10px 0 6px; font-size:14px; color:#092840; }
+.lord-material-copy p { font-size:12px; color:#708195; margin:0 0 13px; }
+.lord-material-actions { display:flex; flex-wrap:wrap; gap:5px; }
+.lord-material-actions a,.lord-material-actions button { text-decoration:none; display:inline-flex; align-items:center; border:1px solid #e1d6c4; border-radius:9px; background:white; color:#143449; font-family:inherit; cursor:pointer; font-size:11px; font-weight:750; padding:8px 10px; }
+.lord-material-actions a:hover,.lord-material-actions button:hover { background:#fff8ea; }
+.lord-influencer-profile-grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); gap:16px; }
+.lord-influencer-profile-grid>.portal-card { margin:0; }
+.lord-influencer-linked { padding:23px; }
+.lord-influencer-linked h2 { font-size:18px; margin:0 0 21px; }
+.lord-influencer-linked>div { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:14px 0; border-top:1px solid #ece5db; font-size:12px; }
+.lord-influencer-linked>div>span { color:#687888; }
+.lord-influencer-linked>div>strong { max-width:190px; text-align:right; overflow-wrap:anywhere; }
+.lord-influencer-linked>p { font-size:11px; color:#718195; margin-top:22px; }
+.lord-terms-footnote { margin:16px 0; font-size:12px; }
+@media(max-width:1120px) { .lord-admin-campaign-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:780px) { .lord-influencer-overview-panels,.lord-reseller-referrals-layout,.lord-material-grid,.lord-influencer-profile-grid { grid-template-columns:1fr; } .lord-admin-campaign-grid { grid-template-columns:1fr; } .lord-admin-campaigns { padding:16px; } }
