@@ -4,7 +4,7 @@ import { load, memoryDb, operators, table } from './runtime-loader.mjs';
 import { summarizeCampaign } from '../lib/campaign-metrics.mjs';
 
 const code = '9'.repeat(32);
-const campaign = { id: 'campaign-1', publicCode: code, name: 'Instagram', active: 1, clickCount: 4 };
+const campaign = { id: 'campaign-1', code, publicCode: code, name: 'Instagram', active: 1, clickCount: 4 };
 
 test('the sales link redirects to the local checkout, keeping only attribution parameters', async () => {
   const indicatorCampaigns = table('id', 'clickCount');

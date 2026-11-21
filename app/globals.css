@@ -1214,3 +1214,33 @@ body { overflow-x: clip; }
  .purchase-fields{grid-template-columns:minmax(0,1fr)}
  .purchase-total strong{font-size:18px}
 }
+
+/* BKO: expedição com busca e acompanhamento de eventos reais da transportadora. */
+.bko-shipping-dashboard .card-title{align-items:start}
+.bko-shipping-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:20px 0 24px}
+.bko-shipping-stats>div{padding:18px;background:#fff;border:1px solid #eadfcd;border-radius:14px;min-width:0}
+.bko-shipping-stats span{display:block;font-size:12px;color:#667580}
+.bko-shipping-stats strong{display:block;font-size:29px;color:#0e2c41;margin-top:12px}
+.bko-shipping-search{display:block;font-size:12px;color:#36475b;margin-bottom:15px;font-weight:700}
+.bko-shipping-search input{display:block;width:100%;padding:13px 15px;background:#fff;border:1px solid #dfd8cb;border-radius:12px;margin-top:8px;color:#0e2c41;font:inherit}
+.bko-shipping-table-wrap{overflow:auto;border:1px solid #ebe0d1;border-radius:14px;background:#fff}
+.bko-shipping-table{width:100%;border-collapse:collapse;text-align:left;font-size:12px;min-width:720px}
+.bko-shipping-table th{background:#fcf8f1;color:#6e7984;font-size:11px;letter-spacing:.025em}
+.bko-shipping-table th,.bko-shipping-table td{padding:15px 13px;border-bottom:1px solid #eee8de;vertical-align:middle}
+.bko-shipping-table tbody tr:last-child td{border-bottom:0}
+.bko-shipping-table td strong{display:block;color:#102e43}
+.bko-shipping-table td small{display:block;color:#84919a;font-size:11px;margin-top:4px}
+.bko-tracking-overlay{position:fixed;inset:0;z-index:1050;display:grid;place-items:center;background:#081d2fa8;padding:24px}
+.bko-tracking-dialog{background:#fff;border-radius:20px;max-width:590px;width:100%;max-height:88vh;overflow:auto;padding:27px;color:#0e293d;box-shadow:0 22px 65px #0003}
+.bko-tracking-dialog>p{margin:14px 0}
+.bko-tracking-head{display:flex;justify-content:space-between;align-items:start;gap:18px;border-bottom:1px solid #ede6db;padding-bottom:17px}
+.bko-tracking-head h3{font-size:22px;margin:7px 0}
+.bko-tracking-head button{border:1px solid #dfd8ce;border-radius:10px;width:40px;height:40px;background:#fff;font-size:26px;cursor:pointer}
+.bko-postal-result{padding:17px;background:#faf8f3;border:1px solid #edddbe;border-radius:12px;margin:18px 0}
+.bko-postal-result small{display:block;font-size:12px;color:#607380;margin:5px 0}
+.bko-postal-result [role=status]{color:#9e5628}
+@media(max-width:830px){.bko-shipping-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.bko-shipping-stats{grid-template-columns:minmax(0,1fr)}.bko-tracking-overlay{padding:12px}.bko-tracking-dialog{padding:19px}}
+.influencer-repasse-metrics{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:14px}
+.influencer-repasse-metrics small{display:block;margin-top:6px;color:#72828d;font-size:11px}
+@media(max-width:680px){.influencer-repasse-metrics{grid-template-columns:minmax(0,1fr)}}

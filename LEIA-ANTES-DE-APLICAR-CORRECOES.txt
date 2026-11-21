@@ -1,0 +1,45 @@
+LORD NUTRI — CORREÇÕES PARCIAIS (21/11/2026)
+
+ESTE ZIP É UM PATCH, NÃO É A PLATAFORMA INTEIRA.
+Não substitua o repositório por este ZIP sozinho. Extraia e copie suas pastas e arquivos
+POR CIMA de uma cópia de trabalho do projeto correspondente ao pacote
+"LORD-NUTRI-Plataforma-Completa-GitHub(1).zip" (implantação 0224ec9).
+Mantenha um backup da pasta e do banco antes de qualquer publicação.
+
+O QUE FOI ALTERADO
+- Link amigável /v/nome-da-campanha, com redirecionamento para o mesmo código
+  financeiro original. Links hexadecimais antigos continuam funcionando.
+- Novo slug permanente: nome da campanha é normalizado na criação;
+  se renomeado, o endereço original permanece válido para não quebrar divulgação.
+- Migração aditiva no MariaDB: coluna public_slug e índice único na tabela
+  indicator_campaigns; atribuições/pedidos e public_code não são substituídos.
+- BKO Expedição: indicadores, busca, lista em tabela, detalhes do rastreamento,
+  dados da última consulta e registro de etiqueta via operação existente.
+- Revendedor: botão Ver rastreamento e visualização das três etapas e evento real.
+- BKO: não oferece liberação de acesso de revendedor para compra avulsa MIX10.
+- Influenciador: segunda linha financeira com aprovação, disponibilidade e pago,
+  porém SEM INVENTAR VALORES: aparece traço até existir conciliação de repasses.
+- Configurações e Auditoria: diagnóstico de Asaas/Correios e operações de
+  manutenção mantidas em detalhe avançado fechado por padrão.
+
+O QUE AINDA ESTÁ PENDENTE (NÃO HOMOLOGADO)
+- Nova tabela de Acessos e Pedidos com filtros e detalhe no padrão da demo.
+- Biblioteca unificada de Materiais com público Revendedores/Influenciadores.
+- Livro-razão e homologação das aprovações e pagamentos de cashback ao influenciador.
+- Testes integrados com Asaas real, Correios real e dados financeiros em banco isolado.
+- Validação visual exata da demo, autorização de publicação e correções de
+  vulnerabilidades das dependências.
+
+CUIDADOS ANTES DE SUBIR
+1. Verifique que o banco de HOMOLOGAÇÃO contém SOMENTE dados de teste, sem pedidos reais.
+2. A migração automática de public_slug é aditiva, mas exige permissão ALTER TABLE.
+   Faça backup e execute primeiro em banco isolado. NÃO aplique cegamente na produção.
+3. Confira GitHub Actions (workflow Rastreio Correios): secrets.CORREIOS_CRON_TOKEN,
+   vars.PORTAL_URL e o histórico de execuções. Na Hostinger, configure o mesmo token
+   e credenciais dos Correios em variáveis privadas, sem publicá-las em GitHub.
+4. No BKO > Configurações e Auditoria, consulte o último agendamento real dos Correios.
+5. Execute localmente: node --test tests/*.test.mjs e npm run build.
+6. Somente após homologar, publique com GitHub Desktop e avalie os logs da Hostinger.
+
+CHECAGEM LOCAL DO PATCH: 377 testes aprovados, zero falhas; npm run build aprovado.
+NENHUMA ALTERAÇÃO FOI EXECUTADA NO BANCO ONLINE NESTA PREPARAÇÃO.

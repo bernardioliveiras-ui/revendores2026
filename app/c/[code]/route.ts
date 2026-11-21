@@ -11,11 +11,11 @@ export async function GET(request:Request, context:{params:Promise<{code:string}
   if(!campaign)return new Response("Campanha indisponível.",{status:404,headers:{"cache-control":"no-store"}});
   await getDb().update(indicatorCampaigns).set({clickCount:sql`click_count + 1`}).where(eq(indicatorCampaigns.id,campaign.id));
   const target=new URL(INDICATOR_PURCHASE_URL);
-  target.searchParams.set("campanha",code);
+  target.searchParams.set("campanha",campaign.code);
   // Parâmetro na URL atravessa domínios; cookie cobre navegação no mesmo domínio.
   const secure=new URL(request.url).protocol==="https:" ? "; Secure" : "";
   return new Response(null,{status:302,headers:{
     location:target.toString(),"cache-control":"no-store","referrer-policy":"strict-origin-when-cross-origin",
-    "set-cookie":`${CAMPAIGN_COOKIE}=${code}; Max-Age=2592000; Path=/; HttpOnly; SameSite=Lax${secure}`,
+    "set-cookie":`${CAMPAIGN_COOKIE}=${campaign.code}; Max-Age=2592000; Path=/; HttpOnly; SameSite=Lax${secure}`,
   }});
 }

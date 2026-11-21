@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { ensureCampaignSchema } from "@/lib/campaign-schema";
 import { validCampaignCashback } from "@/lib/indicator-cashback.mjs";
 import { cleanText, indicatedError, privateResponseHeaders } from "@/lib/indicator-security";
+import { campaignSlug } from "@/lib/campaign-slug.mjs";
 export const runtime="nodejs";
 export async function POST(request:Request) {
  try {
@@ -20,10 +21,12 @@ export async function POST(request:Request) {
    const [existing]=await tx.select().from(indicatorCampaigns).where(eq(indicatorCampaigns.indicatorUserId,indicatorUserId)).limit(1).for("update");
    const now=new Date().toISOString();
    if(existing){await tx.update(indicatorCampaigns).set({name,active:1,updatedAt:now}).where(eq(indicatorCampaigns.id,existing.id));
-    return Response.json({saved:true,publicPath:`/c/${existing.publicCode}`,salesPath:`/v/${existing.publicCode}`,code:existing.publicCode},{headers:privateResponseHeaders});}
+    return Response.json({saved:true,publicPath:`/c/${existing.publicSlug||existing.publicCode}`,salesPath:`/v/${existing.publicSlug||existing.publicCode}`,code:existing.publicCode},{headers:privateResponseHeaders});}
    const id=crypto.randomUUID(),code=randomBytes(16).toString("hex");
-   await tx.insert(indicatorCampaigns).values({id,indicatorUserId,name,publicCode:code,active:1,clickCount:0,createdAt:now,updatedAt:now});
-   return Response.json({saved:true,publicPath:`/c/${code}`,salesPath:`/v/${code}`,code},{status:201,headers:privateResponseHeaders});
+   const base=campaignSlug(name);let slug=base;
+   for(let n=2;(await tx.select({id:indicatorCampaigns.id}).from(indicatorCampaigns).where(eq(indicatorCampaigns.publicSlug,slug)).limit(1)).length;n++)slug=`${base}-${n}`;
+   await tx.insert(indicatorCampaigns).values({id,indicatorUserId,name,publicCode:code,publicSlug:slug,active:1,clickCount:0,createdAt:now,updatedAt:now});
+   return Response.json({saved:true,publicPath:`/c/${slug}`,salesPath:`/v/${slug}`,code},{status:201,headers:privateResponseHeaders});
   });
  }catch(error){return indicatedError(error)}
 }

@@ -14,7 +14,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ code
   const campaign = await resolveCampaign(code);
   if (!campaign) return new Response("Campanha indisponível.", { status: 404, headers });
 
-  const query = new URLSearchParams({ venda: code });
+  // Downstream checkout and webhook attribution always use the original immutable code.
+  const query = new URLSearchParams({ venda: campaign.code });
   const incoming = new URL(request.url).searchParams;
   for (const key of attributionKeys) {
     const value = incoming.get(key);

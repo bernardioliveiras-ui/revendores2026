@@ -176,13 +176,14 @@ export const indicatorCampaigns = mysqlTable("indicator_campaigns", {
   indicatorUserId: varchar("indicator_user_id", { length: 80 }).notNull(),
   name: varchar("name", { length: 120 }).notNull(),
   publicCode: varchar("public_code", { length: 64 }).notNull(),
+  publicSlug: varchar("public_slug", { length: 100 }),
   cashbackMode: varchar("cashback_mode", { length: 12 }).notNull().default("fixed"),
   cashbackValue: int("cashback_value").notNull().default(1500),
   active: int("active").notNull().default(1),
   clickCount: int("click_count").notNull().default(0),
   createdAt: varchar("created_at", { length: 40 }).notNull(),
   updatedAt: varchar("updated_at", { length: 40 }).notNull(),
-}, t => [uniqueIndex("idx_indicator_campaign_code").on(t.publicCode), uniqueIndex("idx_indicator_campaign_owner").on(t.indicatorUserId)]);
+}, t => [uniqueIndex("idx_indicator_campaign_code").on(t.publicCode), uniqueIndex("idx_indicator_campaign_slug").on(t.publicSlug), uniqueIndex("idx_indicator_campaign_owner").on(t.indicatorUserId)]);
 
 /** Pedidos feitos na loja externa, atribuídos por callback servidor-servidor. */
 export const indicatorExternalOrders = mysqlTable("indicator_external_orders", {

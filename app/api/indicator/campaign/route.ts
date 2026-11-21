@@ -8,6 +8,7 @@ import { requireIndicatorTerms } from "@/lib/indicator-terms-store";
 import { ensureCampaignSchema } from "@/lib/campaign-schema";
 import { cleanText, indicatedError, privateResponseHeaders } from "@/lib/indicator-security";
 import { summarizeCampaign } from "@/lib/campaign-metrics.mjs";
+import { campaignSlug } from "@/lib/campaign-slug.mjs";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 export async function GET(request:Request) {
@@ -23,7 +24,7 @@ export async function GET(request:Request) {
     paymentStatus:indicatorExternalOrders.paymentStatus,productTotalCents:indicatorExternalOrders.productTotalCents,
     asaasVerifiedAt:indicatorExternalOrders.asaasVerifiedAt,indicatorCashbackCents:indicatorExternalOrders.indicatorCashbackCents})
     .from(indicatorExternalOrders).where(eq(indicatorExternalOrders.campaignId,campaign.id));
-  return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:{...summarizeCampaign(campaign,[...orders,...externalOrders.map(order=>({...order,totalCents:order.productTotalCents,shippingCents:0,interestCents:0}))]),cashbackMode:campaign.cashbackMode,cashbackValue:campaign.cashbackValue,publicPath:`/c/${campaign.publicCode}`,salesPath:`/v/${campaign.publicCode}`}}, {headers:privateResponseHeaders});
+  return Response.json({asaasEnvironment:getAsaasConfig().environment,campaign:{...summarizeCampaign(campaign,[...orders,...externalOrders.map(order=>({...order,totalCents:order.productTotalCents,shippingCents:0,interestCents:0}))]),cashbackMode:campaign.cashbackMode,cashbackValue:campaign.cashbackValue,publicPath:`/c/${campaign.publicSlug||campaign.publicCode}`,salesPath:`/v/${campaign.publicSlug||campaign.publicCode}`}}, {headers:privateResponseHeaders});
  }catch(error){return indicatedError(error)}
 }
 export async function POST(request:Request) {
@@ -37,11 +38,13 @@ export async function POST(request:Request) {
    const now=new Date().toISOString();
    if(existing){if(!existing.active)return Response.json({error:"Campanha pausada pelo BKO."},{status:403});
     await tx.update(indicatorCampaigns).set({name,updatedAt:now}).where(eq(indicatorCampaigns.id,existing.id));
-    return Response.json({saved:true,publicPath:`/c/${existing.publicCode}`,salesPath:`/v/${existing.publicCode}`},{headers:privateResponseHeaders});}
+    return Response.json({saved:true,publicPath:`/c/${existing.publicSlug||existing.publicCode}`,salesPath:`/v/${existing.publicSlug||existing.publicCode}`},{headers:privateResponseHeaders});}
    const code=randomBytes(16).toString("hex");
+   const base=campaignSlug(name);let slug=base;
+   for(let n=2;(await tx.select({id:indicatorCampaigns.id}).from(indicatorCampaigns).where(eq(indicatorCampaigns.publicSlug,slug)).limit(1)).length;n++)slug=`${base}-${n}`;
    await tx.insert(indicatorCampaigns).values({id:crypto.randomUUID(),indicatorUserId:user.id,
-    name,publicCode:code,active:1,clickCount:0,createdAt:now,updatedAt:now});
-   return Response.json({saved:true,publicPath:`/c/${code}`,salesPath:`/v/${code}`},{status:201,headers:privateResponseHeaders});
+    name,publicCode:code,publicSlug:slug,active:1,clickCount:0,createdAt:now,updatedAt:now});
+   return Response.json({saved:true,publicPath:`/c/${slug}`,salesPath:`/v/${slug}`},{status:201,headers:privateResponseHeaders});
   });
  }catch(error){return indicatedError(error)}
 }

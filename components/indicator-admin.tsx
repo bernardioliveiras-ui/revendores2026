@@ -1,7 +1,6 @@
 "use client";
 import { PaymentSync } from "@/components/payment-sync";
-import { Search, Users, BadgeCheck, Wallet, TrendingUp, Copy, Link2, Eye, Plus } from "lucide-react";
-import { PortalMetric } from "@/components/portal-frame";
+import { Search } from "lucide-react";
 import { campaignCodeFromSearch, matchesIndicatorSearch } from "@/lib/indicator-search.mjs";
 import { CheckoutFunnel } from "@/components/checkout-funnel";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
@@ -9,7 +8,7 @@ import { summarizeCampaign, isVerifiedPaid, isPendingPix, isRecoveryOpportunity 
 
 type Indicator={userId:string;name:string;email:string;phone:string;accessStatus:string;activated:boolean;termsAcceptedAt:string|null;termsAcceptedVersion:string|null};
 type TermsAudit={id:string;version:string;sha256:string;termsSnapshot:string;acceptedAt:string;ipAddress:string|null;userAgent:string|null};
-type Campaign={id:string;indicatorUserId:string;name:string;publicCode:string;active:number;clickCount:number;cashbackMode:"fixed"|"percent";cashbackValue:number;createdAt:string};
+type Campaign={id:string;indicatorUserId:string;name:string;publicCode:string;publicSlug:string|null;active:number;clickCount:number;cashbackMode:"fixed"|"percent";cashbackValue:number;createdAt:string};
 type Order={id:string;orderNumber:string;campaignId:string|null;name:string;phone:string;paymentMethod:string;asaasPaymentId:string|null;asaasInvoiceUrl:string|null;kit:string;createdAt:string;asaasVerifiedAt:string|null;paymentStatus:string;productTotalCents:number;shippingCents:number;interestCents:number;totalCents:number;indicatorCashbackCents:number|null;utmSource:string;utmMedium:string};
 type Window="all"|"7"|"30"|"90";
 const money=(n:number)=>(n/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -34,7 +33,7 @@ function recoveryInvoice(order: Order) {
 }
 export function IndicatorAdmin(){
  const [indicators,setIndicators]=useState<Indicator[]>([]),[campaigns,setCampaigns]=useState<Campaign[]>([]),[orders,setOrders]=useState<Order[]>([]);
- const [asaasEnvironment,setAsaasEnvironment]=useState("");
+ const [asaasEnvironment,setAsaasEnvironment]=useState("sandbox");
  const [termsVersion,setTermsVersion]=useState(""),[termsAudit,setTermsAudit]=useState<{userId:string;events:TermsAudit[]}|null>(null);
  const [selected,setSelected]=useState(""),[query,setQuery]=useState(""),[windowDays,setWindowDays]=useState<Window>("30"),[status,setStatus]=useState("all");
  const [notice,setNotice]=useState(""),[busy,setBusy]=useState(false),[showCreate,setShowCreate]=useState(false);
@@ -62,8 +61,7 @@ export function IndicatorAdmin(){
    default: return true;
   }
  });
- const [sort,setSort]=useState<"amount"|"sales">("amount");
- const ranked=metrics.filter(m=>matchesIndicatorSearch(query,m.partner,m.campaign)).sort((a,b)=>sort==="sales"?b.confirmedOrders-a.confirmedOrders:b.productRevenueCents-a.productRevenueCents);
+ const ranked=metrics.filter(m=>matchesIndicatorSearch(query,m.partner,m.campaign)).sort((a,b)=>b.productRevenueCents-a.productRevenueCents);
  const lifetimeMetrics=campaign?summarizeCampaign(campaign,orders):null;
  useEffect(()=>{const code=campaignCodeFromSearch(query);if(!code)return;const match=campaigns.find(c=>c.publicCode.toLowerCase()===code);if(match){setSelected(match.indicatorUserId);setCampaignName(match.name);setStatus("all");}},[query,campaigns]);
  const conversion=summary.checkouts?Math.round(10000*summary.confirmed/summary.checkouts)/100:0;
@@ -116,57 +114,23 @@ export function IndicatorAdmin(){
  }
  async function inspectTerms(userId:string){setBusy(true);setNotice("");try{const r=await fetch(`/api/admin/indicators/terms?userId=${encodeURIComponent(userId)}`,{cache:"no-store"}),b=await r.json();if(!r.ok)throw Error(b.error||"Falha ao carregar auditoria.");setTermsAudit({userId,events:b.events||[]})}catch(e){setNotice(e instanceof Error?e.message:"Erro de auditoria.")}finally{setBusy(false)}}
  async function copy(url:string){try{await navigator.clipboard.writeText(url);setNotice("Link copiado.")}catch{setNotice("Selecione e copie o link.")}}
- function openProfile(c:Campaign) {
-  setSelected(c.indicatorUserId);setCampaignName(c.name);setStatus("all");
-  requestAnimationFrame(()=>document.getElementById("ln-indicator-detail")?.scrollIntoView({block:"start"}));
- }
- function startCreate() {
-  setShowCreate(true);
-  requestAnimationFrame(()=>document.querySelector<HTMLInputElement>("#ln-create input")?.focus());
- }
- return <section className="role-detail"><div className="pagehead">
-   <div><div className="eyebrow">Campanhas &amp; desempenho</div><h1>Influenciadores</h1><p>Acompanhe campanhas, links e vendas dos parceiros.</p></div>
-   <div className="head-actions">{asaasEnvironment==="sandbox"&&<span className="pill amber">Asaas · ambiente de teste</span>}<div className="filterbar" aria-label="Período dos pedidos">
-    {([["7","7 dias"],["30","30 dias"],["90","90 dias"],["all","Tudo"]] as const).map(([value,title])=><button key={value} className={windowDays===value?"active":""} aria-pressed={windowDays===value} onClick={()=>setWindowDays(value)}>{title}</button>)}
-   </div><button className="btn primary" onClick={startCreate}><Plus size={15}/> Novo influenciador</button></div></div>
+ return <section className="portal-card crm-admin crm-v2"><div className="crm-heading"><div><span className="section-kicker">LORD NUTRI · COMERCIAL / SELLER</span><h2>Central de vendas e influenciadores</h2><p className="portal-form-help">Checkout → Asaas → venda confirmada → receita dos produtos. Sem comprovantes e sem frete nos KPIs.</p></div><button className="secondary-button compact" onClick={()=>void load().catch(e=>setNotice(e.message))}>Atualizar dados</button></div>
+ {asaasEnvironment==="sandbox"?<p className="portal-notice">Modo de testes Asaas (sandbox): indicadores não equivalem a faturamento real.</p>:null}
  {notice?<div className="portal-notice" role="status">{notice}</div>:null}
  {invitation&&invitation.userId===selected?<div className="crm-campaign-link"><strong>Convite privado para criar/redefinir senha (válido por 24h)</strong><input readOnly value={invitation.url} onFocus={e=>e.currentTarget.select()}/><button className="secondary-button compact" onClick={()=>void copy(invitation.url)}>Copiar convite</button><p className="crm-quiet">Compartilhe diretamente com o indicador. A senha nunca aparece no BKO.</p></div>:null}
- <div className="grid four">
-  <PortalMetric label="Ativos" value={indicators.filter(i=>i.accessStatus==="active").length} detail="Influenciadores com acesso ativo" icon={<Users/>}/>
-  <PortalMetric label="Vendas confirmadas" value={summary.confirmed} detail="Pedidos atribuídos no período" icon={<BadgeCheck/>}/>
-  <PortalMetric label="Cashback apurado" value={money(metrics.reduce((n,m)=>n+m.cashbackAccruedCents,0))} detail="Sobre compras verificadas" tone="purple" icon={<Wallet/>}/>
-  <PortalMetric label="Receita de produtos" value={money(summary.revenue)} detail="Valor sem frete e juros" tone="amber" icon={<TrendingUp/>}/>
- </div>
- <section className="box boxpad mtlg" aria-label="Campanhas e links dos influenciadores">
-  <div className="section-title"><div><h2>Campanhas e links</h2><p>Copie ou compartilhe o link de vendas de cada influenciador.</p></div><span className="pill">Links ativos · {campaigns.filter(c=>c.active).length}</span></div>
-  {campaigns.length?<div className="grid three reference-cards">{campaigns.map(c=>{
-   const partner=indicators.find(i=>i.userId===c.indicatorUserId);
-   const salesUrl=window.location.origin+"/v/"+c.publicCode;
-   return <article className="campaign-tile" key={c.id}><span className="pill gray">{c.name}</span><h3>{partner?.name||"Influenciador"}</h3>
-    <a href={salesUrl} className="campaign-address" target="_blank" rel="noopener noreferrer">{salesUrl}</a>
-    <div className="campaign-actions"><button className="btn tiny" onClick={()=>void copy(salesUrl)}><Copy size={13}/> Copiar</button>
-     <a className="btn tiny" href={"https://wa.me/?text="+encodeURIComponent("Conheça a LORD NUTRI: "+salesUrl)} target="_blank" rel="noopener noreferrer"><Link2 size={13}/> Compartilhar</a></div>
-    {!c.active&&<small>Campanha pausada</small>}</article>})}</div>:<p className="muted">Nenhuma campanha cadastrada. Use Novo influenciador para começar.</p>}
- </section>
- <section className="mtlg" aria-label="Ranking de influenciadores">
-  <div className="section-title"><div><h2>Ranking de influenciadores</h2><p>Ordene por quantidade de vendas ou valor gerado.</p></div><span className="pill blue">Período filtrável</span></div>
-  <div className="toolbar"><label className="search"><Search size={16}/><input type="search" aria-label="Buscar influenciador pelo link ou código" placeholder="Buscar por nome, campanha ou link…" value={query} onChange={e=>setQuery(e.target.value)}/></label>
-   <select className="select" aria-label="Ordenar influenciadores" value={sort} onChange={e=>setSort(e.target.value as "amount"|"sales")}><option value="sales">Mais vendas</option><option value="amount">Maior valor</option></select></div>
-  <div className="box tablewrap"><table className="table"><thead><tr><th>Pos.</th><th>Influenciador</th><th>Vendas</th><th>Valor gerado</th><th>Cashback</th><th>Cliques</th><th>Status</th><th>Ações</th></tr></thead>
-  <tbody>{ranked.map((m,i)=><tr key={m.campaignId}><td><span className={i<3?"rank top":"rank"}>{i+1}</span></td><td className="namecell">{m.partner?.name||"Parceiro"}<small>{m.name}</small></td><td>{m.confirmedOrders}</td><td>{money(m.productRevenueCents)}</td><td>{money(m.cashbackAccruedCents)}</td><td>{m.campaign.clickCount}</td><td><span className={m.campaign.active?"pill":"pill gray"}>{m.campaign.active?"Ativa":"Pausada"}</span></td><td><button className="btn tiny" onClick={()=>openProfile(m.campaign)}><Eye size={13}/> Perfil</button></td></tr>)}</tbody></table>
-  {!ranked.length&&<p className="empty" role="status">Nenhuma campanha encontrada.</p>}</div>
- </section>
- <details className="box boxpad legacy-tools"><summary>Funil e indicadores de checkout</summary><CheckoutFunnel admin />
+ <div className="crm-v2-toolbar"><label>Período dos pedidos<select value={windowDays} onChange={e=>setWindowDays(e.target.value as Window)}><option value="7">7 dias</option><option value="30">30 dias</option><option value="90">90 dias</option><option value="all">Todo o histórico</option></select></label><label><Search size={17} aria-hidden="true" style={{display:"inline",verticalAlign:"middle",marginRight:6}}/>Buscar influenciador pelo link ou código<input type="search" placeholder="Cole o link, código ou mensagem do WhatsApp; ou digite o nome" value={query} onChange={e=>setQuery(e.target.value)}/></label></div>
+ <CheckoutFunnel admin />
  <div className="crm-kpi-grid"><div><span>Vendas verificadas · Asaas</span><strong>{summary.confirmed}</strong><small>Somente notificações reais de pagamento</small></div><div><span>Receita de produtos</span><strong>{money(summary.revenue)}</strong><small>Frete e juros excluídos</small></div><div><span>Checkouts criados</span><strong>{summary.checkouts}</strong></div><div><span>PIX pendentes</span><strong>{summary.pixPending}</strong></div><div><span>Oportunidades de recuperação</span><strong>{summary.recovery}</strong></div><div><span>Conversão de checkout</span><strong>{conversion}%</strong><small>Pagos / iniciados</small></div><div><span>Links ativos</span><strong>{campaigns.filter(c=>c.active).length}</strong><small>{campaigns.length} campanhas no total</small></div><div><span>Acessos ao link (total)</span><strong>{summary.clicks}</strong><small>Estimativa histórica · inclui prévias</small></div></div>
- </details><div className="box boxpad mtlg crm-v2"><div className="section-title"><div><h2>Cadastros e gestão de acessos</h2><p>Selecione um perfil para gerenciar a conta e a campanha.</p></div><button className="btn tiny" onClick={()=>void load().catch(e=>setNotice(e.message))}>Atualizar dados</button></div>
- <div className="crm-v2-two"><div className="crm-v2-ranking"><div className="crm-sidebar-head"><h3>Selecionar cadastro</h3><button className="secondary-button compact" disabled={busy} onClick={()=>setShowCreate(!showCreate)}>{showCreate?"Fechar":"+ Influenciador"}</button></div><div className="crm-ops-clean"><span>{indicators.length} indicador(es) cadastrados · {indicators.filter(i=>i.accessStatus==="active").length} com acesso ativo</span><button type="button" className="secondary-button compact crm-danger-outline" disabled={busy||!indicators.length} onClick={()=>void deleteTestIndicators()}>Limpar indicadores de teste</button><small>Exclui apenas cadastros sem movimentações financeiras. Para zerar pedidos, use a rotina com backup.</small></div>
- {showCreate?<form id="ln-create" className="portal-form" onSubmit={create}><label>Nome<input name="name" required/></label><label>E-mail<input name="email" type="email" required/></label><label>Telefone<input name="phone" required/></label><button className="primary-button" disabled={busy}>Criar acesso</button></form>:null}
+ <section className="lord-admin-campaigns" aria-label="Campanhas e links dos influenciadores"><div className="lord-admin-campaigns-heading"><div><h3>Campanhas e links</h3><p>Links individuais dos influenciadores cadastrados. Apenas o BKO pode visualizar todas as campanhas.</p></div><span>Links reais · {campaigns.filter(c=>c.active).length} ativos</span></div>
+  {campaigns.length?<div className="lord-admin-campaign-grid">{campaigns.map(c=>{const partner=indicators.find(i=>i.userId===c.indicatorUserId);const salesUrl=`${typeof window==="undefined"?"https://revendedores.mix10pro.com.br":window.location.origin}/v/${c.publicSlug||c.publicCode}`;return <article className="lord-admin-campaign-tile" key={c.id}><span className="lord-admin-campaign-code">{c.name}</span><h4>{partner?.name||"Influenciador"}</h4><p className="lord-admin-campaign-url" title={salesUrl}>{salesUrl}</p><div className="lord-admin-campaign-actions"><button className="secondary-button compact" type="button" onClick={()=>void copy(salesUrl)}>Copiar</button><button className="secondary-button compact" type="button" onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent(`Conheça a LORD NUTRI: ${salesUrl}`)}`,"_blank","noopener,noreferrer")}>Compartilhar</button><button className="secondary-button compact" type="button" onClick={()=>{setSelected(c.indicatorUserId);setCampaignName(c.name);setStatus("all")}}>Gerenciar</button></div>{!c.active?<small>Campanha pausada</small>:null}</article>})}</div>:<p className="crm-quiet">Nenhuma campanha cadastrada ainda. Cadastre um influenciador para gerar seu link individual.</p>}</section>
+ <div className="crm-v2-two"><div className="crm-v2-ranking"><div className="crm-sidebar-head"><h3>Performance por influenciador</h3><button className="secondary-button compact" disabled={busy} onClick={()=>setShowCreate(!showCreate)}>{showCreate?"Fechar":"+ Influenciador"}</button></div><div className="crm-ops-clean"><span>{indicators.length} indicador(es) cadastrados · {indicators.filter(i=>i.accessStatus==="active").length} com acesso ativo</span><button type="button" className="secondary-button compact crm-danger-outline" disabled={busy||!indicators.length} onClick={()=>void deleteTestIndicators()}>Limpar indicadores de teste</button><small>Exclui apenas cadastros sem movimentações financeiras. Para zerar pedidos, use a rotina com backup.</small></div>
+ {showCreate?<form className="portal-form" onSubmit={create}><label>Nome<input name="name" required/></label><label>E-mail<input name="email" type="email" required/></label><label>Telefone<input name="phone" required/></label><button className="primary-button" disabled={busy}>Criar acesso</button></form>:null}
  {ranked.length?<div className="crm-v2-rank-head"><span>Campanha / parceiro</span><span>Compras</span><span>Receita / Cashback</span></div>:null}
  {ranked.map(m=><button type="button" key={m.campaignId} className={`crm-v2-rank-row ${selected===m.campaign.indicatorUserId?"selected":""}`} onClick={()=>{setSelected(m.campaign.indicatorUserId);setCampaignName(m.name);setStatus("all")}}><span><strong>{m.partner?.name||"Parceiro"}</strong><small>{m.name}</small></span><b>{m.confirmedOrders}</b><span><b>{money(m.productRevenueCents)}</b><small style={{opacity:1,color:"#08724d",fontWeight:700}}>Cashback: {money(m.cashbackAccruedCents)}</small></span></button>)}
  {campaigns.length===0?<p className="crm-empty">Nenhuma campanha. Selecione um parceiro abaixo para gerar seu link.</p>:null}
  {query.trim()&&!ranked.length?<p role="status">Nenhuma campanha encontrada para essa busca.</p>:null}
  {indicators.filter(i=>matchesIndicatorSearch(query,i,null)&&!campaigns.some(c=>c.indicatorUserId===i.userId)).map(i=><button type="button" key={i.userId} className={`crm-v2-rank-row ${selected===i.userId?"selected":""}`} onClick={()=>{setSelected(i.userId);setCampaignName("")}}><strong>{i.name}</strong><span>Sem campanha</span></button>)}
- </div><div id="ln-indicator-detail" className="crm-v2-detail">{choice?<><div className="crm-profile"><div><span className="section-kicker">CARTEIRA DO INFLUENCIADOR</span><h3>{choice.name}</h3><p>{choice.email} · {choice.phone}</p><p className="crm-quiet">{choice.activated?"Senha cadastrada":"Aguardando criação de senha"}</p>
+ </div><div className="crm-v2-detail">{choice?<><div className="crm-profile"><div><span className="section-kicker">CARTEIRA DO INFLUENCIADOR</span><h3>{choice.name}</h3><p>{choice.email} · {choice.phone}</p><p className="crm-quiet">{choice.activated?"Senha cadastrada":"Aguardando criação de senha"}</p>
  <p className="crm-quiet"><b>Termo de participação:</b> {choice.termsAcceptedAt?`Aceito em ${new Date(choice.termsAcceptedAt).toLocaleString("pt-BR")} · versão ${choice.termsAcceptedVersion}`:"Aceite pendente · campanha bloqueada até aceitar"}</p></div><span className="crm-status">{choice.accessStatus==="active"?"Acesso ativo":"Acesso inativo"}</span></div>
  <div className="crm-actions"><button type="button" className="secondary-button compact" disabled={busy} onClick={()=>void changeAccess(choice)}>{choice.accessStatus==="active"?"Desativar acesso":"Reativar acesso"}</button><button type="button" className="secondary-button compact" disabled={busy||choice.accessStatus!=="active"} onClick={()=>void generateInvite()}>{choice.activated?"Gerar link para redefinir senha":"Gerar convite de ativação"}</button><button type="button" className="secondary-button compact" disabled={busy} onClick={()=>void inspectTerms(choice.userId)}>Auditar aceite</button><button type="button" className="secondary-button compact crm-danger-outline" disabled={busy} onClick={()=>void deleteIndicator(choice)}>Excluir cadastro de teste</button></div>
  {termsAudit?.userId===choice.userId?<div className="terms-audit"><strong>Histórico de aceite · versão atual {termsVersion}</strong>{termsAudit.events.length?termsAudit.events.map(event=><div key={event.id}><p><b>Versão {event.version}</b> · {new Date(event.acceptedAt).toLocaleString("pt-BR")}</p><small>Comprovante SHA-256: <code>{event.sha256}</code></small><small>IP de registro: {event.ipAddress||"não disponível"}</small><small>Navegador: {event.userAgent||"não informado"}</small><details><summary>Ver texto integral desta versão aceita</summary><pre className="terms-snapshot">{event.termsSnapshot}</pre></details></div>):<p>Nenhum aceite registrado neste perfil.</p>}<button type="button" className="secondary-button compact" onClick={()=>setTermsAudit(null)}>Ocultar auditoria</button></div>:null}
@@ -179,7 +143,7 @@ export function IndicatorAdmin(){
  <button type="submit" className="primary-button compact" disabled={busy}>Salvar cashback</button></div>
  <p className="crm-quiet">As regras novas entram em vigor para os próximos pagamentos elegíveis; cashback anteriormente registrado permanece como estava.</p>
  </form>:null}
- {campaign?<div className="crm-campaign-link"><div className="crm-actions"><button className="secondary-button compact" disabled={busy} onClick={()=>void toggle(campaign)}>{campaign.active?"Pausar":"Reativar"}</button></div><label>Link de vendas<input readOnly value={typeof location==="undefined"?`/v/${campaign.publicCode}`:`${location.origin}/v/${campaign.publicCode}`} onFocus={e=>e.currentTarget.select()}/></label><button className="primary-button compact" onClick={()=>void copy(`${location.origin}/v/${campaign.publicCode}`)}>Copiar link de vendas</button></div>:null}
+ {campaign?<div className="crm-campaign-link"><div className="crm-actions"><button className="secondary-button compact" disabled={busy} onClick={()=>void toggle(campaign)}>{campaign.active?"Pausar":"Reativar"}</button></div><label>Link de vendas<input readOnly value={typeof location==="undefined"?`/v/${campaign.publicSlug||campaign.publicCode}`:`${location.origin}/v/${campaign.publicSlug||campaign.publicCode}`} onFocus={e=>e.currentTarget.select()}/></label><button className="primary-button compact" onClick={()=>void copy(`${location.origin}/v/${campaign.publicSlug||campaign.publicCode}`)}>Copiar link de vendas</button></div>:null}
  {lifetimeMetrics?<section aria-label="Total de cashback do influenciador" style={{padding:20,margin:"18px 0",border:"1px solid #90c8ac",borderRadius:12,background:"#eaf6ef",color:"#124631"}}><span>Cashback total apurado · todo o histórico</span><strong style={{display:"block",fontSize:30}}>{money(lifetimeMetrics.cashbackAccruedCents)}</strong><small>{lifetimeMetrics.confirmedOrders} venda(s) confirmada(s). Total acumulado; não representa saldo disponível ou valores ainda não pagos.</small>{lifetimeMetrics.uncalculatedOrders?<p>{lifetimeMetrics.uncalculatedOrders} pedido(s) confirmado(s) sem cashback apurado.</p>:null}</section>:null}
  {partnerMetrics?<section className="crm-mini-kpis"><div><span>Pagas</span><strong>{partnerMetrics.confirmedOrders}</strong></div><div><span>Produtos</span><strong>{money(partnerMetrics.productRevenueCents)}</strong></div><div><span>Iniciadas</span><strong>{partnerMetrics.checkouts}</strong></div><div><span>Ticket médio</span><strong>{money(partnerMetrics.averageTicketCents)}</strong></div></section>:null}
  {partnerMetrics?<p className="crm-quiet"><b>Cashback apurado no período selecionado:</b> {money(partnerMetrics.cashbackAccruedCents)} {partnerMetrics.uncalculatedOrders?`· ${partnerMetrics.uncalculatedOrders} pedido(s) antigos sem apuração automática`:""}. Pagamento exige liberação pelo BKO.</p>:null}
@@ -190,5 +154,5 @@ export function IndicatorAdmin(){
  </div>:null}</div></article>})}{!recentOrders.length?<p className="crm-empty">Sem pedidos nesta etapa ou período.</p>:null}</div></>:<p className="crm-empty">Crie uma campanha para começar o rastreio automático.</p>}
  </>:<p className="crm-empty">Cadastre um influenciador para abrir a carteira.</p>}</div></div>
  <p className="crm-quiet">Cliques são acumulados historicamente e podem incluir prévias automáticas; filtro de período aplica-se aos pedidos. Dados Asaas de teste (sandbox) não representam vendas reais.</p>
- </div></section>;
+ </section>;
 }
