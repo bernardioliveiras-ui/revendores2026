@@ -31,6 +31,10 @@ O QUE FOI CORRIGIDO
   no Asaas. Compras unitarias nao criam pendencia de acesso.
 - Visao Geral distingue totais da loja inteira dos canais de kits,
   campanhas e vendas avulsas. Compras recentes mostram sua origem.
+- A aba BKO Influenciadores agora abre com indicadores do canal, campanhas
+  e links individuais. Ranking e gestao de perfis aparecem na sequencia.
+- O funil de checkout antigo permanece acessivel, mas recolhido no fim
+  da tela em "Relatorio operacional", sem misturar a navegacao principal.
 - CSS do projeto esta incluido em app/portal-modern.css; a equivalencia
   visual com cada tela da demo ainda exige conferencia no BKO autenticado.
 
@@ -72,4 +76,4 @@ LIMITES DESTA ENTREGA
 - Rastreio, valores e alertas devem ser validados com credenciais e pedidos
   de teste oficiais antes de habilitar automacoes financeiras em producao.
 
-VALIDACAO LOCAL: 386 testes de 386 aprovados; tsc sem erros; npm run build OK.
+VALIDACAO LOCAL: 387 testes de 387 aprovados; tsc sem erros; npm run build OK.
