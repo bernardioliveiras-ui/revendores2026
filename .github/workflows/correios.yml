@@ -1,0 +1,29 @@
+name: Rastreio Correios
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: lord-nutri-correios
+  cancel-in-progress: false
+jobs:
+  rastreio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      PORTAL_URL: ${{ vars.PORTAL_URL }}
+      CRON_TOKEN: ${{ secrets.CORREIOS_CRON_TOKEN }}
+    steps:
+      - name: Consultar pedidos em expedição
+        shell: bash
+        run: |
+          set -eu
+          [[ "$PORTAL_URL" == https://* && -n "$CRON_TOKEN" ]] || { echo "Configure PORTAL_URL e CORREIOS_CRON_TOKEN."; exit 1; }
+          response=$(mktemp)
+          status=$(curl --proto '=https' --silent --show-error --max-time 130 \
+            -X POST -H "Authorization: Bearer $CRON_TOKEN" --output "$response" --write-out '%{http_code}' \
+            "${PORTAL_URL%/}/api/internal/correios/sync")
+          [[ "$status" == 200 ]] || { echo "A sincronização retornou HTTP $status. Confira o BKO."; exit 1; }
+          jq -e 'type == "object" and (.busy | type == "boolean") and (.selected | type == "number") and .errors == 0' "$response" >/dev/null
+          jq '{busy, selected, verified, waiting, errors, skipped}' "$response"

@@ -5,7 +5,7 @@ const read = (path) => fs.readFile(new URL(`../${path}`, import.meta.url), 'utf8
 
 test('webhook provisiona compra inicial e coloca pedido em separação uma única vez', async () => {
   const [webhook, provisioning] = await Promise.all([
-    read('app/api/billing/webhook/route.ts'),
+    read('lib/billing-webhook.ts'),
     read('lib/access-provisioning.ts'),
   ]);
   assert.match(webhook, /provisionPaidPurchase/);

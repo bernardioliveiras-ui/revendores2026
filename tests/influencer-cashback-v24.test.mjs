@@ -31,8 +31,8 @@ test('colunas persistentes e cobrança via webhook idempotente estão no projeto
  assert.match(file('db/schema.ts'),/indicatorCashbackCents: int\("indicator_cashback_cents"\)/);
  assert.match(file('database/schema.sql'),/`cashback_value` int NOT NULL DEFAULT 1500/);
  assert.match(file('scripts/migration-core.mjs'),/indicator_cashback_cents/);
- const route=file('app/api/billing/webhook/route.ts');
- assert.match(route,/purchase\.paymentStatus!=="paid"/);
+ const route=file('lib/billing-webhook.ts');
+ assert.match(route,/if\(known\) return .*duplicate:true/);
  assert.match(route,/saved\.indicatorCashbackCents===null/);
  assert.match(route,/calculateInfluencerCashback/);
  const bko=file('components/indicator-admin.tsx');assert.match(bko,/Salvar cashback/);

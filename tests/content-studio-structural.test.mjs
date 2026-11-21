@@ -25,7 +25,7 @@ test('manual source has 22 editable pages and dynamic published PDF route', asyn
 test('BKO accepts welcome video and portal reads published media config', async () => {
   const admin = await read('components/content-studio-admin.tsx');
   const mediaRoute = await read('app/api/admin/media/route.ts');
-  const portalPage = await read('app/painel/page.tsx');
+  const portalPage = await read('components/member-dashboard.tsx');
   const video = await read('components/welcome-video.tsx');
   assert.match(admin, /Vídeo da aba Boas Vindas/);
   assert.match(admin, /Usar em Boas Vindas/);

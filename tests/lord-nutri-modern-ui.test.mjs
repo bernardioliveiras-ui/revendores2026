@@ -39,5 +39,5 @@ test("influenciador apresenta campanha individual da API, sem TORREI global nem 
 test("resumo visual do influenciador exibe a campanha da API sem nome de demonstração", () => {
   assert.match(indicator, /className="lord-hero influencer-hero"/);
   assert.match(indicator, /campaign\?\.name/);
-  assert.match(indicator, /href="#influencer-campaign"/);
+  assert.match(indicator, /navigate\("campaigns"\)/);
 });

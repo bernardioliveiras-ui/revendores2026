@@ -33,6 +33,11 @@ CREATE TABLE IF NOT EXISTS `purchases` (
   `payment_method` varchar(20) NOT NULL DEFAULT '', `installments` int NOT NULL DEFAULT 1, `installment_value_cents` int NOT NULL DEFAULT 0, `interest_cents` int NOT NULL DEFAULT 0, `total_cents` int NOT NULL,
   `campaign_id` varchar(80) DEFAULT NULL, `asaas_verified_at` varchar(40) DEFAULT NULL, `indicator_cashback_cents` int DEFAULT NULL,
   `payment_status` varchar(30) NOT NULL DEFAULT 'payment_pending', `shipping_status` varchar(30) NOT NULL DEFAULT 'awaiting_payment',
+  `postal_event` varchar(240) DEFAULT NULL,
+  `postal_event_at` varchar(40) DEFAULT NULL,
+  `postal_checked_at` varchar(40) DEFAULT NULL,
+  `postal_attempt_at` varchar(40) DEFAULT NULL,
+  `postal_issue` varchar(120) DEFAULT NULL,
   `carrier` varchar(120) DEFAULT NULL, `tracking_code` varchar(120) DEFAULT NULL, `shipped_at` varchar(40) DEFAULT NULL, `delivered_at` varchar(40) DEFAULT NULL,
   `asaas_customer_id` varchar(120) DEFAULT NULL, `asaas_payment_id` varchar(120) DEFAULT NULL, `asaas_installment_id` varchar(120) DEFAULT NULL, `asaas_invoice_url` varchar(1000) DEFAULT NULL,
   `user_id` varchar(80) DEFAULT NULL, `access_released_at` varchar(40) DEFAULT NULL,
@@ -244,4 +249,11 @@ CREATE TABLE IF NOT EXISTS `indicator_terms_acceptances` (
  UNIQUE KEY `idx_indicator_terms_once` (`user_id`, `terms_version`),
  KEY `idx_indicator_terms_time` (`accepted_at`),
  CONSTRAINT `fk_indicator_terms_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `postal_sync_state` (
+  `id` int NOT NULL,
+  `finished_at` varchar(40) NOT NULL,
+  `result` varchar(240) NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -16,7 +16,7 @@ test('favicon is the LORDNUTRI mark and the exclusive reseller manual is embedde
 
 test('reseller replenishment creates an Asaas payment and paid webhook provisions stock', async()=>{
   const route=await read('app/api/replenishment/route.ts');
-  const webhook=await read('app/api/billing/webhook/route.ts');
+  const webhook=await read('lib/billing-webhook.ts');
   const provision=await read('lib/access-provisioning.ts');
   assert.match(route,/createPayment/);
   assert.match(route,/welcomeStatus:\s*"not_required"/);
@@ -29,7 +29,7 @@ test('reseller replenishment creates an Asaas payment and paid webhook provision
 
 test('reseller navigation uses the requested order and sales allow direct quantity entry', async()=>{
   const src=await read('app/painel/portal-client.tsx');
-  assert.match(src, /\[\["overview","Visão Geral"\],\["manual","Manual do Revendedor"\],\["stock","Estoque"\],\["sales","Vendas"\],\["delivery","Meus Pedidos"\],\["welcome","Boas-vindas"\]\]/);
+  assert.match(src, /\[\["overview","Visão Geral"\],\["manual","Manual do Revendedor"\],\["stock","Estoque"\],\["sales","Vendas"\],\["delivery","Meus Pedidos"\],\["referrals","Indicações"\]\]/);
   assert.match(src,/inputMode="numeric"/);
   assert.match(src,/Digite a quantidade/);
   assert.match(src,/Repor estoque e ir para o Asaas/);

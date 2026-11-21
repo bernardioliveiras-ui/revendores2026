@@ -51,6 +51,7 @@ export async function handleBillingWebhook(request: Request, channel: BillingCha
             if (original.installment !== installmentId) throw new Error("PAYMENT_CONFLICT");
             [purchase] = await tx.select(operationalPurchaseFields).from(purchases).where(eq(purchases.id, local.id)).limit(1).for("update");
             await tx.update(purchases).set({asaasInstallmentId:installmentId}).where(eq(purchases.id,local.id));
+            purchase = { ...purchase, asaasInstallmentId: installmentId };
           }
         }
         if (!purchase && !externalReference) return {id:"",paid:false,duplicate:false,ignored:true};
@@ -61,6 +62,27 @@ export async function handleBillingWebhook(request: Request, channel: BillingCha
       const [known]=await tx.select().from(asaasEvents).where(eq(asaasEvents.eventId,eventId)).limit(1);
       if(known && (known.paymentId!==paymentId || known.eventType!==eventType)) throw new Error("EVENT_CONFLICT");
       if(known) return {id:purchase.id,paid:purchase.paymentStatus==="paid",duplicate:true};
+      // Os checkouts atuais gravam juntos a cobrança e o cliente. Confira a confirmação
+      // recebida antes de liberar estoque, calcular cashback ou registrar o evento.
+      if (status === "paid" && purchase.asaasCustomerId && purchase.paymentStatus !== "cancelled") {
+        const payment = body.payment;
+        const count = purchase.installments || 1;
+        const expectedCents = count > 1 ? purchase.installmentValueCents : purchase.totalCents;
+        if (count > 1 && installmentId && !purchase.asaasInstallmentId && purchase.asaasPaymentId) {
+          const original = await getPayment(purchase.asaasPaymentId);
+          if (original.installment !== installmentId) throw new Error("PAYMENT_CONFLICT");
+          await tx.update(purchases).set({asaasInstallmentId:installmentId}).where(eq(purchases.id,purchase.id));
+          purchase = { ...purchase, asaasInstallmentId: installmentId };
+        }
+        const sameInstallment = count > 1
+          ? Boolean(installmentId) && installmentId === purchase.asaasInstallmentId
+          : !installmentId;
+        if (payment.externalReference !== purchase.id || payment.customer !== purchase.asaasCustomerId ||
+            !sameInstallment || !Number.isSafeInteger(expectedCents) || expectedCents < 1 ||
+            typeof payment.value !== "number" || !Number.isFinite(payment.value) ||
+            Math.round(payment.value * 100) !== expectedCents || payment.deleted === true ||
+            !["RECEIVED","CONFIRMED"].includes(payment.status)) throw new Error("PAYMENT_CONFLICT");
+      }
       await tx.insert(asaasEvents).values({eventId,eventType,paymentId,purchaseId:purchase.id,receivedAt:new Date().toISOString()});
       if(status==="paid" && purchase.paymentStatus==="cancelled") return {id:purchase.id,paid:false,duplicate:false};
       const physicallyDispatched = ["shipped", "delivered"].includes(purchase.shippingStatus);

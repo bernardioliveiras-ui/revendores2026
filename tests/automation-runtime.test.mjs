@@ -135,3 +135,17 @@ test('pedido avulso pago não cria acesso nem estoque de revendedor', async () =
   const s=webhook({purchases:[{...paid,asaasPaymentId:null,paymentStatus:'payment_pending'}]});
   assert.equal((await s.call({...event,payment:{id:'pay1',externalReference:'p1'}})).status,503);
  });
+
+test("webhook de pedido com cliente Asaas vinculado rejeita valor, titular, referência e status divergentes", async () => {
+ const row={...paid,asaasCustomerId:"cus1",installments:1,totalCents:10000,paymentStatus:"payment_pending",shippingStatus:"awaiting_payment"};
+ const good={id:"pay1",externalReference:"p1",customer:"cus1",value:100,status:"CONFIRMED"};
+ for(const other of [{value:1},{customer:"other"},{externalReference:"other"},{status:"PENDING"},{installment:"ins-other"},{deleted:true}]){
+   const s=webhook({purchases:[row]});
+   assert.equal((await s.call({...event,payment:{...good,...other}})).status,409);
+   assert.equal(s.rows.asaasEvents.length,0);
+   assert.equal(s.rows.purchases[0].paymentStatus,"payment_pending");
+ }
+ const s=webhook({purchases:[row]});
+ assert.equal((await s.call({...event,payment:good})).status,200);
+ assert.equal(s.rows.purchases[0].paymentStatus,"paid");
+});

@@ -62,9 +62,9 @@ test('texto livre da notificação é visível e escapado sem HTML injetado',asy
  assert.doesNotMatch(html,/<teste>/);
 });
 
-test('sem edições o HTML da LP é idêntico ao ZIP 1.8.0, incluindo formulário e simulador',async()=>{
+test('sem edições o HTML da LP é idêntico ao ZIP recebido em 21/11/2026, incluindo formulário e simulador',async()=>{
  const {default:Home}=component('app/page.tsx',{'@/lib/landing-texts-store':{readPublishedLandingTexts:async()=>({})}});
- assert.equal(renderToStaticMarkup(await Home()),readFileSync(new URL('tests/fixtures/landing-1.8.0-original.html',root),'utf8'));
+ assert.equal(renderToStaticMarkup(await Home()),readFileSync(new URL('tests/fixtures/landing-2026-11-21-original.html',root),'utf8'));
 });
 
 test('texto editado é escapado e não substitui elementos ou estilos',async()=>{
@@ -93,8 +93,12 @@ test('a landing preserva o briefing e não aceita o antigo HTML do Studio', asyn
   const plain = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, '')
     .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ');
   const briefing = JSON.parse(readFileSync(new URL('tests/fixtures/briefing-publicado-1.7.json', root), 'utf8'));
-  for (const paragraph of briefing) assert.ok(plain.includes(paragraph), `Briefing alterado: ${paragraph}`);
-  for (const value of ['2535115572620267', 'R$ 1.498,00', 'R$ 3.495,00']) assert.ok(plain.includes(value), value);
+  for (const paragraph of briefing) {
+    if (paragraph === "Processo de Notificação Anvisa N° 2535115572620267") {
+      assert.ok(html.includes('aria-label="Processo de Notificação Anvisa Nº 25351.205227/2026-38"'));
+    } else assert.ok(plain.includes(paragraph), `Briefing alterado: ${paragraph}`);
+  }
+  for (const value of ['25351.205227/2026-38', 'R$ 1.498,00', 'R$ 3.495,00']) assert.ok(plain.includes(value), value);
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
   assert.equal(ids.length, new Set(ids).size, 'IDs de seção únicos');
   for (const match of html.matchAll(/href="#([^"]+)"/g)) assert.ok(ids.includes(match[1]), `Âncora sem destino: ${match[1]}`);

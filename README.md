@@ -1,53 +1,47 @@
-# LORD NUTRI · MIX10 PRO — 1.8.1 · Studio de textos
+# LORD NUTRI · Plataforma de revendedores e influenciadores
 
-Landing e plataforma de revendedores em Next.js 16, React 19 e MySQL. Esta atualização traz o Studio de textos de volta ao BKO, preservando a apresentação da LP 1.8.0 em dourado LORD NUTRI e verde MIX10 PRO.
+Projeto completo para GitHub e Hostinger. O site usa Next.js, Node 22 e MySQL/MariaDB. A landing, os checkouts, as APIs, as migrações, as mídias e os materiais privados estão incluídos. Para publicar no Windows, siga [o passo a passo do GitHub Desktop](COMO-SUBIR-NO-GITHUB.md).
 
-## O que muda
+## Acessos
 
-- BKO → **Studio — Textos da LP**: edição de textos por seção, busca, rascunho, prévia de computador/celular e publicação. Fontes, cores, imagens, classes CSS e estrutura ficam protegidas.
-- Sem edições, o HTML inicial da LP é idêntico ao do ZIP 1.8.0, incluindo formulário e simulador. Os textos publicados são renderizados no servidor; se o banco ficar indisponível, a página usa os textos originais.
-- O novo documento de textos é separado do antigo construtor da LP. HTML e estilos antigos permanecem desativados e não reaparecem ao instalar esta versão.
-- BKO → Conteúdo mantém Manual, Produtos e Mídia. O manual continua privado, acessível somente com a autorização exigida pelo portal.
-- Correções de autenticação, sessão, manual, checkout e automações, cobertas por testes locais de comportamento.
-- Canonical, sitemap, robots, imagem social, consentimento e mensuração opcional Google/Meta. Configuração e limites em `docs/SEO-TRAFEGO-1.8.0.md`.
+| Perfil | Endereço após o deploy | O que a conta pode fazer |
+| --- | --- | --- |
+| Administração BKO | `/bko` | Gerenciar revendedores, influenciadores, pedidos, expedição, acessos, materiais e integrações. |
+| Revendedor | `/revendedor` | Consultar Visão geral, Estoque, Vendas, Manual do Revendedor, reposições e Meus Pedidos. |
+| Influenciador | `/influenciador` | Aceitar os termos, divulgar sua campanha e consultar suas conversões, vendas e cashback. |
 
-## Portal e operação
+O login geral em `/entrar` identifica o perfil pela conta autenticada. Os endereços antigos `/painel` e `/minhas-indicacoes` encaminham para a área correspondente. O revendedor recebe acesso pelo fluxo do kit. O BKO cria o convite do influenciador. As páginas `/c/[código]` e `/v/[código]` são links comerciais individuais. O vídeo de boas-vindas pode usar `VSL_VIDEO_URL`, por exemplo `/videos/vsl-mix10.mp4`.
 
-O revendedor encontra Boas Vindas, Visão geral, Manual do Revendedor, Estoque, Vendas e Acompanhe seu Pedido. O BKO mantém acessos, expedição, métricas e conteúdo. O pagamento acontece no Asaas; confirmação por webhook controla liberação e estoque.
+## Verificar a conta Asaas
 
-O vídeo de Boas Vindas pode ser configurado em BKO → Conteúdo → Mídia. O fallback opcional usa `VSL_VIDEO_URL`, por exemplo `/videos/vsl-mix10.mp4`, ou `VSL_EMBED_URL`. A landing preserva o conteúdo atualmente publicado, sem inserir uma VSL nova.
+1. No hPanel, preserve a configuração atual de banco e autenticação. Para consultar a conta real, use `ASAAS_ENVIRONMENT=production`, a `ASAAS_API_KEY` dessa conta e `ASAAS_WEBHOOK_TOKEN`. Em testes do provedor, use `sandbox` com as respectivas credenciais. Nunca copie essas chaves para o GitHub.
+2. Preencha `NEXT_PUBLIC_APP_URL` com a origem HTTPS do site, antes do build. Na conta Asaas correspondente, confira os **dois webhooks existentes**. Cada URL é o domínio publicado seguido do caminho da tabela. Use o mesmo token de webhook do servidor nas duas configurações.
 
-## Instalação e atualização
+   | Canal | Caminho para receber eventos |
+   | --- | --- |
+   | Revendedores e reposições | `/api/billing/revendedores/webhook` |
+   | Vendas unitárias dos influenciadores | `/api/billing/influenciadores/webhook` |
 
-Use Node 22 e MySQL na Hostinger ou em uma hospedagem Node equivalente. Este projeto não é um export estático para Cloudflare Pages. Comece por `LEIA-ME-PRIMEIRO.md` antes de substituir a versão em produção.
+   Eventos tratados: `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`, `PAYMENT_REFUNDED`, `PAYMENT_PARTIALLY_REFUNDED`, `PAYMENT_DELETED`, `PAYMENT_RECEIVED_IN_CASH_UNDONE` e `PAYMENT_CHARGEBACK_REQUESTED`. A rota geral histórica `/api/billing/webhook` continua atendendo os dois canais. Se a conta já usa os dois canais, criar uma terceira fila é desnecessário.
 
-```sh
-npm ci
-npm run build
-npm run db:migrate
-npm start
-```
+3. Entre em **BKO → Integrações → Verificar conexões**. O diagnóstico consulta a API de cobranças e a configuração dos webhooks sem criar cobrança. A tela mostra o ambiente consultado, o resultado da leitura, os eventos faltantes, o estado das filas e a data da última confirmação recebida por canal no banco local. A consulta das filas requer permissão de leitura de webhooks na chave Asaas. Se não houver essa permissão, consulte o painel do provedor.
+4. Para confirmar o ciclo **em produção**, escolha um pedido real já pago. Compare número, valor e ID da cobrança com o Asaas. Em **Logs de Webhooks** procure a entrega para a URL correta e a resposta HTTP 200. No BKO confira o mesmo pedido como pago e, conforme o canal, o estoque do revendedor ou a venda atribuída à campanha. Um webhook de outro canal pode responder 200 e ser ignorado. O histórico local pode incluir eventos anteriores à troca de ambiente.
+5. Se uma cobrança já paga estiver pendente no BKO, use **Acessos e Pedidos → Sincronizar** e informe o pedido correspondente. Essa operação consulta e concilia a cobrança. Em **Integrações**, a verificação é somente de leitura.
 
-Configure as variáveis de `.env.example` no ambiente da hospedagem. `npm start` repete a migração aditiva e idempotente antes de iniciar o Next. Não substitua as credenciais existentes pelos exemplos. Variáveis `NEXT_PUBLIC_*` precisam estar definidas antes do build.
+## Ativar o rastreio automático dos Correios
 
-## Validação
+1. Na Hostinger configure `CORREIOS_USUARIO`, `CORREIOS_CODIGO_ACESSO` (código de acesso às APIs gerado no CWS) e `CORREIOS_CONTRATO`. `CORREIOS_DR` é opcional. Use um contrato autorizado para a API Rastro e um objeto vinculado a ele.
+2. Gere um segredo aleatório de pelo menos 32 caracteres. No Windows com Node instalado, `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` gera um valor local. Configure **o mesmo valor** como `CORREIOS_CRON_TOKEN` na Hostinger e no GitHub em **Settings → Secrets and variables → Actions → Secrets**. Em **Variables**, crie `PORTAL_URL` com a origem HTTPS definitiva. A chave Asaas e as credenciais dos Correios ficam apenas na hospedagem.
+3. No BKO, em **Expedição**, abra **Em percurso** em um pedido pago, informe **Correios** e cole o código de 13 caracteres da etiqueta. Para corrigir um código em percurso, abra esse mesmo botão novamente. O código vem da postagem.
+4. Depois do deploy, confirme que **Actions** está habilitado e que `.github/workflows/correios.yml` está na branch padrão. Em **Actions → Rastreio Correios → Run workflow**, execute a primeira consulta. As próximas estão programadas para os minutos 17 e 47 de cada hora. O GitHub pode atrasar uma execução.
+5. Em **BKO → Integrações**, confira horário e contagem da execução. Com um código no campo de teste você também pode consultar o objeto diretamente, sem alterar o pedido. O revendedor vê o evento gravado e a data da consulta em **Meus Pedidos**. Quando os Correios informam entrega ao destinatário, o pedido avança para **Entregue**.
 
-```sh
-npm test
-npm run test:backend
-npm run lint
-npm run build
-```
+Cada execução prioriza os 12 pedidos há mais tempo sem consulta, incluindo os novos. São elegíveis pedidos pagos em separação ou percurso, com código postal válido e transportadora Correios, PAC, SEDEX ou em branco. Pedidos entregues deixam a fila. Eventos de tentativa, devolução ou pré-postagem mostram a descrição recebida. A ausência de eventos, a troca de etiqueta e uma falha temporária da API preservam a consistência do pedido. Uma encomenda sem código precisa do cadastro da etiqueta no BKO.
 
-Os testes isolam banco e provedores externos; não geram cobranças nem enviam mensagens reais. A homologação deve conferir a configuração da hospedagem, o MySQL, o Asaas sandbox e o recebimento das tags nas contas corretas. Resultados desta atualização: `docs/VALIDACAO-STUDIO-TEXTOS-1.8.1.md`. A validação anterior permanece em `docs/VALIDACAO-1.8.0.md`.
+## Verificações desta entrega
 
-Os contratos antigos do editor retirado foram arquivados em `docs/historico/testes-studio-retirado`. Foram substituídos pela renderização da página estática, comparação do briefing e testes dos módulos restantes; as regras de negócio continuam cobertas.
+Build Next.js com TypeScript aprovado no Node 22.23.5. Os 368 testes automatizados passaram. No Chromium, foram conferidos o login de cada perfil, o diagnóstico do BKO, o evento de entrega em Meus Pedidos e o cashback do influenciador. Também foi usado um servidor MariaDB local isolado com checkout PIX de kit, cartão para campanha, recebimento duplicado de webhook, controle de acesso dos três perfis, entrada única de estoque, cashback, agendador e leitura do evento pelo revendedor. As respostas do Asaas, dos Correios e do serviço de CEP foram simuladas nessa verificação. O acesso às contas de produção, o disparo pelo GitHub Actions e a confirmação de um objeto real precisam ser verificados após configurar o ambiente.
 
-## Guias
+A página inicial e seus textos foram preservados do ZIP de 21/11. A referência visual dos testes da landing foi atualizada com HTML renderizado de uma extração independente desse original. O texto padrão de notificação do produto nessa versão difere do que consta na referência de 1.8.0. A conferência do número regulatório fica com o titular. O lint geral ainda aponta ocorrências em código anterior, incluindo o servidor Vite legado. O fluxo de produção usa Next.js.
 
-- `LEIA-ME-PRIMEIRO.md`: aplicação desta versão e rollback.
-- `STUDIO-TEXTOS-LEIA-PRIMEIRO.md`: editar, conferir, salvar e publicar textos pelo BKO.
-- `BKO-OPERACAO.md` e `AUTOMACOES.md`: operação de acessos e expedição.
-- `docs/REVISAO-BACKEND-1.8.0.md`: problemas reproduzidos e correções.
-- `docs/SEO-TRAFEGO-1.8.0.md`: domínio, Search Console, Google e Meta.
-- `docs/historico/`: registros de versões anteriores; o construtor antigo permanece desativado.
+Documentação oficial: [webhooks Asaas](https://docs.asaas.com/docs/receba-eventos-do-asaas-no-seu-endpoint-de-webhook), [logs de entrega Asaas](https://docs.asaas.com/docs/logs-de-webhooks), [API Token dos Correios](https://www.correios.com.br/atendimento/developers/manuais/manual-uso-da-api-token), [API Rastro dos Correios](https://www.correios.com.br/atendimento/developers/) e [agendamento do GitHub Actions](https://docs.github.com/pt/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).

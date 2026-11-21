@@ -46,13 +46,14 @@ test('apenas BKO e revendedor pago e ativo conseguem consultar o PDF enviado',as
 });
 test('portais expõem os materiais certos sem oferecer manual para a indicadora',()=>{
  const reseller=source('app/painel/portal-client.tsx');
- const page=source('app/painel/page.tsx');
+ const page=source('components/member-dashboard.tsx');
  const indicator=source('components/indicator-portal.tsx');
  const component=source('components/marketing-folder.tsx');
  assert.match(page,/manualUrl="\/api\/reseller\/manual\?edition=material"/);
  assert.match(reseller,/view === "manual"/);
  assert.match(reseller,/<MarketingFolder\/>/);
- assert.match(indicator,/<MarketingFolder\/>/);
+ assert.match(indicator,/<InfluencerMaterialLibrary\s*\/>/);
+ assert.match(source("components/influencer-material-library.tsx"),/\/materiais\/folder-mix10pro.png/);
  assert.doesNotMatch(indicator,/\/api\/reseller\/manual/);
  assert.match(component,/\/materiais\/folder-mix10pro.png/);
  assert.match(component,/navigator\.canShare/);

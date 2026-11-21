@@ -111,3 +111,45 @@ export async function createPayment(input: {
 export async function getPayment(id: string, config?: AsaasConfig) {
   return asaasRequest<AsaasPayment>(`/payments/${encodeURIComponent(id)}`, {}, config);
 }
+
+type WebhookInfo = { url?: string; enabled?: boolean; interrupted?: boolean; events?: string[] };
+export async function inspectAsaasConnection(portalUrl: string) {
+  const config = getAsaasConfig();
+  const tokenSet = Boolean(getOptionalEnv("ASAAS_WEBHOOK_TOKEN"));
+  const result = { environment:config.environment, payments:"", revendedores:"", influenciadores:"", tokenSet };
+  if (!config.configured) {
+    result.payments = "Chave da API ausente";
+    return result;
+  }
+  try {
+    const probe = await asaasRequest<{ data?: unknown[] }>("/payments?limit=1", {}, config);
+    result.payments = Array.isArray(probe.data) ? "Consulta de cobranças autorizada" : "Resposta da API inesperada";
+  } catch (error) {
+    result.payments = error instanceof AsaasRequestError ? "Falha na consulta (HTTP " + error.status + ")" : "Consulta indisponível";
+    return result;
+  }
+  try {
+    const origin = new URL(portalUrl).origin;
+    const webhooks: WebhookInfo[] = [];
+    for (let offset = 0; ; offset += 100) {
+      const page = await asaasRequest<{ data: WebhookInfo[]; hasMore: boolean }>("/webhooks?limit=100&offset=" + offset, {}, config);
+      if (!Array.isArray(page.data) || (page.hasMore && !page.data.length)) throw new Error();
+      webhooks.push(...page.data);
+      if (!page.hasMore) break;
+      if (offset >= 900) throw new Error();
+    }
+    for (const channel of ["revendedores","influenciadores"] as const) {
+      const base = origin + "/api/billing/";
+      const matching = webhooks.filter(h => h.url === base + channel + "/webhook" || h.url === base + "webhook");
+      const active = matching.filter(h => h.enabled === true && h.interrupted === false);
+      const events = new Set(active.flatMap(h => h.events || []));
+      const required = ["PAYMENT_CONFIRMED","PAYMENT_RECEIVED","PAYMENT_REFUNDED","PAYMENT_PARTIALLY_REFUNDED","PAYMENT_DELETED","PAYMENT_RECEIVED_IN_CASH_UNDONE","PAYMENT_CHARGEBACK_REQUESTED"];
+      const missing = required.filter(event => !events.has(event));
+      result[channel] = !matching.length ? "URL do portal não encontrada" : !active.length ? "Fila inativa ou interrompida" :
+        missing.length ? "Eventos a configurar: " + missing.join(", ") : "Fila ativa com os eventos configurados";
+    }
+  } catch {
+    result.revendedores = result.influenciadores = "Não foi possível verificar os webhooks. Confira o domínio e a permissão de leitura da chave.";
+  }
+  return result;
+}

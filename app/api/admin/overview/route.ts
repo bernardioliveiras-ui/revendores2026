@@ -11,7 +11,7 @@ const purchaseFields = {
   id: purchases.id, orderNumber: purchases.orderNumber, name: purchases.name, email: purchases.email, phone: purchases.phone, cpfCnpj: purchases.cpfCnpj,
   postalCode: purchases.postalCode, street: purchases.street, number: purchases.number, complement: purchases.complement, district: purchases.district, city: purchases.city, state: purchases.state,
   kit: purchases.kit, boxes: purchases.boxes, totalCents: purchases.totalCents, productTotalCents:purchases.productTotalCents, shippingCents:purchases.shippingCents, interestCents:purchases.interestCents, asaasVerifiedAt:purchases.asaasVerifiedAt, campaignId:purchases.campaignId, paymentStatus: purchases.paymentStatus, shippingStatus: purchases.shippingStatus,
-  carrier: purchases.carrier, trackingCode: purchases.trackingCode, accessReleasedAt: purchases.accessReleasedAt, userId: purchases.userId, welcomeStatus: purchases.welcomeStatus, createdAt: purchases.createdAt,
+  carrier: purchases.carrier, postalEvent: purchases.postalEvent, postalEventAt: purchases.postalEventAt, postalCheckedAt: purchases.postalCheckedAt, postalAttemptAt: purchases.postalAttemptAt, postalIssue: purchases.postalIssue, trackingCode: purchases.trackingCode, accessReleasedAt: purchases.accessReleasedAt, userId: purchases.userId, welcomeStatus: purchases.welcomeStatus, createdAt: purchases.createdAt,
 };
 
 export async function GET(request: Request) {
