@@ -6,14 +6,14 @@ import {load, memoryDb, operators, table} from './runtime-loader.mjs';
 const path='app/api/reseller/manual/route.ts';
 const request=(query='')=>new Request('https://example.test/api/reseller/manual'+query);
 const buyer={id:'buyer-1',email:'buyer@test.test',name:'Buyer',phone:'',role:'reseller',mustChangePassword:false};
-const paid={id:'p1',userId:'buyer-1',kit:'kit20',paymentStatus:'paid',accessReleasedAt:'2026-10-04T03:00:00Z'};
+const paid={id:'p1',userId:'buyer-1',kit:'kit20',paymentStatus:'paid',accessReleasedAt:'2026-10-04T03:00:00Z',asaasVerifiedAt:'2026-10-04T02:00:00Z'};
 const pageImage=readFileSync(new URL('../private/manual/pages/page-01.jpg',import.meta.url));
 function handler({user=buyer,orders=[paid],dbError=false,fileError=false,studioError=false}={}){
  assert.ok(existsSync(new URL('../'+path,import.meta.url)), 'O download precisa existir como rota autenticada, fora de public.');
- const schema={purchases:table('id','userId','kit','paymentStatus','accessReleasedAt')};
+ const schema={purchases:table('id','userId','kit','paymentStatus','accessReleasedAt','asaasVerifiedAt')};
  const {db}=memoryDb(schema,{purchases:orders});
  const orm={...operators,or:(...f)=>(row)=>f.some(fn=>fn(row)),isNotNull:(col)=>(row)=>row[col]!=null};
- return load(path,{'drizzle-orm':orm,'@/db/schema':schema,'@/db':{getDb:()=>{if(dbError)throw Error('DB_OFFLINE');return db}},'@/lib/auth':{requireSession:async()=>{if(!user)throw Error('UNAUTHORIZED');return user}},'@/lib/content-studio':{getStudioDoc:async()=>{if(studioError)throw Error('CMS_OFFLINE');return {published:{pages:[{page:1,width:595,height:842,fields:[]}]}}}},'@/lib/simple-pdf':load('lib/simple-pdf.ts'),'node:fs/promises':{readFile:async(path)=>{if(fileError)throw Error('ENOENT');if(path.endsWith('.jpg'))return pageImage;return Buffer.from('%PDF-1.7\nprivate manual')}}}).GET;
+ return load(path,{'drizzle-orm':orm,'@/db/schema':schema,'@/db':{getDb:()=>{if(dbError)throw Error('DB_OFFLINE');return db}},'@/lib/auth':{requireSession:async()=>{if(!user)throw Error('UNAUTHORIZED');return user}},'@/lib/content-studio':{getStudioDoc:async()=>{if(studioError)throw Error('CMS_OFFLINE');return {published:{pages:[{page:1,width:595,height:842,fields:[]}]}}}},'@/lib/reseller-materials':{getManualPdfOverride:async()=>null,hasManualResellerProfile:async()=>false},'@/lib/simple-pdf':load('lib/simple-pdf.ts'),'node:fs/promises':{readFile:async(path)=>{if(fileError)throw Error('ENOENT');if(path.endsWith('.jpg'))return pageImage;return Buffer.from('%PDF-1.7\nprivate manual')}}}).GET;
 }
 test('o manual não possui cópia nem apresentação baixável em public',()=>{
  const dir=new URL('../public/manual/',import.meta.url);

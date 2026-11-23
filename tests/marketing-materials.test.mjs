@@ -7,8 +7,8 @@ const root=new URL('..',import.meta.url);
 const source=(path)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const manual=readFileSync(new URL('../private/manual/Manual_do_Revendedor_Enviado_2026.pdf',import.meta.url));
 const folder=readFileSync(new URL('../public/materiais/folder-mix10pro.png',import.meta.url));
-const paid={id:'p1',userId:'seller',kit:'kit20',paymentStatus:'paid',accessReleasedAt:'2026-10-04'};
-const schema={purchases:table('id','userId','kit','paymentStatus','accessReleasedAt')};
+const paid={id:'p1',userId:'seller',kit:'kit20',paymentStatus:'paid',accessReleasedAt:'2026-10-04',asaasVerifiedAt:'2026-10-04'};
+const schema={purchases:table('id','userId','kit','paymentStatus','accessReleasedAt','asaasVerifiedAt')};
 const user={id:'seller',role:'reseller',mustChangePassword:false};
 function route({session=user,orders=[paid]}={}){
  const {db}=memoryDb(schema,{purchases:orders});
@@ -17,6 +17,7 @@ function route({session=user,orders=[paid]}={}){
   'drizzle-orm':orm,'@/db/schema':schema,'@/db':{getDb:()=>db},
   '@/lib/auth':{requireSession:async()=>{if(!session)throw Error('UNAUTHORIZED');return session}},
   '@/lib/content-studio':{getStudioDoc:async()=>{throw Error('Não deve buscar Studio ao abrir manual fornecido')}},
+  '@/lib/reseller-materials':{getManualPdfOverride:async()=>null,hasManualResellerProfile:async()=>false},
   '@/lib/simple-pdf':{buildManualPdf:()=>{throw Error('Não deve recompor o manual fornecido')}},
   'node:fs/promises':{readFile:async path=>{assert.match(path,/private\/manual\/Manual_do_Revendedor_Enviado_2026\.pdf$/);return manual}},
  }).GET;

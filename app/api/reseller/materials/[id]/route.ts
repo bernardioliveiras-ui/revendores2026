@@ -13,7 +13,7 @@ export async function GET(request: Request, context: {params: Promise<{id:string
     if (!result) return new Response("Não encontrado",{status:404});
     const filename = result.file_name.replace(/[\r\n"\\]/g,"_");
     return new Response(new Uint8Array(result.file_bytes),{headers:{
-      "content-type":result.mime_type,"content-disposition":`attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(result.file_name)}`,
+      "content-type":result.mime_type,"content-disposition":`${result.mime_type === "application/pdf" ? "inline" : "attachment"}; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(result.file_name)}`,
       "cache-control":"private, no-store","x-content-type-options":"nosniff","x-robots-tag":"noindex"
     }});
   } catch(error) { return materialError(error); }

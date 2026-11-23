@@ -585,3 +585,63 @@
 .lord-terms-footnote { margin:16px 0; font-size:12px; }
 @media(max-width:1120px) { .lord-admin-campaign-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:780px) { .lord-influencer-overview-panels,.lord-reseller-referrals-layout,.lord-material-grid,.lord-influencer-profile-grid { grid-template-columns:1fr; } .lord-admin-campaign-grid { grid-template-columns:1fr; } .lord-admin-campaigns { padding:16px; } }
+
+/* Navegação BKO compacta no celular: os indicadores aparecem logo após o cabeçalho. */
+.lord-mobile-menu-trigger { display:none; }
+@media (max-width:780px) {
+  .lord-admin-shell { overflow-x:clip; }
+  .lord-admin-sidebar { position:sticky; top:0; z-index:30; display:flex; flex-direction:column; height:auto; min-height:0; max-width:100%; padding:0 14px; overflow:visible; }
+  .lord-admin-brand { min-height:60px; padding:5px 0; justify-content:space-between; gap:10px; border-bottom:0; }
+  .lord-admin-brand .compact-logo { width:40px; height:45px; }
+  .lord-admin-brand>div:last-of-type { flex:1; min-width:0; }
+  .lord-admin-brand span { display:block; font-size:11px; }
+  .lord-admin-brand strong { font-size:9px; }
+  .lord-mobile-menu-trigger { display:flex; align-items:center; justify-content:center; gap:7px; flex:0 0 auto; color:#f6e8c7; background:#173950; border:1px solid #d4ac6288; border-radius:10px; min-height:43px; min-width:96px; padding:9px 12px; font:700 13px/1 system-ui,sans-serif; cursor:pointer; }
+  .lord-mobile-menu-trigger svg { width:19px; height:19px; }
+  .lord-admin-sidebar:not(.is-mobile-open) .bko-tabs { display:none; }
+  .lord-admin-sidebar:not(.is-mobile-open) .lord-admin-shortcuts { display:none; }
+  .lord-admin-sidebar > .lord-sidebar-label,.lord-admin-shortcuts .lord-sidebar-label,.lord-sidebar-footer { display:none; }
+  .lord-admin-sidebar.is-mobile-open .bko-tabs { display:flex; flex-direction:column; flex-wrap:nowrap; gap:3px; max-height:57dvh; overflow-y:auto; overflow-x:hidden; padding:8px 0 0; }
+  .lord-admin-sidebar.is-mobile-open .bko-tabs button { display:flex; flex:0 0 auto; width:100%; min-width:0; max-width:100%; min-height:44px; text-align:left; white-space:normal; padding:10px 12px; font-size:13px; }
+  .lord-admin-sidebar.is-mobile-open .lord-admin-shortcuts { display:flex; flex-direction:column; gap:2px; margin:5px 0 10px; padding:6px 0 0; overflow:visible; }
+  .lord-admin-sidebar.is-mobile-open .lord-admin-shortcuts button { flex:0 0 auto; width:100%; min-height:40px; white-space:normal; text-align:left; font-size:12px; }
+  .lord-admin-main,.lord-admin-main .portal-body.admin-only,.lord-demo-dashboard { min-width:0; max-width:100%; }
+  .lord-demo-page-heading,.lord-demo-filter { min-width:0; max-width:100%; }
+  .lord-demo-filter { display:flex; flex-wrap:wrap; overflow:visible; padding:4px; gap:3px; }
+  .lord-demo-filter button { flex:1 1 auto; min-width:72px; min-height:41px; padding:8px 9px; white-space:normal; }
+  .lord-admin-main .portal-header { height:60px; min-height:60px; }
+  .lord-admin-shell .portal-title h1 { overflow-wrap:anywhere; }
+}
+@media (max-width:390px) {
+  .lord-admin-main .portal-body.admin-only { padding:17px 10px 42px; }
+  .lord-demo-hero { padding:20px 16px; }
+  .lord-demo-hero h2 { overflow-wrap:anywhere; }
+  .lord-admin-shell .metric-grid { gap:8px; }
+  .lord-admin-shell .metric-card { padding:12px 9px; }
+}
+
+/* Editor de materiais: PDF principal e biblioteca adicional lado a lado no desktop. */
+.bko-material-admin { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin:16px 0 26px; }
+.bko-material-admin>.portal-form { min-width:0; align-content:start; border:1px solid #e8dfce; border-radius:15px; background:#fffcf7; padding:19px; }
+.bko-material-admin>.portal-form h3 { margin:0; color:#0a2a40; font-size:18px; }
+.bko-material-admin>.portal-form p,.bko-material-admin>.portal-form small { color:#657889; font-size:12px; line-height:1.55; }
+.bko-material-admin>.portal-form input[type="file"] { min-width:0; max-width:100%; }
+.bko-material-list { display:grid; gap:10px; }
+.bko-material-row { display:flex; flex-wrap:wrap; align-items:center; gap:12px; min-width:0; border:1px solid #e7e2d9; border-radius:12px; padding:15px; }
+.bko-material-detail { flex:1 1 240px; min-width:0; }
+.bko-material-detail p { margin:5px 0 0; font-size:12px; color:#708293; overflow-wrap:anywhere; }
+.bko-material-actions { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.bko-material-edit { flex:1 0 100%; min-width:0; border-top:1px solid #ede5d8; padding-top:12px; }
+.bko-order-delete-control { display:flex; flex-direction:column; align-items:flex-end; gap:5px; min-width:0; }
+.bko-delete-order-button { border:1px solid #ddaeac; border-radius:9px; background:#fff9f8; color:#943b39; font:750 11px/1.3 system-ui,sans-serif; min-height:37px; padding:8px 11px; cursor:pointer; }
+.bko-delete-order-button:hover { background:#ffece9; }
+.bko-delete-order-button:disabled { opacity:.55; cursor:wait; }
+.bko-delete-order-error { color:#9b2e2b!important; max-width:300px; overflow-wrap:anywhere; font-size:11px; }
+@media (max-width:780px) {
+  .bko-material-admin { grid-template-columns:1fr; }
+  .bko-material-admin>.portal-form { padding:14px; }
+  .bko-material-actions { width:100%; }
+  .bko-material-actions>* { flex:1 1 auto; text-align:center; }
+  .bko-reseller-orders .purchase-actions { align-items:stretch; }
+  .bko-order-delete-control { flex:1 1 100%; align-items:stretch; }
+}
