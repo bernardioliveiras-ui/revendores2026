@@ -207,7 +207,6 @@
 .reseller-portal .portal-actions-grid button:focus-visible { outline-color: var(--lord-gold); }
 .reseller-portal .delivery-card { border-top: 3px solid #d4a457; }
 .reseller-portal .delivery-steps li.complete b { background: #102d45; }
-.reseller-portal .delivery-tracking-link { display: inline-block; margin-left: 9px; font-weight: 750; color: #8b5c13; font-size: 12px; }
 .reseller-portal .delivery-last-update { display: block; margin-top: 10px; color: #617381; font-size: 11px; }
 
 /* Influenciador: dados e campanhas reais, sem valores ilustrativos. */

@@ -419,7 +419,7 @@ function DeliveryCards({ shipments }: { shipments: Shipment[] }) {
       <ol className="delivery-steps" aria-label="Etapas da entrega">{["Separação","Em percurso","Entregue"].map((label,i)=><li key={label} className={!pending&&progress.step>=i?"complete":""} aria-current={!pending&&progress.step===i?"step":undefined}><b>{!pending&&progress.step>=i?"✓":i+1}</b><span>{label}</span></li>)}</ol>
       {p.postalEvent && <p><strong>Correios</strong> · {p.postalEvent}<br/><small>Evento em {p.postalEventAt?.replace("T"," ")} · Consulta em {p.postalCheckedAt && date(p.postalCheckedAt)}</small></p>}
       {p.carrier?<p>Transportadora: <strong>{p.carrier}</strong></p>:null}
-      {p.trackingCode?<p>Rastreio: <strong>{p.trackingCode}</strong> {p.carrier?.toLowerCase().includes("correios")?<a href="https://rastreamento.correios.com.br/app/index.php" target="_blank" rel="noopener noreferrer" className="delivery-tracking-link">Consultar no site dos Correios ↗</a>:null}</p>:null}
+      {p.trackingCode?<p>Rastreio: <strong>{p.trackingCode}</strong></p>:null}
       {p.trackingCode&&p.paymentStatus==="paid"?<button type="button" className="secondary-button compact" onClick={()=>setSelectedId(p.id)}>Ver rastreamento</button>:<small>O acompanhamento ficará disponível quando a etiqueta for cadastrada.</small>}
       <small>Pedido realizado em {date(p.createdAt)}</small>
       {p.updatedAt?<small className="delivery-last-update">Última atualização registrada no CRM: {date(p.updatedAt)}</small>:<small className="delivery-last-update">Sem data de atualização da transportadora disponível.</small>}

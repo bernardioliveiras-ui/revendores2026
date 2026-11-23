@@ -33,6 +33,13 @@ test('revendedor abre detalhes do rastreio com evento e horário real',()=>{
   assert.match(source,/selectedShipment\.postalCheckedAt/);
 });
 
+test('cartão do pedido usa só o botão para abrir rastreio e mantém Correios no modal',()=>{
+  const source=readFileSync(new URL('../app/painel/portal-client.tsx',import.meta.url),'utf8');
+  assert.doesNotMatch(source,/Consultar no site dos Correios/);
+  assert.match(source,/Ver rastreamento/);
+  assert.match(source,/Consultar nos Correios ↗/);
+});
+
 test('o painel do influenciador separa apuração de aprovação e pagamento',()=>{
   const source=readFileSync(new URL('../components/indicator-portal.tsx',import.meta.url),'utf8');
   for (const label of ['Cashback aprovado','Disponível para repasse','Cashback pago'])assert.ok(source.includes(label),label);
