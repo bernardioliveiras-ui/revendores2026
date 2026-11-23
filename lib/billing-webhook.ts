@@ -64,7 +64,10 @@ export async function handleBillingWebhook(request: Request, channel: BillingCha
       if(known) return {id:purchase.id,paid:purchase.paymentStatus==="paid",duplicate:true};
       // Os checkouts atuais gravam juntos a cobrança e o cliente. Confira a confirmação
       // recebida antes de liberar estoque, calcular cashback ou registrar o evento.
-      if (status === "paid" && purchase.asaasCustomerId && purchase.paymentStatus !== "cancelled") {
+      if (status === "paid" && purchase.paymentStatus !== "cancelled") {
+        // Never release access for legacy/incomplete orders with no verified customer binding.
+        // A webhook token alone does not establish that a payment belongs to this buyer.
+        if (!purchase.asaasCustomerId) throw new Error("PAYMENT_CONFLICT");
         const payment = body.payment;
         const count = purchase.installments || 1;
         const expectedCents = count > 1 ? purchase.installmentValueCents : purchase.totalCents;

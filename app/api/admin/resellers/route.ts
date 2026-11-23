@@ -1,11 +1,14 @@
 import { eq } from "drizzle-orm";
 import { getDb, getMysqlPool } from "@/db";
-import { authSessions, users } from "@/db/schema";
+import { authSessions, resellerProfiles, users } from "@/db/schema";
 import { isAdminEmail, normalizeEmail, requireAdmin } from "@/lib/auth";
 import { ensureOperationalSchema } from "@/lib/runtime-schema";
 import { validateResellerEdit } from "@/lib/reseller-edit-validation.mjs";
 import { resellerDeletionBlockers } from "@/lib/reseller-delete-guards.mjs";
 import { cleanText, indicatedError, privateResponseHeaders } from "@/lib/indicator-security";
+import { validateManualReseller } from "@/lib/reseller-registration.mjs";
+import { issueResellerInvitation } from "@/lib/reseller-invitations";
+import { isMysqlDuplicateKeyError } from "@/lib/mysql-errors";
 
 export const runtime="nodejs";
 function sameOrigin(request:Request) {
@@ -14,6 +17,32 @@ function sameOrigin(request:Request) {
     const url=new URL(origin||"");
     return url.host===host&&(url.protocol==="https:"||(url.protocol==="http:"&&/^(localhost|127\.0\.0\.1)(:|$)/.test(host)));
   } catch {return false;}
+}
+
+/** Registro administrativo, sem venda, criação de cobrança ou estoque inicial. */
+export async function POST(request:Request) {
+ try {
+  const actor=await requireAdmin(request);
+  if(!sameOrigin(request))return Response.json({error:"Origem não autorizada."},{status:403,headers:privateResponseHeaders});
+  const body=await request.json().catch(()=>null);
+  const parsed=validateManualReseller(body,normalizeEmail,isAdminEmail);
+  if(parsed.error)return Response.json({error:parsed.error},{status:400,headers:privateResponseHeaders});
+  await ensureOperationalSchema();
+  const profile=parsed.value!;
+  const now=new Date().toISOString(),userId=crypto.randomUUID();
+  await getDb().transaction(async tx=>{
+   const [existing]=await tx.select({id:users.id}).from(users).where(eq(users.email,profile.email)).limit(1).for("update");
+   if(existing)throw new Error("EMAIL_TAKEN");
+   await tx.insert(users).values({id:userId,name:profile.name,email:profile.email,phone:profile.phone,role:"reseller",status:"active",passwordHash:null,mustChangePassword:0,createdAt:now,updatedAt:now});
+   await tx.insert(resellerProfiles).values({id:crypto.randomUUID(),userId,purchaseId:null,cpfCnpj:profile.cpfCnpj,postalCode:profile.postalCode,street:profile.street,number:profile.number,complement:profile.complement,district:profile.district,city:profile.city,state:profile.state,initialKit:"manual",initialBoxes:0,createdAt:now});
+  });
+  console.info("bko_manual_reseller_created",{actorId:actor.id,userId,at:now});
+  try{return Response.json({created:true,userId,...await issueResellerInvitation(userId)},{status:201,headers:privateResponseHeaders});}
+  catch(error){console.error("bko_reseller_invite_pending",{userId});return Response.json({created:true,userId,activationPath:null,notice:"Cadastro salvo. Gere o convite de ativação na lista."},{status:201,headers:privateResponseHeaders});}
+ }catch(error){
+  if(error instanceof Error&&error.message==="EMAIL_TAKEN"||isMysqlDuplicateKeyError(error))return Response.json({error:"Este e-mail já está cadastrado; nenhum perfil foi alterado."},{status:409,headers:privateResponseHeaders});
+  return indicatedError(error);
+ }
 }
 
 export async function PATCH(request:Request){
@@ -80,7 +109,7 @@ export async function DELETE(request:Request){
    }
    const queries:Record<string,string>={
     purchases:"SELECT COUNT(*) AS n FROM purchases WHERE user_id=? OR email=?",
-    profiles:"SELECT COUNT(*) AS n FROM reseller_profiles WHERE user_id=?",
+    profiles:"SELECT COUNT(*) AS n FROM reseller_profiles WHERE user_id=? AND purchase_id IS NOT NULL",
     sales:"SELECT COUNT(*) AS n FROM sales WHERE user_id=?",
     stock:"SELECT COUNT(*) AS n FROM stock_movements WHERE user_id=?",
     referrals:"SELECT COUNT(*) AS n FROM affiliate_referrals WHERE user_id=?",
@@ -98,6 +127,9 @@ export async function DELETE(request:Request){
    const blockers=resellerDeletionBlockers(counts);
    if(blockers.length){await connection.rollback();return Response.json({error:`Cadastro com ${blockers.join(", ")}. Para zerar dados comerciais de TESTE com pedidos ou estoque, execute a rotina de limpeza com backup.`,code:"HAS_HISTORY",blockers},{status:409,headers:privateResponseHeaders});}
    await connection.execute("DELETE FROM auth_sessions WHERE user_id=?",[id]);
+   if(existing.has("reseller_invitations"))await connection.execute("DELETE FROM reseller_invitations WHERE user_id=?",[id]);
+   // Perfil manual não possui pedido financeiro. Perfis pagos permanecem protegidos.
+   await connection.execute("DELETE FROM reseller_profiles WHERE user_id=? AND purchase_id IS NULL",[id]);
    const [result]=await connection.execute("DELETE FROM users WHERE id=? AND role='reseller' AND email=?",[id,email]);
    if((result as {affectedRows:number}).affectedRows!==1)throw Error("A conta mudou durante a exclusão; transação revertida.");
    await connection.commit();

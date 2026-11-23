@@ -1,4 +1,5 @@
 import { getMysqlPool } from "@/db";
+import { ensureNullableResellerPurchaseId } from "@/lib/reseller-schema-migration.mjs";
 
 type RuntimeSchemaGlobal = typeof globalThis & { __lordnutriOperationalSchema?: Promise<void> };
 
@@ -96,7 +97,7 @@ async function migrateOperationalSchema() {
   await pool.query(`CREATE TABLE IF NOT EXISTS \`reseller_profiles\` (
     \`id\` varchar(80) NOT NULL,
     \`user_id\` varchar(80) NOT NULL,
-    \`purchase_id\` varchar(80) NOT NULL,
+    \`purchase_id\` varchar(80) NULL,
     \`cpf_cnpj\` varchar(24) NOT NULL,
     \`postal_code\` varchar(16) NOT NULL,
     \`street\` varchar(220) NOT NULL,
@@ -111,6 +112,19 @@ async function migrateOperationalSchema() {
     PRIMARY KEY (\`id\`),
     UNIQUE KEY \`idx_reseller_profiles_user\` (\`user_id\`),
     UNIQUE KEY \`idx_reseller_profiles_purchase\` (\`purchase_id\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
+  await ensureNullableResellerPurchaseId(pool);
+
+  await pool.query(`CREATE TABLE IF NOT EXISTS \`reseller_invitations\` (
+    \`token_hash\` varchar(64) NOT NULL,
+    \`user_id\` varchar(80) NOT NULL,
+    \`expires_at\` varchar(40) NOT NULL,
+    \`used_at\` varchar(40) NULL,
+    \`created_at\` varchar(40) NOT NULL,
+    PRIMARY KEY (\`token_hash\`),
+    KEY \`idx_reseller_invitation_user\` (\`user_id\`),
+    CONSTRAINT \`fk_reseller_invitation_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
 
   await pool.query(`CREATE TABLE IF NOT EXISTS \`affiliate_referrals\` (

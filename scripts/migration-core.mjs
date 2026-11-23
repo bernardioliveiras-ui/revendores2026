@@ -1,4 +1,5 @@
 import {readFile} from 'node:fs/promises';
+import {ensureNullableResellerPurchaseId} from '../lib/reseller-schema-migration.mjs';
 export async function migrate(connection){
  const schema=await readFile(new URL('../database/schema.sql',import.meta.url),'utf8');
  const ddl=[...schema.matchAll(/CREATE TABLE IF NOT EXISTS `[a-z_]+`[\s\S]+?;/g)].map(m=>m[0]);
@@ -19,6 +20,8 @@ export async function migrate(connection){
    const existing=new Set(rows.map(r=>r.COLUMN_NAME));
    for(const [name,definition] of Object.entries(columns))if(!existing.has(name))await connection.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${name}\` ${definition}`);
   }
+  // A primeira revenda agora pode ser cadastrada manualmente, sem um pedido fictício.
+  await ensureNullableResellerPurchaseId(connection);
   // Fail clearly on an unrelated/older schema instead of launching a broken app.
   for(const statement of ddl){
    const table=/CREATE TABLE IF NOT EXISTS `([a-z_]+)`/.exec(statement)[1];

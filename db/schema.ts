@@ -92,7 +92,7 @@ export const purchases = mysqlTable("purchases", {
 export const resellerProfiles = mysqlTable("reseller_profiles", {
   id: varchar("id", { length: 80 }).primaryKey(),
   userId: varchar("user_id", { length: 80 }).notNull(),
-  purchaseId: varchar("purchase_id", { length: 80 }).notNull(),
+  purchaseId: varchar("purchase_id", { length: 80 }),
   cpfCnpj: varchar("cpf_cnpj", { length: 24 }).notNull(),
   postalCode: varchar("postal_code", { length: 16 }).notNull(),
   street: varchar("street", { length: 220 }).notNull(),
@@ -105,6 +105,15 @@ export const resellerProfiles = mysqlTable("reseller_profiles", {
   initialBoxes: int("initial_boxes").notNull(),
   createdAt: varchar("created_at", { length: 40 }).notNull(),
 }, (table) => [uniqueIndex("idx_reseller_profiles_user").on(table.userId), uniqueIndex("idx_reseller_profiles_purchase").on(table.purchaseId)]);
+
+/** Convites de ativação de revendedores manuais, isolados dos influenciadores. */
+export const resellerInvitations = mysqlTable("reseller_invitations", {
+  tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
+  userId: varchar("user_id", { length: 80 }).notNull(),
+  expiresAt: varchar("expires_at", { length: 40 }).notNull(),
+  usedAt: varchar("used_at", { length: 40 }),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+}, (table) => [index("idx_reseller_invitation_user").on(table.userId)]);
 
 export const stockMovements = mysqlTable("stock_movements", {
   id: varchar("id", { length: 80 }).primaryKey(),

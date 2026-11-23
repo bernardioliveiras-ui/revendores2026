@@ -20,7 +20,7 @@ const connection=await mysql.createConnection({host:process.env.DATABASE_HOST,po
  ssl:["1","true","yes"].includes((process.env.DATABASE_SSL||"").toLowerCase())?{}:undefined,connectTimeout:15000});
 const tableNames=["indicator_terms_acceptances","affiliate_cashbacks","indicator_receipts","indicator_leads","indicated_receipts","indicated_clients",
  "indicated_invitations","indicator_campaigns","indicator_profiles","affiliate_clicks","affiliate_referrals",
- "measurement_outbox","purchase_measurement","reseller_profiles","stock_movements","sales","asaas_events","purchases","auth_sessions"];
+ "measurement_outbox","purchase_measurement","reseller_invitations","reseller_profiles","stock_movements","sales","asaas_events","purchases","auth_sessions"];
 let transaction=false,temporary="";
 try{
  const [rows]=await connection.execute("SELECT TABLE_NAME AS name FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_TYPE='BASE TABLE'");

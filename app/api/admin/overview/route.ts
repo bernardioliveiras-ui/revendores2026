@@ -1,6 +1,6 @@
 import { desc } from "drizzle-orm";
 import { getDb } from "@/db";
-import { affiliateReferrals, purchases, sales, stockMovements, users } from "@/db/schema";
+import { affiliateReferrals, purchases, resellerProfiles, sales, stockMovements, users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { repairPaidPurchaseStockForAllResellers } from "@/lib/stock-repair";
 import { countPendingResellerAccess, segmentPurchases } from "@/lib/purchase-segments.mjs";
@@ -21,12 +21,15 @@ export async function GET(request: Request) {
     await ensureOperationalSchema();
     await repairPaidPurchaseStockForAllResellers();
     const db = getDb();
-    const [purchaseRows, userRows, saleRows, stockRows] = await Promise.all([
+    const [purchaseRows, userRows, saleRows, stockRows, resellerProfilesRows] = await Promise.all([
       db.select(purchaseFields).from(purchases).orderBy(desc(purchases.createdAt)),
       db.select().from(users),
       db.select().from(sales).orderBy(desc(sales.soldAt)),
       db.select().from(stockMovements),
+      db.select({userId:resellerProfiles.userId,purchaseId:resellerProfiles.purchaseId,city:resellerProfiles.city,state:resellerProfiles.state}).from(resellerProfiles),
     ]);
+    const manualProfiles = new Set(resellerProfilesRows.filter(profile=>profile.purchaseId===null).map(profile=>profile.userId));
+    const profileByUser = new Map(resellerProfilesRows.map(profile=>[profile.userId,profile]));
     let referralRows: Array<typeof affiliateReferrals.$inferSelect> = [];
     try { referralRows = await db.select().from(affiliateReferrals); } catch (error) { console.error("admin_referrals_optional_failed", error); referralRows = []; }
     const paid = purchaseRows.filter((p) => p.paymentStatus === "paid");
@@ -57,7 +60,7 @@ export async function GET(request: Request) {
     return Response.json({
       metrics,
       purchases: purchaseRows,
-      resellers: userRows.filter((u) => u.role === "reseller").map((u) => ({ id: u.id, email: u.email, name: u.name, phone: u.phone, status: u.status, createdAt: u.createdAt, stock: stockByUser.get(u.id) || 0, soldBoxes: soldByUser.get(u.id) || 0, grossSalesCents: grossByUser.get(u.id) || 0 })),
+      resellers: userRows.filter((u) => u.role === "reseller").map((u) => ({ id: u.id, email: u.email, name: u.name, phone: u.phone, status: u.status, activated:Boolean(u.passwordHash), createdAt: u.createdAt, registrationType:manualProfiles.has(u.id)?"manual":"asaas", city:profileByUser.get(u.id)?.city||"", state:profileByUser.get(u.id)?.state||"", stock: stockByUser.get(u.id) || 0, soldBoxes: soldByUser.get(u.id) || 0, grossSalesCents: grossByUser.get(u.id) || 0 })),
       sales: saleRows,
       referrals: referralRows,
     }, { headers: { "cache-control": "no-store" } });
