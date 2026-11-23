@@ -1,4 +1,5 @@
 import { getMysqlPool } from "@/db";
+import type { PoolConnection } from "mysql2/promise";
 
 export type ManualMaterialDecision = {
   action: "grant" | "revoke";
@@ -29,7 +30,7 @@ export async function ensureManualMaterialAccessTable() {
   await schemaReady;
 }
 
-type SqlReader = { execute: (sql: string, args: unknown[]) => Promise<unknown> };
+type SqlReader = Pick<PoolConnection, "execute">;
 
 export async function getManualMaterialDecision(userId: string, connection?: SqlReader): Promise<ManualMaterialDecision | null> {
   if (!userId || userId.length > 80) return null;
