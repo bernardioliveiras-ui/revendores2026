@@ -6,8 +6,11 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Programa de Revendedores MIX10 PRO",
     start_url: "/",
     display: "standalone",
-    background_color: "#fffdf9",
-    theme_color: "#111810",
-    icons: [{ src: "/brand/lordnutri-mark.png", sizes: "512x512", type: "image/png" }],
+    background_color: "#000000",
+    theme_color: "#000000",
+    icons: [
+      { src: "/brand/lordnutri-app-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/brand/lordnutri-app-icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+    ],
   };
 }

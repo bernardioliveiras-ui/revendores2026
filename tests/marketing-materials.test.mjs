@@ -17,7 +17,7 @@ function route({session=user,orders=[paid]}={}){
   'drizzle-orm':orm,'@/db/schema':schema,'@/db':{getDb:()=>db},
   '@/lib/auth':{requireSession:async()=>{if(!session)throw Error('UNAUTHORIZED');return session}},
   '@/lib/content-studio':{getStudioDoc:async()=>{throw Error('Não deve buscar Studio ao abrir manual fornecido')}},
-  '@/lib/reseller-materials':{getManualPdfOverride:async()=>null,hasManualResellerProfile:async()=>false},
+  '@/lib/reseller-materials':{getManualPdfOverride:async()=>null,hasManualOrGrantedMaterialsAccess:async()=>false},
   '@/lib/simple-pdf':{buildManualPdf:()=>{throw Error('Não deve recompor o manual fornecido')}},
   'node:fs/promises':{readFile:async path=>{assert.match(path,/private\/manual\/Manual_do_Revendedor_Enviado_2026\.pdf$/);return manual}},
  }).GET;

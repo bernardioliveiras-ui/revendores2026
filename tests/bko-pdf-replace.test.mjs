@@ -153,12 +153,13 @@ test('manual e materiais não são liberados para compra paid sem verificação 
     'drizzle-orm':orm,'@/db':{getDb:()=>db},'@/db/schema':schema,
     '@/lib/auth':{requireSession:async()=>session},
     '@/lib/content-studio':{getStudioDoc:async()=>({published:{pages:[]}})},
-    '@/lib/reseller-materials':{getManualPdfOverride:async()=>({file_name:'novo.pdf',file_bytes:pdf}),hasManualResellerProfile:async()=>false},
+    '@/lib/reseller-materials':{getManualPdfOverride:async()=>({file_name:'novo.pdf',file_bytes:pdf}),hasManualOrGrantedMaterialsAccess:async()=>false},
     '@/lib/simple-pdf':{buildManualPdf:()=>pdf},
   },['GET']);
   assert.equal((await GET(new Request('https://bko.test/api/reseller/manual?edition=material'))).status,403);
   const {authorizeMaterials}=loadNative('lib/reseller-materials.ts',{
     'drizzle-orm':orm,'@/db':{getDb:()=>db,getMysqlPool:()=>({})},'@/db/schema':schema,'@/lib/auth':{requireSession:async()=>session},
+    '@/lib/manual-material-access':{hasActiveManualMaterialGrant:async()=>false},
   },['authorizeMaterials']);
   await assert.rejects(authorizeMaterials(new Request('https://bko.test/api/reseller/materials')),{message:'FORBIDDEN'});
 });
@@ -168,9 +169,10 @@ test('revendedor cadastrado manualmente abre manual e materiais sem compra Asaas
   const orm={...operators,or:(...f)=>r=>f.some(check=>check(r)),isNotNull:k=>r=>r[k]!=null};
   const session={id:'seller',role:'reseller',mustChangePassword:false};
   const {db}=fixtureDb(schema,{purchases:[],resellerProfiles:[{userId:'seller',purchaseId:null,initialKit:'manual'}]});
-  const {authorizeMaterials,hasManualResellerProfile}=loadNative('lib/reseller-materials.ts',{
+  const {authorizeMaterials,hasManualResellerProfile,hasManualOrGrantedMaterialsAccess}=loadNative('lib/reseller-materials.ts',{
     'drizzle-orm':orm,'@/db':{getDb:()=>db,getMysqlPool:()=>({})},'@/db/schema':schema,'@/lib/auth':{requireSession:async()=>session},
-  },['authorizeMaterials','hasManualResellerProfile']);
+    '@/lib/manual-material-access':{hasActiveManualMaterialGrant:async()=>false},
+  },['authorizeMaterials','hasManualResellerProfile','hasManualOrGrantedMaterialsAccess']);
   assert.equal(await hasManualResellerProfile('seller'),true);
   assert.equal((await authorizeMaterials(new Request('https://bko.test/api/reseller/materials'))).id,'seller');
   const {GET}=loadNative('app/api/reseller/manual/route.ts',{
@@ -178,7 +180,7 @@ test('revendedor cadastrado manualmente abre manual e materiais sem compra Asaas
     'drizzle-orm':orm,'@/db':{getDb:()=>db},'@/db/schema':schema,
     '@/lib/auth':{requireSession:async()=>session},
     '@/lib/content-studio':{getStudioDoc:async()=>({published:{pages:[]}})},
-    '@/lib/reseller-materials':{getManualPdfOverride:async()=>({file_name:'novo.pdf',file_bytes:pdf}),hasManualResellerProfile},
+    '@/lib/reseller-materials':{getManualPdfOverride:async()=>({file_name:'novo.pdf',file_bytes:pdf}),hasManualOrGrantedMaterialsAccess},
     '@/lib/simple-pdf':{buildManualPdf:()=>pdf},
   },['GET']);
   assert.equal((await GET(new Request('https://bko.test/api/reseller/manual?edition=material'))).status,200);
@@ -190,6 +192,7 @@ test('compra Asaas antiga com profile sem vínculo e kit comprado não vira cada
   const {hasManualResellerProfile}=loadNative('lib/reseller-materials.ts',{
     'drizzle-orm':{...operators,or:(...f)=>r=>f.some(check=>check(r)),isNotNull:k=>r=>r[k]!=null},
     '@/db':{getDb:()=>db,getMysqlPool:()=>({})},'@/db/schema':schema,'@/lib/auth':{requireSession:async()=>({id:'seller'})},
+    '@/lib/manual-material-access':{hasActiveManualMaterialGrant:async()=>false},
   },['hasManualResellerProfile']);
   assert.equal(await hasManualResellerProfile('seller'),false);
 });

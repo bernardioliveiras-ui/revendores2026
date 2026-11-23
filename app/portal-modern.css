@@ -323,9 +323,19 @@
 .lord-admin-sidebar { flex-basis:263px; width:263px; padding:0; background:linear-gradient(180deg,#061a2b,#0b2940); box-shadow:8px 0 28px #071d2f14; }
 .lord-admin-brand { flex-direction:row; align-items:center; gap:12px; padding:22px 17px; border-bottom:1px solid #ffffff17; }
 .lord-admin-brand .compact-logo { width:54px; height:60px; margin:0; flex:0 0 auto; }
-.lord-admin-brand>div:last-child { display:flex; flex-direction:column; gap:3px; }
+.lord-admin-brand>div:last-of-type { display:flex; flex-direction:column; align-items:flex-start; min-width:0; gap:4px; }
 .lord-admin-brand span { font-size:14px; letter-spacing:1px; color:white; }
-.lord-admin-brand strong { font-size:10px; letter-spacing:1.6px; color:#e8c782; }
+.lord-admin-brand strong { display:block; font-size:10px; letter-spacing:1.6px; line-height:1.4; color:#e8c782; }
+
+.manual-material-access-admin { flex:1 1 100%; max-width:440px; margin-top:5px; text-align:left; }
+.manual-material-access-panel { margin-top:10px; padding:14px; border:1px solid #ddc99f; border-radius:12px; background:#fffaf0; color:#152c3d; box-shadow:0 4px 14px #091f3010; }
+.manual-material-access-panel>strong { display:block; font-size:13px; line-height:1.5; }
+.manual-material-access-panel>p { margin:7px 0 12px; font-size:12px; line-height:1.55; }
+.manual-material-access-panel>small { display:block; margin:9px 0; color:#687686; }
+.manual-material-access-panel form { display:grid; gap:10px; margin-top:13px; }
+.manual-material-access-panel label { display:grid; gap:5px; font-size:12px; font-weight:650; }
+.manual-material-access-panel input,.manual-material-access-panel textarea { width:100%; padding:9px 10px; border:1px solid #c9bda7; border-radius:8px; background:white; color:#10283d; font:400 13px/1.4 system-ui,sans-serif; }
+.manual-material-access-panel form button { justify-self:start; }
 .lord-admin-sidebar>.lord-sidebar-label { padding:25px 25px 10px; color:#b9a071; }
 .lord-admin-sidebar .bko-tabs, .lord-admin-shortcuts { padding-left:12px; padding-right:12px; }
 .lord-admin-sidebar .bko-tabs button, .lord-admin-shortcuts button { display:flex; align-items:center; gap:13px; padding:13px 14px; min-height:45px; color:#d3e0ea; font-weight:650; font-size:13px; border-radius:11px; }

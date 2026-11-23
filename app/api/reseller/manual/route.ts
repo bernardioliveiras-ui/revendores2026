@@ -6,7 +6,7 @@ import { purchases } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { getStudioDoc } from "@/lib/content-studio";
 import { buildManualPdf } from "@/lib/simple-pdf";
-import { getManualPdfOverride, hasManualResellerProfile } from "@/lib/reseller-materials";
+import { getManualPdfOverride, hasManualOrGrantedMaterialsAccess } from "@/lib/reseller-materials";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ async function authorize(request:Request){
   if(user.role!=="admin"){
     if(user.role!=="reseller") throw new Error("FORBIDDEN_MANUAL");
     const [purchase]=await getDb().select({id:purchases.id}).from(purchases).where(and(eq(purchases.userId,user.id),eq(purchases.paymentStatus,"paid"),isNotNull(purchases.asaasVerifiedAt),or(eq(purchases.kit,"kit20"),eq(purchases.kit,"kit50"),eq(purchases.kit,"kit100")),isNotNull(purchases.accessReleasedAt))).limit(1);
-    if(!purchase && !await hasManualResellerProfile(user.id)) throw new Error("FORBIDDEN_MANUAL");
+    if(!purchase && !await hasManualOrGrantedMaterialsAccess(user.id)) throw new Error("FORBIDDEN_MANUAL");
   }
 }
 

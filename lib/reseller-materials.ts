@@ -2,6 +2,7 @@ import { and, eq, isNotNull, isNull, or } from "drizzle-orm";
 import { getDb, getMysqlPool } from "@/db";
 import { purchases, resellerProfiles } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
+import { hasActiveManualMaterialGrant } from "@/lib/manual-material-access";
 
 /** Acesso independente do Asaas apenas para perfis explicitamente criados pelo BKO. */
 export async function hasManualResellerProfile(userId: string): Promise<boolean> {
@@ -9,6 +10,11 @@ export async function hasManualResellerProfile(userId: string): Promise<boolean>
     eq(resellerProfiles.userId, userId), isNull(resellerProfiles.purchaseId), eq(resellerProfiles.initialKit, "manual"),
   )).limit(1);
   return Boolean(manualProfile);
+}
+
+/** Elegibilidade fora do Asaas: cadastro manual original ou decisão explícita e auditável do BKO. */
+export async function hasManualOrGrantedMaterialsAccess(userId: string): Promise<boolean> {
+  return await hasManualResellerProfile(userId) || await hasActiveManualMaterialGrant(userId);
 }
 
 export async function authorizeMaterials(request: Request) {
@@ -21,7 +27,7 @@ export async function authorizeMaterials(request: Request) {
     or(eq(purchases.kit, "kit20"), eq(purchases.kit, "kit50"), eq(purchases.kit, "kit100")),
     isNotNull(purchases.accessReleasedAt),
   )).limit(1);
-  if (!purchase && !await hasManualResellerProfile(user.id)) throw new Error("FORBIDDEN");
+  if (!purchase && !await hasManualOrGrantedMaterialsAccess(user.id)) throw new Error("FORBIDDEN");
   return user;
 }
 
