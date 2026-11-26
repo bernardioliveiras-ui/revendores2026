@@ -79,6 +79,28 @@ async function migrateOperationalSchema() {
     KEY \`idx_stock_user_date\` (\`user_id\`,\`occurred_at\`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
 
+  await pool.query(`CREATE TABLE IF NOT EXISTS \`manual_shipments\` (
+    \`id\` varchar(80) NOT NULL, \`user_id\` varchar(80) NOT NULL, \`source_movement_id\` varchar(80) NULL,
+    \`order_number\` varchar(80) NOT NULL, \`boxes\` int NOT NULL,
+    \`stock_credit_mode\` varchar(30) NOT NULL DEFAULT 'on_delivery', \`stock_credited_at\` varchar(40) NULL,
+    \`shipping_status\` varchar(30) NOT NULL DEFAULT 'separating', \`carrier\` varchar(120) NULL, \`tracking_code\` varchar(120) NULL,
+    \`postal_event\` varchar(240) NULL, \`postal_event_at\` varchar(40) NULL, \`postal_checked_at\` varchar(40) NULL,
+    \`postal_attempt_at\` varchar(40) NULL, \`postal_issue\` varchar(120) NULL,
+    \`shipped_at\` varchar(40) NULL, \`delivered_at\` varchar(40) NULL,
+    \`created_at\` varchar(40) NOT NULL, \`updated_at\` varchar(40) NOT NULL,
+    PRIMARY KEY (\`id\`), UNIQUE KEY \`idx_manual_shipments_source\` (\`source_movement_id\`),
+    UNIQUE KEY \`idx_manual_shipments_order\` (\`order_number\`), KEY \`idx_manual_shipments_user\` (\`user_id\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
+  // Registros do ZIP anterior já foram creditados no saldo. Apenas tornam-se
+  // visíveis na Expedição; o histórico e o saldo não são reescritos.
+  await pool.query(`INSERT IGNORE INTO manual_shipments
+    (id,user_id,source_movement_id,order_number,boxes,stock_credit_mode,shipping_status,created_at,updated_at)
+    SELECT UUID(),m.user_id,m.id,CONCAT('MAN-',LEFT(REPLACE(m.id,'-',''),24)),m.boxes,'already_in_stock','separating',m.created_at,m.created_at
+    FROM stock_movements m INNER JOIN users u ON u.id=m.user_id AND u.role='reseller'
+    WHERE m.boxes>0 AND (m.reference_type='manual_initial_stock'
+      OR (m.reference_type='bko_stock_adjustment' AND m.type='adjustment_in'))`);
+
   await pool.query(`CREATE TABLE IF NOT EXISTS \`sales\` (
     \`id\` varchar(80) NOT NULL,
     \`user_id\` varchar(80) NOT NULL,

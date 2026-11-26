@@ -72,6 +72,18 @@ CREATE TABLE IF NOT EXISTS `stock_movements` (
   PRIMARY KEY (`id`), KEY `idx_stock_user_date` (`user_id`,`occurred_at`), CONSTRAINT `fk_stock_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `manual_shipments` (
+  `id` varchar(80) NOT NULL, `user_id` varchar(80) NOT NULL, `source_movement_id` varchar(80) DEFAULT NULL,
+  `order_number` varchar(80) NOT NULL, `boxes` int NOT NULL, `stock_credit_mode` varchar(30) NOT NULL DEFAULT 'on_delivery', `stock_credited_at` varchar(40) DEFAULT NULL,
+  `shipping_status` varchar(30) NOT NULL DEFAULT 'separating', `carrier` varchar(120) DEFAULT NULL, `tracking_code` varchar(120) DEFAULT NULL,
+  `postal_event` varchar(240) DEFAULT NULL, `postal_event_at` varchar(40) DEFAULT NULL, `postal_checked_at` varchar(40) DEFAULT NULL,
+  `postal_attempt_at` varchar(40) DEFAULT NULL, `postal_issue` varchar(120) DEFAULT NULL,
+  `shipped_at` varchar(40) DEFAULT NULL, `delivered_at` varchar(40) DEFAULT NULL,
+  `created_at` varchar(40) NOT NULL, `updated_at` varchar(40) NOT NULL,
+  PRIMARY KEY (`id`), UNIQUE KEY `idx_manual_shipments_source` (`source_movement_id`), UNIQUE KEY `idx_manual_shipments_order` (`order_number`),
+  KEY `idx_manual_shipments_user` (`user_id`), CONSTRAINT `fk_manual_shipments_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `sales` (
   `id` varchar(80) NOT NULL, `user_id` varchar(80) NOT NULL, `boxes` int NOT NULL, `unit_value_cents` int NOT NULL, `total_value_cents` int NOT NULL, `channel` varchar(40) NOT NULL DEFAULT 'other', `customer_name` varchar(120) NOT NULL DEFAULT '', `notes` varchar(1000) NOT NULL DEFAULT '', `sold_at` varchar(40) NOT NULL, `created_at` varchar(40) NOT NULL,
   PRIMARY KEY (`id`), KEY `idx_sales_user_date` (`user_id`,`sold_at`), CONSTRAINT `fk_sales_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE

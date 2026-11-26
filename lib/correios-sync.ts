@@ -2,9 +2,12 @@ import { getMysqlPool } from "@/db";
 import type { RowDataPacket } from "mysql2/promise";
 import { postalToken, trackParcel } from "@/lib/correios";
 import { updatePurchaseShipping } from "@/lib/shipping";
+import { updateManualShipmentShipping } from "@/lib/manual-shipments";
+import { ensureOperationalSchema } from "@/lib/runtime-schema";
 
-type Parcel = RowDataPacket & { id: string; carrier: string | null; tracking_code: string };
+type Parcel = RowDataPacket & { id: string; carrier: string | null; tracking_code: string; source?:"manual" };
 export async function runPostalSync() {
+  await ensureOperationalSchema();
   const connection = await getMysqlPool().getConnection();
   let locked = false;
   const summary = { selected:0, verified:0, waiting:0, errors:0, skipped:0 };
@@ -21,11 +24,18 @@ export async function runPostalSync() {
         AND (COALESCE(TRIM(carrier),'') = '' OR LOWER(carrier) REGEXP '(^|[^a-z])(correios|sedex|pac)([^a-z]|$)')
         AND UPPER(TRIM(tracking_code)) REGEXP '^[A-Z]{2}[0-9]{9}[A-Z]{2}$'
       ORDER BY postal_attempt_at IS NOT NULL, postal_attempt_at, id LIMIT 12`);
-    summary.selected = rows.length;
-    if (rows.length) {
+    const [manualRows] = await connection.query<Parcel[]>(`
+      SELECT id, carrier, tracking_code FROM manual_shipments
+      WHERE shipping_status IN ('separating','shipped')
+        AND (COALESCE(TRIM(carrier),'') = '' OR LOWER(carrier) REGEXP '(^|[^a-z])(correios|sedex|pac)([^a-z]|$)')
+        AND UPPER(TRIM(tracking_code)) REGEXP '^[A-Z]{2}[0-9]{9}[A-Z]{2}$'
+      ORDER BY postal_attempt_at IS NOT NULL, postal_attempt_at, id LIMIT 12`);
+    const work:Parcel[] = [...rows.slice(0,8), ...manualRows.slice(0,12-rows.slice(0,8).length).map(row=>({...row,source:"manual" as const}))];
+    summary.selected = work.length;
+    if (work.length) {
       const token = await postalToken();
-      for (let start = 0; start < rows.length; start += 4) {
-        const batch = await Promise.allSettled(rows.slice(start,start+4).map(async row => {
+      for (let start = 0; start < work.length; start += 4) {
+        const batch = await Promise.allSettled(work.slice(start,start+4).map(async row => {
           const code = row.tracking_code.trim().toUpperCase();
           let event = null;
           let issue: string | undefined;
@@ -38,7 +48,8 @@ export async function runPostalSync() {
             const message = error instanceof Error ? error.message : "";
             issue = /^Correios HTTP \d{3}$/.test(message) ? message : "Consulta aos Correios indisponível.";
           }
-          const result = await updatePurchaseShipping(row.id, "", undefined, undefined, {
+          const updater=row.source==="manual"?updateManualShipmentShipping:updatePurchaseShipping;
+          const result = await updater(row.id, "", undefined, undefined, {
             originalCode:row.tracking_code, originalCarrier:row.carrier, event, issue, failed,
           });
           if (result.ignored) summary.skipped++;

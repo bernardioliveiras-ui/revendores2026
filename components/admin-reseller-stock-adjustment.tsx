@@ -11,6 +11,7 @@ export function AdminResellerStockAdjustment({reseller,onUpdated}:{reseller:Stoc
   const [desired,setDesired]=useState(String(reseller.stock));
   const [expected,setExpected]=useState(reseller.stock);
   const [reason,setReason]=useState("");
+  const [shipmentBoxes,setShipmentBoxes]=useState("0");
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState("");
 
@@ -39,6 +40,19 @@ export function AdminResellerStockAdjustment({reseller,onUpdated}:{reseller:Stoc
     finally{setBusy(false)}
   }
 
+  async function createShipment(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();if(busy)return;
+    const boxes=Number(shipmentBoxes);
+    if(!/^[1-9]\d*$/.test(shipmentBoxes)||!Number.isSafeInteger(boxes)||boxes>2147483647){setMessage("Informe uma quantidade positiva de caixas a enviar.");return;}
+    setBusy(true);setMessage("");
+    try{
+      const r=await fetch("/api/admin/manual-shipments",{method:"POST",headers:{"content-type":"application/json"},credentials:"same-origin",body:JSON.stringify({userId:reseller.id,boxes})});
+      const b=await r.json();if(!r.ok)throw Error(b.error||"Não foi possível criar a remessa.");
+      setShipmentBoxes("0");await onUpdated();setMessage(`Remessa de ${boxes} caixa(s) criada na Expedição. O estoque disponível será creditado após a entrega.`);
+    }catch(error){setMessage(error instanceof Error?error.message:"Não foi possível criar a remessa.");}
+    finally{setBusy(false)}
+  }
+
   return <>
     <button type="button" className="secondary-button compact" disabled={busy} onClick={toggle}>{open?"Fechar estoque":"Atualizar estoque"}</button>
     {open?<div className="bko-stock-correction" style={{flexBasis:"100%",minWidth:0,width:"100%",borderTop:"1px solid #dce2ea",paddingTop:12}}>
@@ -48,6 +62,12 @@ export function AdminResellerStockAdjustment({reseller,onUpdated}:{reseller:Stoc
         <label>Novo estoque total (caixas)<input required type="number" min="0" max="2147483647" step="1" value={desired} onChange={event=>setDesired(event.target.value)}/></label>
         <label>Motivo do ajuste<input required minLength={3} maxLength={500} value={reason} onChange={event=>setReason(event.target.value)} placeholder="Ex.: Conferência física de 25/11"/></label>
         <button className="primary-button compact" disabled={busy}>{busy?"Salvando…":"Salvar saldo conferido"}</button>
+      </form>
+      <form onSubmit={createShipment} className="portal-form" style={{borderTop:"1px solid #dce2ea",marginTop:16,paddingTop:16}}>
+        <strong>Programar novo envio pelos Correios</strong>
+        <p className="portal-form-help">Cria uma remessa automaticamente na aba Expedição, onde você cadastrará o rastreio. Não soma ao estoque disponível antes da entrega e não cria cobrança Asaas.</p>
+        <label>Caixas a enviar<input required type="number" min="1" max="2147483647" step="1" value={shipmentBoxes} onChange={event=>setShipmentBoxes(event.target.value)}/></label>
+        <button type="submit" className="primary-button compact" disabled={busy}>{busy?"Salvando…":"Criar remessa na Expedição"}</button>
       </form>
       {message?<p role="status" className="portal-form-help">{message}</p>:null}
       <div className="portal-form-help" style={{marginTop:12}}><strong>Últimas movimentações manuais</strong>

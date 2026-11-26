@@ -45,7 +45,7 @@ export async function POST(request:Request){
       const correction=planStockCorrection(currentStock,desiredStock,reason,actor.id);
       if(correction.changed){
         const now=new Date().toISOString();
-        await tx.insert(stockMovements).values({id:crypto.randomUUID(),userId,type:correction.type,boxes:correction.boxes,referenceType:"bko_stock_adjustment",referenceId:crypto.randomUUID(),notes:correction.notes,occurredAt:now,createdAt:now});
+        await tx.insert(stockMovements).values({id:crypto.randomUUID(),userId,type:correction.type,boxes:correction.boxes,referenceType:"bko_stock_physical_adjustment",referenceId:crypto.randomUUID(),notes:correction.notes,occurredAt:now,createdAt:now});
         console.info("bko_stock_corrected",{actorId:actor.id,userId,from:currentStock,to:desiredStock,at:now});
       }
       return Response.json({updated:true,changed:correction.changed,stock:correction.stock},{headers:privateResponseHeaders});

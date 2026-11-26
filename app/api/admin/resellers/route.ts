@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb, getMysqlPool } from "@/db";
-import { authSessions, resellerProfiles, stockMovements, users } from "@/db/schema";
+import { authSessions, manualShipments, resellerProfiles, stockMovements, users } from "@/db/schema";
 import { isAdminEmail, normalizeEmail, requireAdmin } from "@/lib/auth";
 import { ensureOperationalSchema } from "@/lib/runtime-schema";
 import { validateResellerEdit } from "@/lib/reseller-edit-validation.mjs";
@@ -29,13 +29,16 @@ export async function POST(request:Request) {
   if(parsed.error)return Response.json({error:parsed.error},{status:400,headers:privateResponseHeaders});
   await ensureOperationalSchema();
   const profile=parsed.value!;
+  const stockDelivery=body?.stockDelivery === "on_hand" ? "on_hand" : "to_ship";
+  if(body?.stockDelivery!==undefined && !["on_hand","to_ship"].includes(body.stockDelivery))return Response.json({error:"Informe se as caixas já estão com o revendedor ou serão enviadas."},{status:400,headers:privateResponseHeaders});
   const now=new Date().toISOString(),userId=crypto.randomUUID(),profileId=crypto.randomUUID();
   await getDb().transaction(async tx=>{
    const [existing]=await tx.select({id:users.id}).from(users).where(eq(users.email,profile.email)).limit(1).for("update");
    if(existing)throw new Error("EMAIL_TAKEN");
    await tx.insert(users).values({id:userId,name:profile.name,email:profile.email,phone:profile.phone,role:"reseller",status:"active",passwordHash:null,mustChangePassword:0,createdAt:now,updatedAt:now});
    await tx.insert(resellerProfiles).values({id:profileId,userId,purchaseId:null,cpfCnpj:profile.cpfCnpj,postalCode:profile.postalCode,street:profile.street,number:profile.number,complement:profile.complement,district:profile.district,city:profile.city,state:profile.state,initialKit:"manual",initialBoxes:profile.initialBoxes,createdAt:now});
-   if(profile.initialBoxes>0)await tx.insert(stockMovements).values({id:crypto.randomUUID(),userId,type:"entry",boxes:profile.initialBoxes,referenceType:"manual_initial_stock",referenceId:profileId,notes:`Estoque físico informado no cadastro manual pelo BKO · ${actor.id}`,occurredAt:now,createdAt:now});
+   if(profile.initialBoxes>0 && stockDelivery==="on_hand")await tx.insert(stockMovements).values({id:crypto.randomUUID(),userId,type:"entry",boxes:profile.initialBoxes,referenceType:"manual_physical_stock",referenceId:profileId,notes:`Estoque físico já em mãos informado pelo BKO · ${actor.id}`,occurredAt:now,createdAt:now});
+   if(profile.initialBoxes>0 && stockDelivery==="to_ship")await tx.insert(manualShipments).values({id:crypto.randomUUID(),userId,orderNumber:`MAN-${crypto.randomUUID().replace(/-/g,"").slice(0,24)}`,boxes:profile.initialBoxes,stockCreditMode:"on_delivery",shippingStatus:"separating",createdAt:now,updatedAt:now});
   });
   console.info("bko_manual_reseller_created",{actorId:actor.id,userId,at:now});
   try{return Response.json({created:true,userId,...await issueResellerInvitation(userId)},{status:201,headers:privateResponseHeaders});}
@@ -113,12 +116,13 @@ export async function DELETE(request:Request){
     profiles:"SELECT COUNT(*) AS n FROM reseller_profiles WHERE user_id=? AND purchase_id IS NOT NULL",
     sales:"SELECT COUNT(*) AS n FROM sales WHERE user_id=?",
     stock:"SELECT COUNT(*) AS n FROM stock_movements WHERE user_id=?",
+    manualShipments:"SELECT COUNT(*) AS n FROM manual_shipments WHERE user_id=?",
     referrals:"SELECT COUNT(*) AS n FROM affiliate_referrals WHERE user_id=?",
     cashbacks:"SELECT COUNT(*) AS n FROM affiliate_cashbacks WHERE reseller_user_id=?",
    };
    const [tables]=await connection.execute("SELECT TABLE_NAME AS name FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_TYPE='BASE TABLE'");
    const existing=new Set((tables as Array<{name:string}>).map(t=>t.name));
-   const names:Record<string,string>={purchases:"purchases",profiles:"reseller_profiles",sales:"sales",stock:"stock_movements",referrals:"affiliate_referrals",cashbacks:"affiliate_cashbacks"};
+   const names:Record<string,string>={purchases:"purchases",profiles:"reseller_profiles",manualShipments:"manual_shipments",sales:"sales",stock:"stock_movements",referrals:"affiliate_referrals",cashbacks:"affiliate_cashbacks"};
    const counts:Record<string,number>={};
    for(const [field,query] of Object.entries(queries)){
     if(!existing.has(names[field]))continue;

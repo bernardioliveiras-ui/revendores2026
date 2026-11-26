@@ -22,6 +22,13 @@ export async function migrate(connection){
   }
   // A primeira revenda agora pode ser cadastrada manualmente, sem um pedido fictício.
   await ensureNullableResellerPurchaseId(connection);
+  // Compatibilidade com lançamentos manuais do ZIP anterior (sem tocar no saldo).
+  await connection.query(`INSERT IGNORE INTO manual_shipments
+    (id,user_id,source_movement_id,order_number,boxes,stock_credit_mode,shipping_status,created_at,updated_at)
+    SELECT UUID(),m.user_id,m.id,CONCAT('MAN-',LEFT(REPLACE(m.id,'-',''),24)),m.boxes,'already_in_stock','separating',m.created_at,m.created_at
+    FROM stock_movements m INNER JOIN users u ON u.id=m.user_id AND u.role='reseller'
+    WHERE m.boxes>0 AND (m.reference_type='manual_initial_stock'
+      OR (m.reference_type='bko_stock_adjustment' AND m.type='adjustment_in'))`);
   // Fail clearly on an unrelated/older schema instead of launching a broken app.
   for(const statement of ddl){
    const table=/CREATE TABLE IF NOT EXISTS `([a-z_]+)`/.exec(statement)[1];

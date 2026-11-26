@@ -66,7 +66,7 @@ test("BKO correction updates shared stock ledger while preserving purchase and s
   assert.equal(f.rows.stockMovements[0].boxes,50);assert.equal(f.rows.stockMovements[1].boxes,10);
   const adjustment=f.rows.stockMovements[2];
   assert.equal(adjustment.type,"adjustment_out");assert.equal(adjustment.boxes,15);
-  assert.equal(adjustment.referenceType,"bko_stock_adjustment");
+  assert.equal(adjustment.referenceType,"bko_stock_physical_adjustment");
   assert.match(adjustment.notes,/admin01.*Contagem física/);
   // Mesma função de saldo utilizada pelo GET /api/stock do portal.
   assert.equal(calculateStock(f.rows.stockMovements),25);

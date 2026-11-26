@@ -4,7 +4,7 @@ import { fixtureDb, loadNative, operators, table } from "./native-runtime-loader
 import { validateManualReseller } from "../lib/reseller-registration.mjs";
 
 const contact={name:"Carlos Almeida",email:"carlos@example.com",phone:"11988887777",cpfCnpj:"52998224725",postalCode:"01310100",street:"Av Paulista",number:"100",complement:"",district:"Bela Vista",city:"São Paulo",state:"SP"};
-const schema={users:table("id","email","role","status","name","phone"),resellerProfiles:table("id","userId","purchaseId","cpfCnpj","postalCode","initialKit","initialBoxes"),stockMovements:table("id","userId","type","boxes","referenceType","referenceId","notes")};
+const schema={users:table("id","email","role","status","name","phone"),resellerProfiles:table("id","userId","purchaseId","cpfCnpj","postalCode","initialKit","initialBoxes"),stockMovements:table("id","userId","type","boxes","referenceType","referenceId","notes"),manualShipments:table("id","userId","boxes","stockCreditMode","shippingStatus")};
 
 function setup() {
   const f=fixtureDb(schema);
@@ -35,17 +35,24 @@ test("manual BKO registration creates user and zero-stock address profile withou
   assert.equal(f.issued,1);assert.match(body.activationPath,/^\/ativar-revendedor/);
 });
 
-test("manual registration records 50 existing boxes once in the same inventory ledger",async()=>{
+test("manual registration sends 50 boxes to shipping without crediting available stock",async()=>{
   const f=setup();const response=await f.POST(f.request({...contact,initialBoxes:50}));
   assert.equal(response.status,201);assert.equal(f.rows.users.length,1);
   assert.equal(f.rows.resellerProfiles[0].initialBoxes,50);
-  assert.equal(f.rows.stockMovements.length,1);
-  const movement=f.rows.stockMovements[0];
-  assert.equal(movement.userId,f.rows.users[0].id);assert.equal(movement.type,"entry");
-  assert.equal(movement.boxes,50);assert.equal(movement.referenceType,"manual_initial_stock");
-  assert.equal(movement.referenceId,f.rows.resellerProfiles[0].id);
+  assert.equal(f.rows.stockMovements.length,0);
+  assert.equal(f.rows.manualShipments.length,1);
+  assert.equal(f.rows.manualShipments[0].boxes,50);
+  assert.equal(f.rows.manualShipments[0].stockCreditMode,"on_delivery");
   assert.equal((await f.POST(f.request({...contact,initialBoxes:50}))).status,409);
+  assert.equal(f.rows.manualShipments.length,1);
+});
+
+test("stock already in hand is immediately credited without creating a shipment",async()=>{
+  const f=setup();const response=await f.POST(f.request({...contact,initialBoxes:50,stockDelivery:"on_hand"}));
+  assert.equal(response.status,201);
+  assert.equal(f.rows.manualShipments.length,0);
   assert.equal(f.rows.stockMovements.length,1);
+  assert.equal(f.rows.stockMovements[0].referenceType,"manual_physical_stock");
 });
 
 test("invalid initial stock cannot create account, stock movement or invitation",async()=>{

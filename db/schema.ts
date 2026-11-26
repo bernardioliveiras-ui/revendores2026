@@ -127,6 +127,29 @@ export const stockMovements = mysqlTable("stock_movements", {
   createdAt: varchar("created_at", { length: 40 }).notNull(),
 }, (table) => [index("idx_stock_user_date").on(table.userId, table.occurredAt)]);
 
+/** Expedição de caixas destinadas a revendedores, sem compra ou cobrança Asaas. */
+export const manualShipments = mysqlTable("manual_shipments", {
+  id: varchar("id", { length: 80 }).primaryKey(),
+  userId: varchar("user_id", { length: 80 }).notNull(),
+  sourceMovementId: varchar("source_movement_id", { length: 80 }),
+  orderNumber: varchar("order_number", { length: 80 }).notNull(),
+  boxes: int("boxes").notNull(),
+  stockCreditMode: varchar("stock_credit_mode", { length: 30 }).notNull().default("on_delivery"),
+  stockCreditedAt: varchar("stock_credited_at", { length: 40 }),
+  shippingStatus: varchar("shipping_status", { length: 30 }).notNull().default("separating"),
+  carrier: varchar("carrier", { length: 120 }),
+  trackingCode: varchar("tracking_code", { length: 120 }),
+  postalEvent: varchar("postal_event", { length: 240 }),
+  postalEventAt: varchar("postal_event_at", { length: 40 }),
+  postalCheckedAt: varchar("postal_checked_at", { length: 40 }),
+  postalAttemptAt: varchar("postal_attempt_at", { length: 40 }),
+  postalIssue: varchar("postal_issue", { length: 120 }),
+  shippedAt: varchar("shipped_at", { length: 40 }),
+  deliveredAt: varchar("delivered_at", { length: 40 }),
+  createdAt: varchar("created_at", { length: 40 }).notNull(),
+  updatedAt: varchar("updated_at", { length: 40 }).notNull(),
+}, table => [uniqueIndex("idx_manual_shipments_source").on(table.sourceMovementId), uniqueIndex("idx_manual_shipments_order").on(table.orderNumber), index("idx_manual_shipments_user").on(table.userId)]);
+
 export const sales = mysqlTable("sales", {
   id: varchar("id", { length: 80 }).primaryKey(),
   userId: varchar("user_id", { length: 80 }).notNull(),

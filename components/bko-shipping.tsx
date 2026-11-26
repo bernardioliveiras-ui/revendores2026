@@ -4,6 +4,7 @@ import { filterShippingPurchases, shippingCounts } from "@/lib/shipping-dashboar
 
 type ShippingPurchase = {
   id:string;orderNumber:string;name:string;kit:string;boxes:number;paymentStatus:string;shippingStatus:string;
+  source?:"manual";stockCreditMode?:string;availableStock?:number;
   carrier?:string|null;trackingCode?:string|null;postalEvent?:string|null;postalEventAt?:string|null;
   postalAttemptAt?:string|null;postalCheckedAt?:string|null;postalIssue?:string|null;city:string;state:string;createdAt:string;
 };
@@ -11,9 +12,10 @@ type ShippingPurchase = {
 const statusName = (status:string) => status === "delivered" ? "Entregue" : status === "shipped" ? "Em trânsito" : "Em separação";
 const checkedDate = (value?:string|null) => value && !Number.isNaN(Date.parse(value)) ? new Date(value).toLocaleString("pt-BR") : "Ainda não consultado";
 
-export function BkoShipping({purchases,onStageChange,onRefresh}:{
+export function BkoShipping({purchases,onStageChange,onSuspendLegacy,onRefresh}:{
   purchases:ShippingPurchase[];
   onStageChange:(purchaseId:string,status:"separating"|"shipped"|"delivered")=>void;
+  onSuspendLegacy?:(shipmentId:string,expectedStock:number)=>void;
   onRefresh:()=>Promise<void>;
 }) {
   const [search,setSearch] = useState("");
@@ -43,7 +45,7 @@ export function BkoShipping({purchases,onStageChange,onRefresh}:{
     }
   }
   return <section className="portal-card bko-shipping-dashboard">
-    <div className="card-title"><div><span className="section-kicker">LOGÍSTICA</span><h2>Expedição e rastreamento</h2><p>Pedidos pagos. Os Correios são consultados automaticamente pela rotina agendada e o painel atualiza a cada 30 segundos.</p></div><div><span>{paid.length} pedidos pagos</span><button type="button" className="secondary-button compact" disabled={syncing} onClick={()=>void syncPostal()}>{syncing?"Consultando Correios…":"Sincronizar Correios agora"}</button></div></div>
+    <div className="card-title"><div><span className="section-kicker">LOGÍSTICA</span><h2>Expedição e rastreamento</h2><p>Pedidos pagos e remessas manuais de revendedores, sem cobrança Asaas. Os Correios são consultados pela rotina agendada; o painel atualiza a cada 30 segundos.</p></div><div><span>{paid.length} envios</span><button type="button" className="secondary-button compact" disabled={syncing} onClick={()=>void syncPostal()}>{syncing?"Consultando Correios…":"Sincronizar Correios agora"}</button></div></div>
     {syncNotice?<p role="status" className="portal-form-help">{syncNotice}</p>:null}
     <div className="bko-shipping-stats" aria-label="Indicadores de expedição">
       <div><span>Aguardando expedição</span><strong>{counts.separating}</strong></div>
@@ -55,15 +57,16 @@ export function BkoShipping({purchases,onStageChange,onRefresh}:{
       <input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nome, número do pedido ou código dos Correios" />
     </label>
     <div className="bko-shipping-table-wrap"><table className="bko-shipping-table"><thead><tr><th>Pedido</th><th>Cliente</th><th>Etapa</th><th>Rastreio</th><th>Última consulta</th><th>Ação</th></tr></thead><tbody>
-    {filtered.map(p=><tr key={p.id}><td><strong>{p.orderNumber}</strong><small>{p.kit.toUpperCase()} · {p.boxes} caixas</small></td><td>{p.name}<small>{p.city}/{p.state}</small></td><td><span className="status-pill">{statusName(p.shippingStatus)}</span></td><td>{p.trackingCode||"Etiqueta não cadastrada"}</td><td>{checkedDate(p.postalCheckedAt)}{p.postalIssue&&p.postalAttemptAt?<small>Última tentativa: {checkedDate(p.postalAttemptAt)}</small>:null}</td><td><button className="secondary-button compact" type="button" onClick={()=>setSelectedId(p.id)}>Acompanhar</button></td></tr>)}
+    {filtered.map(p=><tr key={p.id}><td><strong>{p.orderNumber}</strong><small>{p.source==="manual"?"Remessa manual · sem Asaas":p.kit.toUpperCase()} · {p.boxes} caixas</small></td><td>{p.name}<small>{p.city}/{p.state}</small></td><td><span className="status-pill">{statusName(p.shippingStatus)}</span></td><td>{p.trackingCode||"Etiqueta não cadastrada"}</td><td>{checkedDate(p.postalCheckedAt)}{p.postalIssue&&p.postalAttemptAt?<small>Última tentativa: {checkedDate(p.postalAttemptAt)}</small>:null}</td><td><button className="secondary-button compact" type="button" onClick={()=>setSelectedId(p.id)}>Acompanhar</button></td></tr>)}
     {!filtered.length?<tr><td colSpan={6}>Nenhum pedido encontrado para esta busca.</td></tr>:null}
     </tbody></table></div>
     {selected?<div className="bko-tracking-overlay" role="presentation" onClick={()=>setSelectedId(null)}><div className="bko-tracking-dialog" role="dialog" aria-modal="true" aria-labelledby="bko-tracking-heading" onClick={e=>e.stopPropagation()}>
       <div className="bko-tracking-head"><div><span className="section-kicker">RASTREAMENTO DO PEDIDO</span><h3 id="bko-tracking-heading">{selected.orderNumber} · {selected.name}</h3><small>{selected.kit.toUpperCase()} · {selected.city}/{selected.state}</small></div><button type="button" aria-label="Fechar acompanhamento" onClick={()=>setSelectedId(null)}>×</button></div>
       <p><strong>Etapa atual:</strong> {statusName(selected.shippingStatus)}</p>
+      {selected.source==="manual"?<p className="portal-form-help"><strong>Remessa manual, sem pagamento Asaas.</strong> {selected.stockCreditMode==="already_in_stock"?"Lançamento antigo: caixas já contabilizadas no saldo. A entrega não irá duplicar a entrada. Para aguardar a entrega sem disponibilizá-las, suspenda o saldo abaixo após conferir as vendas.":selected.shippingStatus==="delivered"?"Estoque liberado no recebimento.":"Caixas aguardando entrega: ainda não integram o estoque disponível do revendedor."}</p>:null}
       <p><strong>Etiqueta:</strong> {selected.trackingCode||"Aguardando cadastro"} {selected.carrier?`· ${selected.carrier}`:""}</p>
       <div className="bko-postal-result"><strong>Último evento dos Correios</strong><p>{selected.postalEvent||(selected.postalCheckedAt?"Consulta realizada; Correios ainda não retornaram evento.":"Ainda não há evento retornado pelos Correios.")}</p>{selected.postalEventAt?<small>Evento registrado em {checkedDate(selected.postalEventAt)}</small>:null}<small>Última consulta válida: {checkedDate(selected.postalCheckedAt)}</small>{selected.postalAttemptAt?<small>Última tentativa: {checkedDate(selected.postalAttemptAt)}</small>:null}{selected.postalIssue?<p role="status">Status da consulta: {selected.postalIssue}. O último evento válido foi preservado.</p>:null}</div>
-      <div className="crm-actions"><button type="button" className="secondary-button compact" onClick={()=>onStageChange(selected.id,"shipped")}>{selected.trackingCode?"Atualizar etiqueta":"Cadastrar etiqueta"}</button>{selected.shippingStatus==="shipped"?<button type="button" className="secondary-button compact" onClick={()=>{if(window.confirm("Confirma a entrega manual deste pedido?"))onStageChange(selected.id,"delivered")}}>Confirmar entrega manual</button>:null}</div>
+      <div className="crm-actions">{selected.shippingStatus!=="delivered"?<button type="button" className="secondary-button compact" onClick={()=>onStageChange(selected.id,"shipped")}>{selected.trackingCode?"Atualizar etiqueta":"Cadastrar etiqueta"}</button>:null}{selected.shippingStatus==="shipped"?<button type="button" className="secondary-button compact" onClick={()=>{if(window.confirm("Confirma a entrega desta remessa? O estoque manual será creditado uma única vez quando aplicável."))onStageChange(selected.id,"delivered")}}>Confirmar entrega manual</button>:null}{selected.source==="manual"&&selected.stockCreditMode==="already_in_stock"&&selected.shippingStatus!=="delivered"&&onSuspendLegacy?<button type="button" className="secondary-button compact" onClick={()=>{if(window.confirm(`Esta remessa antiga já está somada ao estoque. Suspender ${selected.boxes} caixas do saldo disponível até a entrega? Vendas já realizadas serão preservadas.`))onSuspendLegacy(selected.id,selected.availableStock||0)}}>Suspender saldo até a entrega</button>:null}</div>
       <small>Os eventos são consultados pela rotina de integração. Cadastrar a etiqueta não comprova a postagem.</small>
     </div></div>:null}
   </section>;
