@@ -14,9 +14,9 @@ export const metadata: Metadata = {
   referrer: "origin",
   applicationName: "LORD NUTRI Revendedores",
   icons: {
-    icon: [{ url: "/favicon-32.png?v=20261126-2", sizes: "32x32", type: "image/png" }, { url: "/icon.png?v=20261126-2", sizes: "512x512", type: "image/png" }],
-    shortcut: "/favicon.ico?v=20261126-2",
-    apple: [{ url: "/apple-icon.png?v=20261126-2", sizes: "512x512", type: "image/png" }],
+    icon: [{ url: "/favicon-32.png?v=20261126-3", sizes: "32x32", type: "image/png" }, { url: "/icon.png?v=20261126-3", sizes: "512x512", type: "image/png" }],
+    shortcut: "/favicon.ico?v=20261126-3",
+    apple: [{ url: "/apple-icon.png?v=20261126-3", sizes: "512x512", type: "image/png" }],
   },
   authors: [{ name: "LORD NUTRI" }],
   creator: "LORD NUTRI",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#000000" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#071F33" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="pt-BR"><body><TrafficAttribution />{children}</body></html>;

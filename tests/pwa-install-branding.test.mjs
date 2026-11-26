@@ -15,17 +15,17 @@ function imageInfo(relativePath) {
   return { width: png.readUInt32BE(16), height: png.readUInt32BE(20), colorType: png[25] };
 }
 
-test("PWA instala com fundo preto e ícone maskable apropriado à tela inicial", () => {
+test("PWA instala com marca sem fundo preto e ícone maskable apropriado", () => {
   const manifest = getManifest();
-  assert.equal(manifest.background_color, "#000000");
-  assert.equal(manifest.theme_color, "#000000");
+  assert.equal(manifest.background_color, "#F6F5F2");
+  assert.equal(manifest.theme_color, "#071F33");
   assert.equal(manifest.short_name, "LORD NUTRI");
   assert.ok(manifest.icons.some(icon => icon.purpose === "maskable" && icon.src.startsWith("/brand/lordnutri-maskable-icon-2026.png")));
   assert.ok(manifest.icons.some(icon => icon.purpose === "any" && icon.src.startsWith("/brand/lordnutri-app-icon-2026.png")));
 });
 
-test("ícones do Android e da Apple são quadrados e opacos para não criar fundo branco do sistema", () => {
+test("ícones do Android e da Apple são quadrados e RGBA com transparência", () => {
   for (const path of ["public/brand/lordnutri-app-icon-512.png", "app/icon.png", "app/apple-icon.png"]) {
-    assert.deepEqual(imageInfo(path), { width: 512, height: 512, colorType: 2 });
+    assert.deepEqual(imageInfo(path), { width: 512, height: 512, colorType: 6 });
   }
 });
