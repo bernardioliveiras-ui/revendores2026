@@ -110,6 +110,7 @@ async function migrateOperationalSchema() {
     \`total_value_cents\` int NOT NULL,
     \`channel\` varchar(40) NOT NULL DEFAULT 'other',
     \`customer_name\` varchar(120) NOT NULL DEFAULT '',
+    \`customer_phone\` varchar(24) NOT NULL DEFAULT '',
     \`notes\` varchar(1000) NOT NULL DEFAULT '',
     \`sold_at\` varchar(40) NOT NULL,
     \`created_at\` varchar(40) NOT NULL,
@@ -117,7 +118,7 @@ async function migrateOperationalSchema() {
     KEY \`idx_sales_user_date\` (\`user_id\`,\`sold_at\`), UNIQUE KEY \`uq_sales_user_request\` (\`user_id\`,\`client_request_id\`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
 
-  await addMissingColumns("sales", { client_request_id: "varchar(80) NULL" });
+  await addMissingColumns("sales", { client_request_id: "varchar(80) NULL", customer_phone: "varchar(24) NOT NULL DEFAULT ''" });
   try {
     await pool.query("CREATE UNIQUE INDEX `uq_sales_user_request` ON `sales` (`user_id`,`client_request_id`)");
   } catch (error) {

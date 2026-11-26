@@ -6,27 +6,28 @@ import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
 
-test("favicon dourado mantém fundo transparente e emblema centralizado", async () => {
+test("favicon 2026 tem fundo preto, ouro nítido e símbolo centralizado", async () => {
   for (const path of ["public/favicon.png", "public/favicon-32.png", "public/favicon-16.png"]) {
     const { data, info } = await sharp(fileURLToPath(new URL(path, root))).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     assert.equal(info.width, info.height, `${path}: deve ser quadrado`);
     let left = info.width, top = info.height, right = -1, bottom = -1;
     for (let y = 0; y < info.height; y++) {
       for (let x = 0; x < info.width; x++) {
-        if (data[(y * info.width + x) * info.channels + 3] < 24) continue;
+        const i=(y * info.width + x) * info.channels;
+        if (data[i] < 110 || data[i + 1] < 65 || data[i + 2] >= data[i]) continue;
         left = Math.min(left, x); top = Math.min(top, y);
         right = Math.max(right, x); bottom = Math.max(bottom, y);
       }
     }
     assert.ok(right > left && bottom > top, `${path}: símbolo dourado visível`);
-    assert.ok(data[3] === 0, `${path}: canto externo transparente`);
+    assert.deepEqual([...data.subarray(0,4)],[0,0,0,255], `${path}: fundo preto opaco`);
     assert.ok(Math.abs((left + right) / 2 - (info.width - 1) / 2) <= Math.max(2, info.width * 0.045), `${path}: ícone centralizado`);
-    assert.ok((right - left + 1) / info.width >= 0.6, `${path}: marca grande o bastante para ler na aba`);
+    assert.ok((right - left + 1) / info.width >= 0.53, `${path}: marca grande o bastante para ler na aba`);
   }
 });
 
 test("ícones instaláveis do Android e Apple têm fundo preto com emblema dourado centralizado", async () => {
-  for (const path of ["app/icon.png", "app/apple-icon.png", "public/brand/lordnutri-app-icon-512.png"]) {
+  for (const path of ["app/icon.png", "app/apple-icon.png", "public/brand/lordnutri-app-icon-2026.png"]) {
     const { data, info } = await sharp(fileURLToPath(new URL(path, root))).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     assert.equal(info.width, 512);
     assert.equal(info.height, 512);
@@ -44,11 +45,12 @@ test("ícones instaláveis do Android e Apple têm fundo preto com emblema doura
   }
 });
 
-test("metadados oferecem favicon PNG e ICO transparentes em vez do SVG legado", async () => {
+test("metadados oferecem favicon novo e versão para evitar cache antigo", async () => {
   const metadata = await readFile(new URL("app/layout.tsx", root), "utf8");
   const ico = await readFile(new URL("public/favicon.ico", root));
   assert.match(metadata, /\/favicon-32\.png/);
   assert.match(metadata, /\/favicon\.ico/);
+  assert.match(metadata, /20261126-2/);
   assert.doesNotMatch(metadata, /\/favicon\.svg/);
   assert.equal(ico.subarray(0, 4).toString("hex"), "00000100");
 });

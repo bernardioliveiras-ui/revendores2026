@@ -6,18 +6,22 @@ import { calculateStock } from "@/lib/stock";
 import { repairPaidPurchaseStockForUser } from "@/lib/stock-repair";
 
 import { ensureOperationalSchema } from "@/lib/runtime-schema";
+import { normalizeCustomerPhone } from "@/lib/reseller-clients.mjs";
 function clean(value: unknown, max = 120) { return typeof value === "string" ? value.trim().slice(0, max) : ""; }
 
 export async function POST(request: Request) {
   try {
     await requireAdmin(request);
     await ensureOperationalSchema();
-    const body = await request.json().catch(() => null) as { userId?: unknown; boxes?: unknown; unitValue?: unknown; channel?: unknown; customerName?: unknown; notes?: unknown; soldAt?: unknown };
+    const body = await request.json().catch(() => null) as { userId?: unknown; boxes?: unknown; unitValue?: unknown; channel?: unknown; customerName?: unknown; customerPhone?: unknown; notes?: unknown; soldAt?: unknown };
     if (!body || typeof body !== "object" || Array.isArray(body)) return Response.json({error:"Dados inválidos."},{status:400});
     if (body.soldAt && (typeof body.soldAt !== "string" || !/^\d{4}-\d{2}-\d{2}(T.*)?$/.test(body.soldAt) || !Number.isFinite(Date.parse(body.soldAt)))) return Response.json({error:"Informe uma data válida para a venda."},{status:400});
     const userId = clean(body.userId, 80);
     const boxes = Number(body.boxes);
     const unitValueCents = Math.round(Number(body.unitValue) * 100);
+    const customerName=clean(body.customerName,120);
+    const customerPhone=normalizeCustomerPhone(body.customerPhone);
+    if(body.customerPhone&&(!customerName||!customerPhone))return Response.json({error:"Informe nome e telefone válido do cliente."},{status:400});
     if (!userId || !Number.isSafeInteger(boxes) || boxes <= 0 || boxes > 2147483647 || !Number.isSafeInteger(unitValueCents) || unitValueCents < 0 || boxes * unitValueCents > 2147483647) {
       return Response.json({ error: "Informe revendedor, quantidade e valor válidos." }, { status: 400 });
     }
@@ -36,7 +40,7 @@ export async function POST(request: Request) {
       const stock = calculateStock(movements);
       if (stock < boxes) throw new Error("INSUFFICIENT_STOCK");
       remainingStock = stock - boxes;
-      await tx.insert(sales).values({ id: saleId, userId, boxes, unitValueCents, totalValueCents: boxes * unitValueCents, channel: clean(body.channel, 40) || "bko", customerName: clean(body.customerName, 120), notes: clean(body.notes, 1000), soldAt, createdAt: now });
+      await tx.insert(sales).values({ id: saleId, userId, boxes, unitValueCents, totalValueCents: boxes * unitValueCents, channel: clean(body.channel, 40) || "bko", customerName,customerPhone, notes: clean(body.notes, 1000), soldAt, createdAt: now });
       await tx.insert(stockMovements).values({ id: crypto.randomUUID(), userId, type: "sale", boxes, referenceType: "sale", referenceId: saleId, notes: `Venda registrada pelo BKO · ${clean(body.channel, 40) || "other"}`, occurredAt: soldAt, createdAt: now });
     });
     return Response.json({ created: true, id: saleId, remainingStock });

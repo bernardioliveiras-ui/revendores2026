@@ -8,7 +8,7 @@ export async function migrate(connection){
  try{
   for(const statement of ddl)await connection.query(statement);
   const additions={
-   sales:{client_request_id:'varchar(80) NULL'},
+   sales:{client_request_id:'varchar(80) NULL',customer_phone:"varchar(24) NOT NULL DEFAULT ''"},
    purchase_measurement:{activated_at:'varchar(40) NULL'},
    asaas_events:{purchase_id:'varchar(80) NULL'},
    purchases:{postal_event:'varchar(240) NULL',postal_event_at:'varchar(40) NULL',postal_checked_at:'varchar(40) NULL',postal_attempt_at:'varchar(40) NULL',postal_issue:'varchar(120) NULL',indicator_cashback_cents:'int NULL',campaign_id:'varchar(80) NULL',asaas_verified_at:'varchar(40) NULL',asaas_installment_id:'varchar(120) NULL',product_total_cents:'int NOT NULL DEFAULT 0',shipping_type:"varchar(20) NOT NULL DEFAULT ''",shipping_cents:'int NOT NULL DEFAULT 0',payment_method:"varchar(20) NOT NULL DEFAULT ''",installments:'int NOT NULL DEFAULT 1',installment_value_cents:'int NOT NULL DEFAULT 0',interest_cents:'int NOT NULL DEFAULT 0',welcome_status:"varchar(30) NOT NULL DEFAULT 'pending'",welcome_secret:'varchar(1000) NULL',welcome_iv:'varchar(40) NULL',welcome_sent_at:'varchar(40) NULL'},

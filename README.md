@@ -7,10 +7,22 @@ Projeto completo para GitHub e Hostinger. O site usa Next.js, Node 22 e MySQL/Ma
 | Perfil | Endereço após o deploy | O que a conta pode fazer |
 | --- | --- | --- |
 | Administração BKO | `/bko` | Gerenciar revendedores, influenciadores, pedidos, expedição, acessos, materiais e integrações. |
-| Revendedor | `/revendedor` | Consultar Visão geral, Estoque, Vendas, Manual do Revendedor, reposições e Meus Pedidos. |
+| Revendedor | `/revendedor` | Consultar Visão geral, Vendas, Clientes, Estoque, Manual do Revendedor, reposições e Meus Pedidos. |
 | Influenciador | `/influenciador` | Aceitar os termos, divulgar sua campanha e consultar suas conversões, vendas e cashback. |
 
 O login geral em `/entrar` identifica o perfil pela conta autenticada. Os endereços antigos `/painel` e `/minhas-indicacoes` encaminham para a área correspondente. O revendedor recebe acesso pelo fluxo do kit. O BKO cria o convite do influenciador. As páginas `/c/[código]` e `/v/[código]` são links comerciais individuais. O vídeo de boas-vindas pode usar `VSL_VIDEO_URL`, por exemplo `/videos/vsl-mix10.mp4`.
+
+## Atualização de 26/11/2026: Clientes, vendas mobile e favicon
+
+- **Revendedor → Vendas:** nome e telefone com DDD agora ficam visíveis e são exigidos no formulário. A quantidade desconta do estoque ao confirmar a venda. O valor por caixa permanece definido exclusivamente pelo BKO, não pelo revendedor.
+- **Revendedor → Clientes:** a lista mostra apenas contatos originados de vendas do próprio revendedor. Vendas com o mesmo número são agrupadas, com pesquisa e botão de conversa no WhatsApp. Não há cadastro manual separado. Vendas antigas sem telefone continuam no histórico, mas não aparecem como contato acionável até que o número exista em um registro de venda.
+- **BKO → Vendas do revendedor:** o administrador também pode informar nome e telefone em uma venda manual. Se informado, o contato entra na área Clientes daquele revendedor, sem duplicar saldo ou criar outro cadastro.
+- **Celular:** Vender, Clientes e Estoque estão na barra inferior. Meus Pedidos, Manual e Meu Perfil ficam em Mais. O nome de cada papel aparece ao lado do novo símbolo dourado.
+- **Favicon:** arquivo `.ico`, PNG 16/32, ícones Apple/Android e manifesto receberam a marca atualizada. Os metadados incluem versão para reduzir o cache da imagem antiga.
+
+**Publicação sem perda de dados:** faça backup do banco MySQL antes de atualizar. Na Hostinger, mantenha as variáveis `.env` existentes; `npm run db:migrate` (também chamado por `npm start`) adiciona a coluna `sales.customer_phone` de forma incremental. Não execute comandos de reset. Após o deploy, valide uma venda de teste no revendedor correto, a baixa de estoque e a inclusão em Clientes. Para verificar o favicon que ainda esteja no cache, abra uma aba anônima ou atualize o atalho instalado no celular.
+
+**Verificação nesta atualização:** build de produção e TypeScript aprovados; 479 testes passam, 11 testes legados de Asaas/BKO permanecem com falhas preexistentes em harness de teste. Não houve acesso nem mutação do banco de produção neste ambiente; o ciclo real de pagamento/Correios deve ser conferido após publicar.
 
 ## Verificar a conta Asaas
 

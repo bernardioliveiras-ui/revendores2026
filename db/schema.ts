@@ -159,6 +159,7 @@ export const sales = mysqlTable("sales", {
   totalValueCents: int("total_value_cents").notNull(),
   channel: varchar("channel", { length: 40 }).notNull().default("other"),
   customerName: varchar("customer_name", { length: 120 }).notNull().default(""),
+  customerPhone: varchar("customer_phone", { length: 24 }).notNull().default(""),
   notes: varchar("notes", { length: 1000 }).notNull().default(""),
   soldAt: varchar("sold_at", { length: 40 }).notNull(),
   createdAt: varchar("created_at", { length: 40 }).notNull(),

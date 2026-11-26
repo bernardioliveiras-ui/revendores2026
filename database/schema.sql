@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `manual_shipments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `sales` (
-  `id` varchar(80) NOT NULL, `user_id` varchar(80) NOT NULL, `client_request_id` varchar(80) DEFAULT NULL, `boxes` int NOT NULL, `unit_value_cents` int NOT NULL, `total_value_cents` int NOT NULL, `channel` varchar(40) NOT NULL DEFAULT 'other', `customer_name` varchar(120) NOT NULL DEFAULT '', `notes` varchar(1000) NOT NULL DEFAULT '', `sold_at` varchar(40) NOT NULL, `created_at` varchar(40) NOT NULL,
+  `id` varchar(80) NOT NULL, `user_id` varchar(80) NOT NULL, `client_request_id` varchar(80) DEFAULT NULL, `boxes` int NOT NULL, `unit_value_cents` int NOT NULL, `total_value_cents` int NOT NULL, `channel` varchar(40) NOT NULL DEFAULT 'other', `customer_name` varchar(120) NOT NULL DEFAULT '', `customer_phone` varchar(24) NOT NULL DEFAULT '', `notes` varchar(1000) NOT NULL DEFAULT '', `sold_at` varchar(40) NOT NULL, `created_at` varchar(40) NOT NULL,
   PRIMARY KEY (`id`), KEY `idx_sales_user_date` (`user_id`,`sold_at`), UNIQUE KEY `uq_sales_user_request` (`user_id`,`client_request_id`), CONSTRAINT `fk_sales_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { load, memoryDb, operators, table } from './runtime-loader.mjs';
+import { normalizeCustomerPhone } from '../lib/reseller-clients.mjs';
 
 const schema={users:table('id'),sales:table('userId','clientRequestId'),stockMovements:table('userId'),resellerSalePriceSettings:table('id'),resellerSalePriceHistory:table('id')};
 function setup(available=50,priceCents=10990){
  const fixture=memoryDb(schema,{users:[{id:'seller-1'}],stockMovements:[{id:'initial',userId:'seller-1',type:'entry',boxes:available}],resellerSalePriceSettings:[{id:1,priceCents}]});
  fixture.db.execute=async()=>[];
- const {POST}=load('app/api/sales/route.ts',{'drizzle-orm':{...operators,desc:()=>{},sql:()=>{}},'@/db':{getDb:()=>fixture.db},'@/db/schema':schema,'@/lib/auth':{requireSession:async()=>({id:'seller-1',role:'reseller'})},'@/lib/stock':load('lib/stock.ts'),'@/lib/stock-repair':{repairPaidPurchaseStockForUser:async()=>{}},'@/lib/runtime-schema':{ensureOperationalSchema:async()=>{}}});
+ const {POST}=load('app/api/sales/route.ts',{'drizzle-orm':{...operators,desc:()=>{},sql:()=>{}},'@/db':{getDb:()=>fixture.db},'@/db/schema':schema,'@/lib/auth':{requireSession:async()=>({id:'seller-1',role:'reseller'})},'@/lib/stock':load('lib/stock.ts'),'@/lib/stock-repair':{repairPaidPurchaseStockForUser:async()=>{}},'@/lib/runtime-schema':{ensureOperationalSchema:async()=>{}},'@/lib/reseller-clients.mjs':{normalizeCustomerPhone}});
  return {...fixture,POST};
 }
 const make=(data)=>new Request('https://lord.test/api/sales',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)});
@@ -21,6 +22,21 @@ test('mesmo requestId não duplica venda nem movimento',async()=>{
  const a=await s.POST(make(data));const b=await s.POST(make(data));
  assert.equal(a.status,200);assert.equal(b.status,200);assert.equal((await b.json()).created,false);
  assert.equal(s.rows.sales.length,1);assert.equal(s.rows.stockMovements.length,2);
+});
+test('venda com cliente salva telefone normalizado sem alterar preço ou saldo duas vezes',async()=>{
+ const s=setup();const sale={boxes:2,customerName:'Ana Silva',customerPhone:'+55 (11) 98888-7777',requestId:'a0011000-0000-4000-8000-000000000012'};
+ assert.equal((await s.POST(make(sale))).status,200);
+ assert.equal(s.rows.sales[0].customerName,'Ana Silva');
+ assert.equal(s.rows.sales[0].customerPhone,'11988887777');
+ assert.equal((await s.POST(make(sale))).status,200);
+ assert.equal(s.rows.sales.length,1);assert.equal(s.rows.stockMovements.length,2);
+});
+test('dados incompletos ou telefone inválido não criam venda nem baixam estoque',async()=>{
+ const s=setup();
+ for(const payload of [{customerName:'Ana'}, {customerPhone:'11988887777'}, {customerName:'Ana',customerPhone:'123'}]){
+  const response=await s.POST(make({boxes:1,...payload}));assert.equal(response.status,400);
+ }
+ assert.equal(s.rows.sales.length,0);assert.equal(s.rows.stockMovements.length,1);
 });
 test('vendas simultâneas acima do saldo são rejeitadas pelo lock',async()=>{
  const s=setup(3);const results=await Promise.all([s.POST(make({boxes:2,requestId:'a0011000-0000-4000-8000-000000000003'})),s.POST(make({boxes:2,requestId:'a0011000-0000-4000-8000-000000000004'}))]);

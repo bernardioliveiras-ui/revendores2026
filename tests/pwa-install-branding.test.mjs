@@ -20,8 +20,8 @@ test("PWA instala com fundo preto e ícone maskable apropriado à tela inicial",
   assert.equal(manifest.background_color, "#000000");
   assert.equal(manifest.theme_color, "#000000");
   assert.equal(manifest.short_name, "LORD NUTRI");
-  assert.ok(manifest.icons.some(icon => icon.purpose === "maskable" && icon.src === "/brand/lordnutri-app-icon-512.png"));
-  assert.ok(manifest.icons.some(icon => icon.purpose === "any" && icon.src === "/brand/lordnutri-app-icon-512.png"));
+  assert.ok(manifest.icons.some(icon => icon.purpose === "maskable" && icon.src.startsWith("/brand/lordnutri-maskable-icon-2026.png")));
+  assert.ok(manifest.icons.some(icon => icon.purpose === "any" && icon.src.startsWith("/brand/lordnutri-app-icon-2026.png")));
 });
 
 test("ícones do Android e da Apple são quadrados e opacos para não criar fundo branco do sistema", () => {

@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#000000",
     theme_color: "#000000",
     icons: [
-      { src: "/brand/lordnutri-app-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/brand/lordnutri-app-icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/brand/lordnutri-app-icon-2026.png?v=20261126-2", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/brand/lordnutri-maskable-icon-2026.png?v=20261126-2", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }

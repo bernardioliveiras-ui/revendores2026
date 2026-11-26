@@ -30,7 +30,7 @@ test('reseller replenishment creates an Asaas payment and paid webhook provision
 test('revendedor usa venda rápida com quantidade direta e preço exclusivo do BKO', async()=>{
   const src=await read('app/painel/portal-client.tsx');
   const quick=await read('components/reseller-quick-sale.tsx');
-  assert.match(src, /\[\["overview","Visão Geral"\],\["sales","Vendas"\],\["stock","Estoque"\],\["delivery","Meus Pedidos"\],\["manual","Manual do Revendedor"\],\["profile","Meu Perfil"\]\]/);
+  assert.match(src, /\[\["overview","Visão Geral"\],\["sales","Vendas"\],\["clients","Clientes"\],\["stock","Estoque"\],\["delivery","Meus Pedidos"\],\["manual","Manual do Revendedor"\],\["profile","Meu Perfil"\]\]/);
   assert.match(quick,/inputMode="numeric"/);
   assert.match(quick,/Saldo após a venda/);
   assert.match(quick,/definido pelo BKO/);
