@@ -153,6 +153,7 @@ export const manualShipments = mysqlTable("manual_shipments", {
 export const sales = mysqlTable("sales", {
   id: varchar("id", { length: 80 }).primaryKey(),
   userId: varchar("user_id", { length: 80 }).notNull(),
+  clientRequestId: varchar("client_request_id", { length: 80 }),
   boxes: int("boxes").notNull(),
   unitValueCents: int("unit_value_cents").notNull(),
   totalValueCents: int("total_value_cents").notNull(),
@@ -161,7 +162,24 @@ export const sales = mysqlTable("sales", {
   notes: varchar("notes", { length: 1000 }).notNull().default(""),
   soldAt: varchar("sold_at", { length: 40 }).notNull(),
   createdAt: varchar("created_at", { length: 40 }).notNull(),
-}, (table) => [index("idx_sales_user_date").on(table.userId, table.soldAt)]);
+}, (table) => [index("idx_sales_user_date").on(table.userId, table.soldAt),uniqueIndex("uq_sales_user_request").on(table.userId,table.clientRequestId)]);
+
+/** Configuração BKO singleton: preço utilizado exclusivamente por vendas registradas pelo revendedor. */
+export const resellerSalePriceSettings = mysqlTable("reseller_sale_price_settings", {
+  id: int("id").primaryKey(),
+  priceCents: int("price_cents").notNull().default(10990),
+  updatedBy: varchar("updated_by",{length:80}),
+  updatedAt: varchar("updated_at",{length:40}).notNull().default(""),
+});
+
+export const resellerSalePriceHistory = mysqlTable("reseller_sale_price_history", {
+  id: varchar("id",{length:80}).primaryKey(),
+  oldPriceCents: int("old_price_cents").notNull(),
+  newPriceCents: int("new_price_cents").notNull(),
+  reason: varchar("reason",{length:240}).notNull(),
+  changedBy: varchar("changed_by",{length:80}).notNull(),
+  changedAt: varchar("changed_at",{length:40}).notNull(),
+}, t=>[index("idx_sale_price_history_date").on(t.changedAt)]);
 
 export const affiliateReferrals = mysqlTable("affiliate_referrals", {
   id: varchar("id", { length: 80 }).primaryKey(),

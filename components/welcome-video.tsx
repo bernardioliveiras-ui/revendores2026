@@ -40,5 +40,5 @@ export function WelcomeVideo({ sourceUrl = "", embedUrl = "", videoUrl = "" }: {
   const candidate = sourceUrl || embedUrl || videoUrl;
   const safeEmbed = normalizedEmbed(candidate) || normalizedEmbed(embedUrl);
   const safeVideo = safeEmbed ? "" : normalizedVideo(candidate) || normalizedVideo(videoUrl);
-  return <div className="welcome-video">{safeEmbed ? <iframe src={safeEmbed} title="Boas-vindas da LORD NUTRI" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowFullScreen /> : safeVideo ? <video controls playsInline preload="metadata"><source src={safeVideo} /></video> : <div className="video-pending"><img src="/brand/lordnutri-logo.png" alt="LORD NUTRI GROUP" /><p>Boas-vindas à LORD NUTRI</p><span>O vídeo de boas-vindas pode ser configurado no BKO em Conteúdo → Mídia.</span></div>}</div>;
+  return <div className="welcome-video">{safeEmbed ? <iframe src={safeEmbed} title="Boas-vindas da LORD NUTRI" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowFullScreen /> : safeVideo ? <video controls playsInline preload="metadata"><source src={safeVideo} /></video> : <div className="video-pending"><img src="/brand/lordnutri-logo-2026.png" alt="LORD NUTRI GROUP" /><p>Boas-vindas à LORD NUTRI</p><span>O vídeo de boas-vindas pode ser configurado no BKO em Conteúdo → Mídia.</span></div>}</div>;
 }

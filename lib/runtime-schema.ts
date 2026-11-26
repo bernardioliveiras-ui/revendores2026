@@ -104,6 +104,7 @@ async function migrateOperationalSchema() {
   await pool.query(`CREATE TABLE IF NOT EXISTS \`sales\` (
     \`id\` varchar(80) NOT NULL,
     \`user_id\` varchar(80) NOT NULL,
+    \`client_request_id\` varchar(80) NULL,
     \`boxes\` int NOT NULL,
     \`unit_value_cents\` int NOT NULL,
     \`total_value_cents\` int NOT NULL,
@@ -113,7 +114,26 @@ async function migrateOperationalSchema() {
     \`sold_at\` varchar(40) NOT NULL,
     \`created_at\` varchar(40) NOT NULL,
     PRIMARY KEY (\`id\`),
-    KEY \`idx_sales_user_date\` (\`user_id\`,\`sold_at\`)
+    KEY \`idx_sales_user_date\` (\`user_id\`,\`sold_at\`), UNIQUE KEY \`uq_sales_user_request\` (\`user_id\`,\`client_request_id\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
+  await addMissingColumns("sales", { client_request_id: "varchar(80) NULL" });
+  try {
+    await pool.query("CREATE UNIQUE INDEX `uq_sales_user_request` ON `sales` (`user_id`,`client_request_id`)");
+  } catch (error) {
+    if (!(error && typeof error === "object" && "code" in error && error.code === "ER_DUP_KEYNAME")) throw error;
+  }
+
+  await pool.query(`CREATE TABLE IF NOT EXISTS \`reseller_sale_price_settings\` (
+    \`id\` int NOT NULL,\`price_cents\` int NOT NULL DEFAULT 10990,\`updated_by\` varchar(80) NULL,\`updated_at\` varchar(40) NOT NULL DEFAULT '',PRIMARY KEY (\`id\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+  await pool.query("INSERT IGNORE INTO reseller_sale_price_settings (id,price_cents,updated_at) VALUES (1,10990,'')");
+  await pool.query(`CREATE TABLE IF NOT EXISTS \`reseller_sale_price_history\` (
+    \`id\` varchar(80) NOT NULL,\`old_price_cents\` int NOT NULL,\`new_price_cents\` int NOT NULL,\`reason\` varchar(240) NOT NULL,\`changed_by\` varchar(80) NOT NULL,\`changed_at\` varchar(40) NOT NULL,
+    PRIMARY KEY (\`id\`), KEY \`idx_sale_price_history_date\` (\`changed_at\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS \`user_public_profiles\` (
+    \`user_id\` varchar(80) NOT NULL,\`bio\` varchar(160) NOT NULL DEFAULT '',\`avatar_mime\` varchar(24) NULL,\`avatar_bytes\` longblob NULL,\`updated_at\` varchar(40) NOT NULL DEFAULT '',PRIMARY KEY (\`user_id\`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
 
   await pool.query(`CREATE TABLE IF NOT EXISTS \`reseller_profiles\` (

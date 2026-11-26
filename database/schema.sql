@@ -85,8 +85,26 @@ CREATE TABLE IF NOT EXISTS `manual_shipments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `sales` (
-  `id` varchar(80) NOT NULL, `user_id` varchar(80) NOT NULL, `boxes` int NOT NULL, `unit_value_cents` int NOT NULL, `total_value_cents` int NOT NULL, `channel` varchar(40) NOT NULL DEFAULT 'other', `customer_name` varchar(120) NOT NULL DEFAULT '', `notes` varchar(1000) NOT NULL DEFAULT '', `sold_at` varchar(40) NOT NULL, `created_at` varchar(40) NOT NULL,
-  PRIMARY KEY (`id`), KEY `idx_sales_user_date` (`user_id`,`sold_at`), CONSTRAINT `fk_sales_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  `id` varchar(80) NOT NULL, `user_id` varchar(80) NOT NULL, `client_request_id` varchar(80) DEFAULT NULL, `boxes` int NOT NULL, `unit_value_cents` int NOT NULL, `total_value_cents` int NOT NULL, `channel` varchar(40) NOT NULL DEFAULT 'other', `customer_name` varchar(120) NOT NULL DEFAULT '', `notes` varchar(1000) NOT NULL DEFAULT '', `sold_at` varchar(40) NOT NULL, `created_at` varchar(40) NOT NULL,
+  PRIMARY KEY (`id`), KEY `idx_sales_user_date` (`user_id`,`sold_at`), UNIQUE KEY `uq_sales_user_request` (`user_id`,`client_request_id`), CONSTRAINT `fk_sales_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `reseller_sale_price_settings` (
+  `id` int NOT NULL, `price_cents` int NOT NULL DEFAULT 10990,
+  `updated_by` varchar(80) DEFAULT NULL, `updated_at` varchar(40) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `reseller_sale_price_history` (
+  `id` varchar(80) NOT NULL, `old_price_cents` int NOT NULL, `new_price_cents` int NOT NULL,
+  `reason` varchar(240) NOT NULL, `changed_by` varchar(80) NOT NULL, `changed_at` varchar(40) NOT NULL,
+  PRIMARY KEY (`id`), KEY `idx_sale_price_history_date` (`changed_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `user_public_profiles` (
+  `user_id` varchar(80) NOT NULL, `bio` varchar(160) NOT NULL DEFAULT '',
+  `avatar_mime` varchar(24) DEFAULT NULL, `avatar_bytes` longblob DEFAULT NULL,
+  `updated_at` varchar(40) NOT NULL DEFAULT '', PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `affiliate_referrals` (

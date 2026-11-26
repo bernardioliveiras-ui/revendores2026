@@ -654,3 +654,94 @@
   .bko-reseller-orders .purchase-actions { align-items:stretch; }
   .bko-order-delete-control { flex:1 1 100%; align-items:stretch; }
 }
+
+/* LORD NUTRI 2026 — Venda Rápida, preço controlado e perfil pessoal. */
+.quick-sale-layout { display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:20px;align-items:start; }
+.quick-sale-card,.quick-sale-history { min-width:0;border-radius:22px; }
+.quick-sale-card { background:linear-gradient(140deg,#ffffff,#fcfaf5);border:1px solid #e4d7bf;box-shadow:0 14px 38px rgba(14,36,54,.05);padding:clamp(20px,3vw,30px); }
+.quick-sale-card h2 { font-size:clamp(23px,2.4vw,31px);letter-spacing:-.035em;margin:6px 0 8px; }
+.quick-sale-hint { color:#617285;font-size:13px;line-height:1.6;margin:0 0 20px; }
+.quick-sale-stock { background:#0b2c43;color:#fff;border-radius:16px;padding:17px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px; }
+.quick-sale-stock>span { color:#d1dde5;font-size:13px;font-weight:650; }
+.quick-sale-stock strong { color:#f0d08b;font-size:clamp(30px,4vw,42px);letter-spacing:-.04em;white-space:nowrap; }
+.quick-sale-stock small { font-size:12px;color:#e8f0f3;letter-spacing:0; }
+.quick-sale-card>label { display:block;margin-bottom:10px;color:#15344a;font-weight:800;font-size:13px; }
+.quick-sale-counter { display:grid;grid-template-columns:65px minmax(0,1fr) 65px;gap:9px;align-items:stretch;margin-bottom:21px; }
+.quick-sale-counter button { border:1px solid #d7dfe5;background:#f9fafb;color:#0b2c43;border-radius:13px;font-size:29px;font-weight:750;min-height:64px;cursor:pointer; }
+.quick-sale-counter button:not(:disabled):hover { border-color:#bd9449;background:#fbf1de; }
+.quick-sale-counter button:disabled { opacity:.45;cursor:not-allowed; }
+.quick-sale-counter input { min-width:0;text-align:center;font-size:27px;font-weight:800;color:#0a2a40;background:#fff;border:1px solid #d7dfe5;border-radius:13px;min-height:64px;box-shadow:inset 0 2px 5px rgba(10,42,64,.02); }
+.quick-sale-counter input::-webkit-inner-spin-button,.quick-sale-counter input::-webkit-outer-spin-button { -webkit-appearance:none;margin:0; }
+.quick-sale-preview { display:grid;gap:0;border:1px solid #e8e2d5;border-radius:15px;overflow:hidden;background:#fff; }
+.quick-sale-preview>div { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #f1ece3; }
+.quick-sale-preview>div:last-child { border-bottom:0; }
+.quick-sale-preview span { color:#536778;font-size:13px;font-weight:600; }
+.quick-sale-preview span small { display:block;color:#97825f;font-size:11px;font-weight:500;margin-top:3px; }
+.quick-sale-preview strong { color:#102e43;font-size:18px;white-space:nowrap; }
+.quick-sale-preview .quick-sale-total { background:#f8f0dd; }
+.quick-sale-total strong { font-size:clamp(23px,3vw,30px);color:#0b2c43;letter-spacing:-.035em; }
+.quick-sale-options-toggle { display:block;margin:15px 0;width:100%;border:0;background:transparent;color:#6b5021;text-decoration:underline;text-underline-offset:3px;font-weight:750;cursor:pointer;text-align:left;min-height:38px; }
+.quick-sale-details { display:grid;gap:14px;padding:15px;background:#fff;border:1px solid #ebe3d5;border-radius:14px;margin-bottom:15px; }
+.quick-sale-details label { display:grid;gap:7px;color:#102e43;font-weight:700;font-size:12px; }
+.quick-sale-details input,.quick-sale-details select,.quick-sale-details textarea { min-width:0;width:100%;border:1px solid #dce2e6;border-radius:10px;padding:12px;font:inherit;font-size:16px; }
+.quick-sale-submit { display:block;width:100%;min-height:58px;border-radius:13px;font-size:16px;font-weight:850;background:#0b2c43;color:#fff; }
+.quick-sale-submit:disabled { opacity:.55;cursor:not-allowed; }
+.quick-sale-footnote { color:#627686;font-size:12px;text-align:center;line-height:1.55;margin:12px 0 0; }
+.quick-sale-history>.card-title { gap:12px;align-items:center; }
+.quick-sale-history>.card-title>span { border-radius:30px;background:#f6eedf;color:#745628;font-size:11px;padding:8px 10px;white-space:nowrap; }
+.quick-sale-history .sale-list { max-height:690px;overflow:auto; }
+.quick-sale-history .sale-list article { gap:14px; }
+.quick-sale-history .sale-list article>div:last-child { text-align:right; }
+.quick-sale-empty { padding:28px 14px;text-align:center;background:#f8f7f3;border-radius:12px;font-size:13px;color:#688; }
+
+.bko-sale-price { margin-bottom:21px; }
+.bko-sale-price>.card-title { display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap; }
+.bko-sale-price .card-title p { max-width:700px;font-size:13px;color:#5c6e7b;line-height:1.6; }
+.bko-price-current { align-self:center;color:#0b2c43;font-size:clamp(25px,3.2vw,36px);white-space:nowrap; }
+.bko-sale-price-form { display:grid;grid-template-columns:minmax(160px,1fr) minmax(200px,2fr) auto;gap:14px;align-items:end; }
+.bko-sale-price-form label { display:grid;gap:8px;color:#0b2c43;font-size:12px;font-weight:750; }
+.bko-sale-price-form input { width:100%;min-height:47px;max-width:100%;padding:10px 12px;border:1px solid #d7dfe6;border-radius:11px;font-size:16px; }
+.bko-sale-price-form button { min-height:47px;white-space:nowrap; }
+.bko-sale-price-audit { border-top:1px solid #e7e0d4;margin-top:18px;padding-top:15px;color:#465c6c; }
+.bko-sale-price-audit summary { cursor:pointer;font-size:13px;font-weight:700; }
+.bko-sale-price-audit .simple-table { margin-top:12px; }
+
+.lord-profile-editor { margin-bottom:18px;max-width:810px; }
+.lord-profile-editor>p { color:#5d7180;font-size:13px;line-height:1.6; }
+.lord-profile-picture-row { display:flex;align-items:center;gap:19px;flex-wrap:wrap;padding:18px 0 22px;border-bottom:1px solid #eae1d1;margin-bottom:22px; }
+.lord-profile-picture { width:104px;height:104px;flex:0 0 104px;border-radius:50%;border:3px solid #d9b977;background:#102e44;display:grid;place-items:center;color:#f1d391;font-size:38px;font-weight:800;overflow:hidden; }
+.lord-profile-picture img { display:block;width:100%;height:100%;object-fit:cover; }
+.lord-profile-picture-row>div:last-child { display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0; }
+.lord-profile-picture-row small { font-size:11px;color:#63778b; }
+.lord-profile-upload { position:relative;overflow:hidden;cursor:pointer;display:inline-flex;align-items:center; }
+.lord-profile-upload input { position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%; }
+.lord-profile-editor .portal-form { max-width:630px; }
+.lord-profile-editor .portal-form textarea { min-height:100px;width:100%;max-width:100%;padding:12px;font-size:16px; }
+.lord-profile-editor .portal-form small { margin-top:-7px;font-size:12px;color:#728597; }
+.lord-demo-avatar-img { width:100%;height:100%;display:block;object-fit:cover;border-radius:50%; }
+.lord-demo-user-avatar { overflow:hidden; }
+.lordnutri-logo:not(.brand-mark) img { filter:drop-shadow(0 2px 2px rgba(0,0,0,.18));image-rendering:auto; }
+/* Recorte visual do monograma dentro da própria imagem original, sem reamostrar a marca. */
+.compact-logo.brand-mark { overflow:hidden!important; }
+.compact-logo.brand-mark img { width:135%!important;height:135%!important;max-width:none!important;max-height:none!important;object-fit:contain;image-rendering:auto;transform:translate(-13%,-1%); }
+
+@media(max-width:980px){
+  .quick-sale-layout { grid-template-columns:1fr; }
+  .quick-sale-history .sale-list { max-height:none; }
+  .bko-sale-price-form { grid-template-columns:1fr 1fr; }
+  .bko-sale-price-form button { grid-column:1/-1;justify-self:start; }
+}
+@media(max-width:600px){
+  .quick-sale-layout { gap:15px; }
+  .quick-sale-card,.quick-sale-history { padding:18px 15px;border-radius:16px; }
+  .quick-sale-counter { grid-template-columns:58px minmax(0,1fr) 58px;gap:8px; }
+  .quick-sale-counter input,.quick-sale-counter button { min-height:58px; }
+  .quick-sale-stock { margin-bottom:20px; }
+  .quick-sale-preview>div { padding:12px; }
+  .quick-sale-preview strong { font-size:16px; }
+  .quick-sale-total strong { font-size:23px; }
+  .bko-sale-price-form { grid-template-columns:1fr; }
+  .bko-sale-price-form button { grid-column:auto;width:100%; }
+  .lord-profile-picture { width:90px;height:90px;flex-basis:90px; }
+  .lord-profile-editor { padding:18px 15px; }
+}

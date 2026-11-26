@@ -62,9 +62,11 @@ test('texto livre da notificação é visível e escapado sem HTML injetado',asy
  assert.doesNotMatch(html,/<teste>/);
 });
 
-test('sem edições o HTML da LP é idêntico ao ZIP recebido em 21/11/2026, incluindo formulário e simulador',async()=>{
+test('sem edições a LP mantém conteúdo, formulário e simulador originais, permitindo atualização da logo',async()=>{
  const {default:Home}=component('app/page.tsx',{'@/lib/landing-texts-store':{readPublishedLandingTexts:async()=>({})}});
- assert.equal(renderToStaticMarkup(await Home()),readFileSync(new URL('tests/fixtures/landing-2026-11-21-original.html',root),'utf8'));
+ const canonical=(html)=>html.replace(/<img\b(?=[^>]*alt="(?:LORD NUTRI GROUP|Símbolo LORD NUTRI)")[^>]*>/g,'<img data-brand="LORD NUTRI"/>')
+   .replace(/lordnutri-logo-(?:gold-v3|2026)\.png/g,'lordnutri-logo-current.png');
+ assert.equal(canonical(renderToStaticMarkup(await Home())),canonical(readFileSync(new URL('tests/fixtures/landing-2026-11-21-original.html',root),'utf8')));
 });
 
 test('texto editado é escapado e não substitui elementos ou estilos',async()=>{

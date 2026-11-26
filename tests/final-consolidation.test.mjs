@@ -27,11 +27,13 @@ test('reseller replenishment creates an Asaas payment and paid webhook provision
   assert.match(provision,/referenceId:\s*p\.id/);
 });
 
-test('reseller navigation uses the requested order and sales allow direct quantity entry', async()=>{
+test('revendedor usa venda rápida com quantidade direta e preço exclusivo do BKO', async()=>{
   const src=await read('app/painel/portal-client.tsx');
-  assert.match(src, /\[\["overview","Visão Geral"\],\["manual","Manual do Revendedor"\],\["stock","Estoque"\],\["sales","Vendas"\],\["delivery","Meus Pedidos"\],\["referrals","Indicações"\]\]/);
-  assert.match(src,/inputMode="numeric"/);
-  assert.match(src,/Digite a quantidade/);
+  const quick=await read('components/reseller-quick-sale.tsx');
+  assert.match(src, /\[\["overview","Visão Geral"\],\["sales","Vendas"\],\["stock","Estoque"\],\["delivery","Meus Pedidos"\],\["manual","Manual do Revendedor"\],\["profile","Meu Perfil"\]\]/);
+  assert.match(quick,/inputMode="numeric"/);
+  assert.match(quick,/Saldo após a venda/);
+  assert.match(quick,/definido pelo BKO/);
   assert.match(src,/Repor estoque e ir para o Asaas/);
 });
 

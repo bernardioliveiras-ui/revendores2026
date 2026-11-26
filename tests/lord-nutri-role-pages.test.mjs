@@ -12,10 +12,11 @@ test('influenciador usa cinco páginas exclusivas, com navegação por botões e
   assert.doesNotMatch(source,/<a href="#influencer-(overview|campaign|cashback|materials|profile)"/);
 });
 
-test('revendedor mantém cinco módulos da demonstração e indicações sem expor outros perfis', async () => {
+test('revendedor tem Meu Perfil e Venda Rápida sem tela de Indicações', async () => {
   const source = await readFile(new URL('../app/painel/portal-client.tsx',import.meta.url),'utf8');
-  assert.match(source,/\["referrals","Indicações"\]/);
-  assert.match(source,/view === "referrals"/);
+  assert.match(source,/\["profile","Meu Perfil"\]/);
+  assert.match(source,/ResellerQuickSale/);
+  assert.doesNotMatch(source,/\["referrals","Indicações"\]/);
   assert.match(source,/user\.role === "indicator"/);
 });
 

@@ -14,7 +14,7 @@ export function LandingPage({texts={}}:{texts?:LandingTexts}) {
   const organization = {
     "@context": "https://schema.org", "@type": "Organization",
     name: "LORD NUTRI", legalName: "LORD GROUP NETWORK EPP",
-    url: base, logo: `${base}/brand/lordnutri-logo-gold-v3.png`,
+    url: base, logo: `${base}/brand/lordnutri-logo-2026.png`,
     sameAs: ["https://mix10pro.com.br/lp-v2"],
   };
   return (

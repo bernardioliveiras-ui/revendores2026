@@ -34,7 +34,7 @@ export function PortalFrame({role,name,sections,active,onLogout,children}:{
   return <div className="ln-ui"><div className="app">
     {open && <button className="overlaymobile show" aria-label="Fechar menu" onClick={()=>{setOpen(false);opener.current?.focus();}}/>}
     <aside className={"sidebar"+(open?" open":"")} ref={side} id="ln-sidebar">
-      <div className="brand"><div className="brandmark"><img src="/brand/lordnutri-mark.png" alt="" width="58" height="58"/></div><div><b>LORD NUTRI</b><small>{label}</small></div></div>
+      <div className="brand"><div className="brandmark"><img src="/brand/lordnutri-logo-2026.png" alt="" width="58" height="58"/></div><div><b>LORD NUTRI</b><small>{label}</small></div></div>
       <div className="navgroup"><div className="navlabel">{role==="admin"?"Plataforma":"Meu portal"}</div>
       <nav aria-label={label}>{sections.map(item=>{
         const Icon=icons[item.id as keyof typeof icons]||FolderOpen;
