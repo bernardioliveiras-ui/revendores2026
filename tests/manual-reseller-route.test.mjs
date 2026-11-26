@@ -4,7 +4,7 @@ import { fixtureDb, loadNative, operators, table } from "./native-runtime-loader
 import { validateManualReseller } from "../lib/reseller-registration.mjs";
 
 const contact={name:"Carlos Almeida",email:"carlos@example.com",phone:"11988887777",cpfCnpj:"52998224725",postalCode:"01310100",street:"Av Paulista",number:"100",complement:"",district:"Bela Vista",city:"São Paulo",state:"SP"};
-const schema={users:table("id","email","role","status","name","phone"),resellerProfiles:table("id","userId","purchaseId","cpfCnpj","postalCode","initialKit","initialBoxes")};
+const schema={users:table("id","email","role","status","name","phone"),resellerProfiles:table("id","userId","purchaseId","cpfCnpj","postalCode","initialKit","initialBoxes"),stockMovements:table("id","userId","type","boxes","referenceType","referenceId","notes")};
 
 function setup() {
   const f=fixtureDb(schema);
@@ -31,7 +31,27 @@ test("manual BKO registration creates user and zero-stock address profile withou
   assert.equal(f.rows.users.length,1);assert.equal(f.rows.users[0].role,"reseller");assert.equal(f.rows.users[0].passwordHash,null);
   assert.equal(f.rows.resellerProfiles.length,1);assert.equal(f.rows.resellerProfiles[0].purchaseId,null);
   assert.equal(f.rows.resellerProfiles[0].initialBoxes,0);assert.equal(f.rows.resellerProfiles[0].initialKit,"manual");
+  assert.equal(f.rows.stockMovements.length,0);
   assert.equal(f.issued,1);assert.match(body.activationPath,/^\/ativar-revendedor/);
+});
+
+test("manual registration records 50 existing boxes once in the same inventory ledger",async()=>{
+  const f=setup();const response=await f.POST(f.request({...contact,initialBoxes:50}));
+  assert.equal(response.status,201);assert.equal(f.rows.users.length,1);
+  assert.equal(f.rows.resellerProfiles[0].initialBoxes,50);
+  assert.equal(f.rows.stockMovements.length,1);
+  const movement=f.rows.stockMovements[0];
+  assert.equal(movement.userId,f.rows.users[0].id);assert.equal(movement.type,"entry");
+  assert.equal(movement.boxes,50);assert.equal(movement.referenceType,"manual_initial_stock");
+  assert.equal(movement.referenceId,f.rows.resellerProfiles[0].id);
+  assert.equal((await f.POST(f.request({...contact,initialBoxes:50}))).status,409);
+  assert.equal(f.rows.stockMovements.length,1);
+});
+
+test("invalid initial stock cannot create account, stock movement or invitation",async()=>{
+  const f=setup();const response=await f.POST(f.request({...contact,initialBoxes:-3}));
+  assert.equal(response.status,400);assert.equal(f.rows.users.length,0);
+  assert.equal(f.rows.stockMovements.length,0);assert.equal(f.issued,0);
 });
 
 test("manual registration rejects missing Origin and repeated email, without changing a prior account",async()=>{

@@ -2,8 +2,8 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { applyPostalAddress } from "@/lib/reseller-form-draft.mjs";
 
-type Fields = {name:string;email:string;phone:string;cpfCnpj:string;postalCode:string;street:string;number:string;complement:string;district:string;city:string;state:string};
-const blank:Fields = {name:"",email:"",phone:"",cpfCnpj:"",postalCode:"",street:"",number:"",complement:"",district:"",city:"",state:""};
+type Fields = {name:string;email:string;phone:string;cpfCnpj:string;postalCode:string;street:string;number:string;complement:string;district:string;city:string;state:string;initialBoxes:string};
+const blank:Fields = {name:"",email:"",phone:"",cpfCnpj:"",postalCode:"",street:"",number:"",complement:"",district:"",city:"",state:"",initialBoxes:"0"};
 type Invitation = {url:string;expiresAt:string|null};
 
 export function ManualResellerRegistration({onCreated}:{onCreated:()=>Promise<void>}) {
@@ -24,11 +24,13 @@ export function ManualResellerRegistration({onCreated}:{onCreated:()=>Promise<vo
  async function submit(event:FormEvent<HTMLFormElement>) {
   event.preventDefault();if(busy)return;setBusy(true);setMessage("");setInvitation(null);
   try {
-   const response=await fetch("/api/admin/resellers",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(draft)});
+   const initialBoxes=Number(draft.initialBoxes);
+   if(!/^(0|[1-9]\d*)$/.test(draft.initialBoxes)||!Number.isSafeInteger(initialBoxes)||initialBoxes>2147483647)throw Error("Informe uma quantidade inteira e não negativa de caixas.");
+   const response=await fetch("/api/admin/resellers",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({...draft,initialBoxes})});
    const data=await response.json();if(!response.ok)throw Error(data.error||"Não foi possível cadastrar.");
    setDraft(blank);await onCreated();
    if(data.activationPath)setInvitation({url:location.origin+data.activationPath,expiresAt:data.expiresAt||null});
-   setMessage(data.activationPath?"Revendedor cadastrado com estoque zero. Envie o convite de ativação em privado.":data.notice||"Cadastro criado. Gere um convite na lista.");
+   setMessage(data.activationPath?`Revendedor cadastrado com ${initialBoxes} caixa(s) no estoque. Envie o convite de ativação em privado.`:data.notice||"Cadastro criado. Gere um convite na lista.");
   }catch(error){setMessage(error instanceof Error?error.message:"Erro no cadastro.")}
   finally{setBusy(false)}
  }
@@ -37,7 +39,7 @@ export function ManualResellerRegistration({onCreated}:{onCreated:()=>Promise<vo
   try{await navigator.clipboard.writeText(invitation.url);setMessage("Convite copiado. Envie somente ao titular.")}
   catch{setMessage("Não foi possível copiar. Selecione e copie o link.")}
  }
- return <section className="portal-card"><div className="card-title"><div><span className="section-kicker">NOVO REVENDEDOR</span><h2>Cadastro manual, sem compra de kit</h2><p className="portal-form-help">Este cadastro não gera cobrança, estoque ou pedido Asaas. O frete será calculado na futura reposição.</p></div></div>
+ return <section className="portal-card"><div className="card-title"><div><span className="section-kicker">NOVO REVENDEDOR</span><h2>Cadastro manual, sem compra de kit</h2><p className="portal-form-help">Informe as caixas que o revendedor já possui. O estoque será registrado e aparecerá automaticamente no portal. Não será gerada cobrança ou pedido Asaas; o frete será calculado apenas na futura reposição.</p></div></div>
   <form className="portal-form" onSubmit={submit}>
    <label>Nome completo<input required minLength={2} maxLength={120} value={draft.name} onChange={set("name")} autoComplete="name"/></label>
    <label>E-mail<input required type="email" maxLength={254} value={draft.email} onChange={set("email")} autoComplete="email"/></label>
@@ -51,6 +53,7 @@ export function ManualResellerRegistration({onCreated}:{onCreated:()=>Promise<vo
    <label>Bairro<input required maxLength={120} value={draft.district} onChange={set("district")}/></label>
    <label>Cidade<input required maxLength={120} value={draft.city} onChange={set("city")} autoComplete="address-level2"/></label>
    <label>UF<input required maxLength={2} value={draft.state} onChange={set("state")} autoComplete="address-level1" placeholder="SP"/></label>
+   <label>Estoque atual (caixas disponíveis)<input required type="number" min="0" max="2147483647" step="1" inputMode="numeric" value={draft.initialBoxes} onChange={set("initialBoxes")}/><small>Quantidade física já em mãos. Deixe 0 se ainda não houver caixas; não cria pedido nem cobrança.</small></label>
    <button className="primary-button compact" disabled={busy}>{busy?"Cadastrando…":"Cadastrar revendedor"}</button>
   </form>
   {message?<p role="status" className="portal-form-help">{message}</p>:null}

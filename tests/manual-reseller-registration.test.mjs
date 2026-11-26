@@ -15,8 +15,19 @@ test("manual registration canonicalizes all address fields and CPF", () => {
   assert.deepEqual(validate(valid), {value: {
     name: "Maria Silva", email: "maria@example.com", phone: "11988887777", cpfCnpj: "52998224725",
     postalCode: "01310100", street: "Avenida Paulista", number: "100", complement: "Sala 7",
-    district: "Bela Vista", city: "São Paulo", state: "SP",
+    district: "Bela Vista", city: "São Paulo", state: "SP", initialBoxes: 0,
   }});
+});
+
+test("manual registration accepts an actual starting stock of 50 boxes", () => {
+  assert.equal(validate({...valid,initialBoxes:50}).value?.initialBoxes,50);
+});
+
+test("manual registration rejects malformed, negative or overflowing stock", () => {
+  for (const initialBoxes of [-1,1.5,"10",null,Number.NaN,2147483648]) {
+    const result=validate({...valid,initialBoxes});
+    assert.match(result.error||"",/estoque/i,String(initialBoxes));
+  }
 });
 
 test("CNPJ is supported and optional complement defaults to blank", () => {

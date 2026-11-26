@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb, getMysqlPool } from "@/db";
-import { authSessions, resellerProfiles, users } from "@/db/schema";
+import { authSessions, resellerProfiles, stockMovements, users } from "@/db/schema";
 import { isAdminEmail, normalizeEmail, requireAdmin } from "@/lib/auth";
 import { ensureOperationalSchema } from "@/lib/runtime-schema";
 import { validateResellerEdit } from "@/lib/reseller-edit-validation.mjs";
@@ -19,7 +19,7 @@ function sameOrigin(request:Request) {
   } catch {return false;}
 }
 
-/** Registro administrativo, sem venda, criação de cobrança ou estoque inicial. */
+/** Registro administrativo sem venda/cobrança; estoque físico pré-existente é auditado. */
 export async function POST(request:Request) {
  try {
   const actor=await requireAdmin(request);
@@ -29,12 +29,13 @@ export async function POST(request:Request) {
   if(parsed.error)return Response.json({error:parsed.error},{status:400,headers:privateResponseHeaders});
   await ensureOperationalSchema();
   const profile=parsed.value!;
-  const now=new Date().toISOString(),userId=crypto.randomUUID();
+  const now=new Date().toISOString(),userId=crypto.randomUUID(),profileId=crypto.randomUUID();
   await getDb().transaction(async tx=>{
    const [existing]=await tx.select({id:users.id}).from(users).where(eq(users.email,profile.email)).limit(1).for("update");
    if(existing)throw new Error("EMAIL_TAKEN");
    await tx.insert(users).values({id:userId,name:profile.name,email:profile.email,phone:profile.phone,role:"reseller",status:"active",passwordHash:null,mustChangePassword:0,createdAt:now,updatedAt:now});
-   await tx.insert(resellerProfiles).values({id:crypto.randomUUID(),userId,purchaseId:null,cpfCnpj:profile.cpfCnpj,postalCode:profile.postalCode,street:profile.street,number:profile.number,complement:profile.complement,district:profile.district,city:profile.city,state:profile.state,initialKit:"manual",initialBoxes:0,createdAt:now});
+   await tx.insert(resellerProfiles).values({id:profileId,userId,purchaseId:null,cpfCnpj:profile.cpfCnpj,postalCode:profile.postalCode,street:profile.street,number:profile.number,complement:profile.complement,district:profile.district,city:profile.city,state:profile.state,initialKit:"manual",initialBoxes:profile.initialBoxes,createdAt:now});
+   if(profile.initialBoxes>0)await tx.insert(stockMovements).values({id:crypto.randomUUID(),userId,type:"entry",boxes:profile.initialBoxes,referenceType:"manual_initial_stock",referenceId:profileId,notes:`Estoque físico informado no cadastro manual pelo BKO · ${actor.id}`,occurredAt:now,createdAt:now});
   });
   console.info("bko_manual_reseller_created",{actorId:actor.id,userId,at:now});
   try{return Response.json({created:true,userId,...await issueResellerInvitation(userId)},{status:201,headers:privateResponseHeaders});}

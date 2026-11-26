@@ -4,6 +4,7 @@ import { affiliateReferrals, purchases, resellerProfiles, sales, stockMovements,
 import { requireAdmin } from "@/lib/auth";
 import { repairPaidPurchaseStockForAllResellers } from "@/lib/stock-repair";
 import { countPendingResellerAccess, segmentPurchases } from "@/lib/purchase-segments.mjs";
+import { groupManualStockHistory } from "@/lib/admin-stock-history.mjs";
 
 import { ensureOperationalSchema } from "@/lib/runtime-schema";
 function signed(type: string, boxes: number) { if (type === "entry" || type === "adjustment_in") return boxes; if (type === "sale" || type === "adjustment_out") return -boxes; return 0; }
@@ -37,6 +38,7 @@ export async function GET(request: Request) {
     const verifiedChannels = segmentPurchases(asaasVerified);
     const stockByUser = new Map<string, number>();
     for (const row of stockRows) stockByUser.set(row.userId, (stockByUser.get(row.userId) || 0) + signed(row.type, row.boxes));
+    const stockHistoryByUser = groupManualStockHistory(stockRows);
     const soldByUser = new Map<string, number>();
     const grossByUser = new Map<string, number>();
     for (const row of saleRows) {
@@ -60,7 +62,7 @@ export async function GET(request: Request) {
     return Response.json({
       metrics,
       purchases: purchaseRows,
-      resellers: userRows.filter((u) => u.role === "reseller").map((u) => ({ id: u.id, email: u.email, name: u.name, phone: u.phone, status: u.status, activated:Boolean(u.passwordHash), createdAt: u.createdAt, registrationType:manualProfiles.has(u.id)?"manual":"asaas", city:profileByUser.get(u.id)?.city||"", state:profileByUser.get(u.id)?.state||"", stock: stockByUser.get(u.id) || 0, soldBoxes: soldByUser.get(u.id) || 0, grossSalesCents: grossByUser.get(u.id) || 0 })),
+      resellers: userRows.filter((u) => u.role === "reseller").map((u) => ({ id: u.id, email: u.email, name: u.name, phone: u.phone, status: u.status, activated:Boolean(u.passwordHash), createdAt: u.createdAt, registrationType:manualProfiles.has(u.id)?"manual":"asaas", city:profileByUser.get(u.id)?.city||"", state:profileByUser.get(u.id)?.state||"", stock: stockByUser.get(u.id) || 0, stockAdjustments:stockHistoryByUser.get(u.id)||[], soldBoxes: soldByUser.get(u.id) || 0, grossSalesCents: grossByUser.get(u.id) || 0 })),
       sales: saleRows,
       referrals: referralRows,
     }, { headers: { "cache-control": "no-store" } });
